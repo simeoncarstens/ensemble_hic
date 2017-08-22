@@ -2,10 +2,51 @@ import numpy as np
 
 from rexfw.statistics.writers import ConsoleStatisticsWriter
 
+def parse_config_file(config_file):
 
-def setup_weights(initial_state_params, n_structures):
+    import ConfigParser
 
-    weights_string = initial_state_params['weights']
+    config = ConfigParser.ConfigParser()
+    config.read(config_file)
+    
+    def config_section_map(section):
+        dict1 = {}
+        options = config.options(section)
+        for option in options:
+            try:
+                dict1[option] = config.get(section, option)
+            except:
+                dict1[option] = None
+        return dict1
+
+    return {section: config_section_map(section) for section in config.sections()}    
+
+def make_posterior(settings):
+
+    from isd2.pdf.posteriors import Posterior
+    from ensemble_hic.setup_functions import make_priors, make_likelihood
+
+    n_beads = int(settings['general']['n_beads'])
+    n_structures = int(settings['general']['n_structures'])
+    priors = make_priors(settings['nonbonded_prior'],
+                         settings['backbone_prior'],
+                         settings['sphere_prior'],
+                         n_beads, n_structures)
+    bead_radii = priors['nonbonded_prior'].bead_radii
+    likelihood = make_likelihood(settings['forward_model'],
+                                 settings['general']['error_model'],
+                                 settings['data_filtering'],
+                                 settings['general']['data_file'],
+                                 n_structures, bead_radii)
+
+    full_posterior = Posterior({likelihood.name: likelihood}, priors)
+
+    return make_conditional_posterior(full_posterior, settings)
+
+def setup_weights(settings):
+
+    weights_string = settings['initial_state']['weights']
+    n_structures = int(settings['general']['n_structures'])
     try:
         weights = float(weights_string)
         weights = np.ones(n_structures) * weights
@@ -127,23 +168,22 @@ def setup_initial_state(initial_state_params, posterior):
     return init_state
     
 
-def make_conditional_posterior(posterior, initial_state_params,
-                               variables):
+def make_conditional_posterior(posterior, settings):
 
-    variables = variables.split(',')
+    variables = settings['general']['variables'].split(',')
     variables = [x.strip() for x in variables]
-    
+    p = posterior
+
     if 'norm' in variables and 'weights' in variables:
         raise NotImplementedError('Can\'t estimate both norm and weights!')
     elif 'norm' in variables:
-        p = posterior
         n_structures = p.likelihoods['ensemble_contacts'].forward_model.n_structures
-        return posterior.conditional_factory(weights=np.ones(n_structures))
+        return p.conditional_factory(weights=np.ones(n_structures))
     elif 'weights' in variables:
-        return posterior.conditional_factory(norm=1.0)
+        return p.conditional_factory(norm=1.0)
     else:
-        return posterior.conditional_factory(norm=initial_state_params['norm'],
-                                             weights=initial_state_params['weights'])
+        return p.conditional_factory(norm=settings['initial_state']['norm'],
+                                     weights=settings['initial_state']['weights'])
     
 def make_priors(nonbonded_prior_params, backbone_prior_params,
                 sphere_prior_params, n_beads, n_structures):
@@ -185,18 +225,18 @@ def make_likelihood(forward_model_params, error_model, data_filtering_params,
     disregard_lowest = data_filtering_params['disregard_lowest']
     ignore_sequential_neighbors = int(data_filtering_params['ignore_sequential_neighbors'])
     data = np.loadtxt(data_file, dtype=int)
-    data = data[np.argsort(data[:,0])]
+    data = data[np.argsort(data[:,2])]
     data = data[int(disregard_lowest * len(data)):]
-    data = data[np.abs(data[:,1] - data[:,2]) > ignore_sequential_neighbors]
+    data = data[np.abs(data[:,0] - data[:,1]) > ignore_sequential_neighbors]
     cd_factor = float(forward_model_params['contact_distance_factor'])
-    contact_distances = (bead_radii[data[:,1]] + bead_radii[data[:,2]]) * cd_factor
+    contact_distances = (bead_radii[data[:,0]] + bead_radii[data[:,1]]) * cd_factor
         
     FWM = EnsembleContactsFWM('fwm', n_structures, contact_distances,
                               cutoff=10000.0, data_points=data)
 
     if error_model == 'poisson':
         from .error_models import PoissonEM
-        EM = PoissonEM('ensemble_contacts_em', data[:,0])
+        EM = PoissonEM('ensemble_contacts_em', data[:,2])
     else:
         raise(NotImplementedError)
 

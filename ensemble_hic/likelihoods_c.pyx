@@ -55,14 +55,14 @@ def calculate_gradient(double [:,:,:] structures,
         em_derivative = lognormal_derivative
 
     for u in range(n_datapoints):
-        i = data_points[u,1]
-        j = data_points[u,2]
+        i = data_points[u,0]
+        j = data_points[u,1]
         for k in range(n_structures):
             d = 0.0
             for l in range(3):
                 d += (structures[k,i,l] - structures[k,j,l]) ** 2
             d = sqrt(d)
-            f = 0.5 * em_derivative(md[u], data_points[u,0]) * weights[k] * smooth_steepness / (1.0 + smooth_steepness * smooth_steepness * (cds[u] - d) * (cds[u] - d)) ** 1.5 / d
+            f = 0.5 * em_derivative(md[u], data_points[u,2]) * weights[k] * smooth_steepness / (1.0 + smooth_steepness * smooth_steepness * (cds[u] - d) * (cds[u] - d)) ** 1.5 / d
             for l in range(3):
                 value = (structures[k,j,l] - structures[k,i,l]) * f
                 result[k * n_beads * 3 + i * 3 + l] += value 

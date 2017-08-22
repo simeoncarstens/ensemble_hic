@@ -53,7 +53,7 @@ def make_data(data_file):
     rv_indices = rv_beads_RFs[:,0]
     
     counts = extended_data_matrix[2:,2:]
-    data = [[counts[i,j], fw_indices[i], rv_indices[j]]
+    data = [[fw_indices[i], rv_indices[j], counts[i,j]]
             for i in range(len(fw_indices))
             for j in range(len(rv_indices)) if counts[i,j] > -1]
 
@@ -75,7 +75,7 @@ if __name__ == '__main__':
     import os
 
     data_set = 'GM12878'
-    # data_set = 'K562'
+    data_set = 'K562'
     
     data_path = os.path.expanduser('~/projects/ensemble_hic/data/bau2011/')
     data, extended_5C_matrix = make_data(data_path + '{}.txt'.format(data_set))

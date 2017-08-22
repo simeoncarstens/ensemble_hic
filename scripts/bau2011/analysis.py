@@ -1,68 +1,88 @@
-import numpy, os
-os.chdir(os.path.expanduser('~/projects/hic/py/hicisd2/ensemble_scripts/bau5C_test/'))
-import matplotlib.pyplot as plt
-from misc import kth_diag_indices, make_poisson_posterior
+import os
+import sys
+import numpy as np
+from mpi4py import MPI
+from cPickle import dump
+import ConfigParser
 
-dataset = 'K562'
-dataset = 'GM12878'
+from isd2.pdf.posteriors import Posterior
+    
+from ensemble_hic.setup_functions import make_priors, make_likelihood
+from ensemble_hic.setup_functions import make_conditional_posterior, make_subsamplers
+from ensemble_hic.setup_functions import setup_initial_state, setup_weights
 
-n_structures = 5
-n_replicas = 80
-ens_size = 200 * 67.5
-variables = 'sn'
-em = 'poisson'
-smooth_steepness = 10.0
-sim_name = 'bau5C_isn2_3rdrootradii_smallersphere_betatempering_{}_{}_{}'.format(dataset, em, variables)
+n_replicas = size - 1
+target_replica = n_replicas
 
-sim_path = '/scratch/scarste/ensemble_hic/{}_{}structures_{}replicas/'.format(sim_name, n_structures, n_replicas)
-schedule = numpy.load(sim_path + 'schedule.pickle')['lammda']
+config = ConfigParser.ConfigParser()
+config.read(sys.argv[1])
 
-data_file = os.path.expanduser('~/projects/hic/data/bau2011/{}.txt'.format(dataset))
-n_beads = 70
+def config_section_map(section):
+    dict1 = {}
+    options = config.options(section)
+    for option in options:
+        try:
+            dict1[option] = config.get(section, option)
+        except:
+            dict1[option] = None
+    return dict1
 
-U = numpy.array([numpy.load(sim_path + 'energies/replica{}.npy'.format(i+1)) for i in range(len(schedule))]).T
-pacc = numpy.loadtxt(sim_path + 'statistics/re_stats.txt', dtype=float)[-1,1:]
+general_params = config_section_map('general')
+forward_model_params = config_section_map('forward_model')
+sphere_prior_params = config_section_map('sphere_prior')
+nonbonded_prior_params = config_section_map('nonbonded_prior')
+backbone_prior_params = config_section_map('backbone_prior')
+data_filtering_params = config_section_map('data_filtering')
+initial_state_params = config_section_map('initial_state')
+replica_params = config_section_map('replica')
+structures_hmc_params = config_section_map('structures_hmc')
+weights_hmc_params = config_section_map('weights_hmc')
+    
+
+n_structures = int(config.get('general', 'n_structures'))
+n_beads = int(config.get('general', 'n_beads'))
+data_file = config.get('general', 'data_file')
+    
+priors = make_priors(nonbonded_prior_params,
+                     backbone_prior_params,
+                     sphere_prior_params,
+                     n_beads, n_structures)
+bead_radii = priors['nonbonded_prior'].bead_radii
+likelihood = make_likelihood(forward_model_params,
+                             general_params['error_model'],
+                             data_filtering_params,
+                             data_file, n_structures, bead_radii)
+posterior = Posterior({likelihood.name: likelihood}, priors)
+posterior['lammda'].set(lammda)
+posterior['beta'].set(beta)
+
+variables = general_params['variables']
+initial_state_params['weights'] = setup_weights(initial_state_params,
+                                                n_structures)
+posterior = make_conditional_posterior(posterior, initial_state_params, variables)
+
+output_folder = general_params['output_folder']
+if output_folder[-1] != '/':
+    output_folder += '/'
+
+U = numpy.array([numpy.load(output_folder + 'energies/replica{}.npy'.format(i+1)) for i in range(len(schedule))]).T
+pacc = numpy.loadtxt(output_folder + 'statistics/re_stats.txt', dtype=float)[-1,1:]
+
 if True:
     from hicisd2.hicisd2lib import load_samples, load_sr_samples
 
     if True:
-        samples = load_sr_samples(sim_path + 'samples/',
+        samples = load_sr_samples(output_folder + 'samples/',
                                   n_replicas,
-                                  2101, 100,
+                                  20001, 100,
                                   burnin=0000)
         samples = samples[None,:]
-    if 'k2' in samples[-1,-1].variables:
-        k2s = numpy.array([x.variables['k2'] for x in samples.ravel()])
     if 'weights' in samples[-1,-1].variables:
         weights = numpy.array([x.variables['weights'] for x in samples.ravel()])
     if 'norm' in samples[-1,-1].variables:
         norms = numpy.array([x.variables['norm'] for x in samples.ravel()])
 
-if em == 'poisson':
-    p = make_poisson_posterior(n_structures,
-                               data_file,
-                               n_beads=n_beads,
-                               smooth_steepness=smooth_steepness, beta=1.0,
-                               disregard_lowest=0.0, lammda=1.0,
-                               contact_distance=1.5,
-                               k_ve=50.0, k2=100.0,
-                               ignore_sequential_neighbors=2,
-                               include_zero_counts=True,
-                               k_bb=1000.0)
-    
-
-if variables == 'sw':
-    p = p.conditional_factory(norm=1.0, k2=100.0)
-elif variables == 'sn':
-    p = p.conditional_factory(weights=numpy.ones(n_structures), k2=100.0)
-elif variables == 's':
-    p = p.conditional_factory(weights=numpy.ones(n_structures),
-                              norm=ens_size/float(n_structures),
-                              k2=100.0)
-elif variables == 'sk2':
-    p = p.conditional_factory(weights=numpy.ones(n_structures),
-                              norm=ens_size/float(n_structures))
-data = p.likelihoods['contacts'].forward_model.data_points
+data = posterior.likelihoods['contacts'].forward_model.data_points
 
 
 fig = plt.figure()

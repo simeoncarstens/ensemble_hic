@@ -22,7 +22,7 @@ def ensemble_contacts_evaluate(double [:,:,:] structures, double [:] weights,
                                double [:] contact_distances, 
                                double alpha, Py_ssize_t [:,:] data_points,
                                double cutoff):
-
+ 
     cdef Py_ssize_t N = len(structures)
     cdef Py_ssize_t K = len(structures[0])
     cdef Py_ssize_t n_data_points = len(data_points)
@@ -31,8 +31,8 @@ def ensemble_contacts_evaluate(double [:,:,:] structures, double [:] weights,
     cdef double [:] res = numpy.zeros(n_data_points)
 
     for m in range(n_data_points):
-        i = data_points[m,1]
-        j = data_points[m,2]
+        i = data_points[m,0]
+        j = data_points[m,1]
         for k in range(N):
             d = 0.0
             for l in range(3):
