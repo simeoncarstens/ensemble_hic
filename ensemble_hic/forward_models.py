@@ -41,7 +41,7 @@ class EnsembleContactsFWM(AbstractForwardModel):
 
         if numpy.std(weights) == 0.0:
             weights = numpy.ones(self.n_structures) * norm
-        
+
         return ensemble_contacts_evaluate(X,
                                           weights,
                                           self['contact_distances'].value, 

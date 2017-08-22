@@ -128,3 +128,15 @@ else:
 
     slave.listen()
         
+
+if not True:
+    import sys
+    sys.argv[1]='bau2011/config.cfg'
+    size=10
+    rank=9
+    n_replicas = size-1
+
+    L=posterior.likelihoods['ensemble_contacts']
+    fwm=L.forward_model
+
+    

@@ -64,7 +64,7 @@ class PoissonEM(AbstractErrorModel):
 
         mock_data = variables['mock_data']
         d_counts = self.data
-        
+
         return -mock_data.sum() + numpy.sum(d_counts * numpy.log(mock_data))
 
     def _evaluate_gradient(self, **variables):
@@ -109,4 +109,3 @@ class LognormalEM(AbstractErrorModel):
         copy.set_fixed_variables_from_pdf(self)
         
         return copy
-

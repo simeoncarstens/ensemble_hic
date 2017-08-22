@@ -40,26 +40,3 @@ def ensemble_contacts_evaluate(double [:,:,:] structures, double [:] weights,
             res[m] += ens_smooth(contact_distances[m] - sqrt(d), alpha) * weights[k]
 
     return numpy.array(res)
-
-
-def ensemble_contacts_evaluate_contribution(double [:,:] structure,
-                                            double [:] contact_distances, 
-                                            double alpha,
-                                            Py_ssize_t [:,:] data_points, 
-                                            double cutoff):
-
-    cdef Py_ssize_t n_data_points = len(data_points)
-    cdef Py_ssize_t i, j, l, m
-    cdef double d
-    cdef double [:] res = numpy.zeros(n_data_points)
-
-    for m in range(n_data_points):
-        i = data_points[m,1]
-        j = data_points[m,2]
-
-        d = 0.0
-        for l in range(3):
-            d += (structure[i,l] - structure[j,l]) * (structure[i,l] - structure[j,l])
-        res[m] += ens_smooth(contact_distances[m] - sqrt(d), alpha)
-
-    return numpy.array(res)

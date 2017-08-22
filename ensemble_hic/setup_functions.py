@@ -187,7 +187,7 @@ def make_likelihood(forward_model_params, error_model, data_filtering_params,
     data = np.loadtxt(data_file, dtype=int)
     data = data[np.argsort(data[:,0])]
     data = data[int(disregard_lowest * len(data)):]
-    data = data[np.abs(data[:,2] - data[:,1]) > ignore_sequential_neighbors]
+    data = data[np.abs(data[:,1] - data[:,2]) > ignore_sequential_neighbors]
     cd_factor = float(forward_model_params['contact_distance_factor'])
     contact_distances = (bead_radii[data[:,1]] + bead_radii[data[:,2]]) * cd_factor
         
@@ -196,7 +196,7 @@ def make_likelihood(forward_model_params, error_model, data_filtering_params,
 
     if error_model == 'poisson':
         from .error_models import PoissonEM
-        EM = PoissonEM('ensemble_contacts_em', data[:,2])
+        EM = PoissonEM('ensemble_contacts_em', data[:,0])
     else:
         raise(NotImplementedError)
 
