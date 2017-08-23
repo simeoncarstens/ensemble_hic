@@ -6,7 +6,7 @@ from isd2.pdf.posteriors import Posterior
     
 from ensemble_hic.setup_functions import parse_config_file, make_posterior
 from ensemble_hic.setup_functions import setup_weights
-from ensemble_hic.anaysis_functions import load_sr_samples
+from ensemble_hic.analysis_functions import load_sr_samples
 
 config_file = '/scratch/scarste/ensemble_hic/protein_1pga_1shf_mpdata_es100_sigma0.05/config.cfg'
 config_file = '/scratch/scarste/ensemble_hic/bau5C_test/config.cfg'

@@ -1,0 +1,11 @@
+syntax: glob
+
+*.pyc
+*~
+*.orig
+*.aux
+*.out
+*.log
+*.c
+*.so
+*.sh
