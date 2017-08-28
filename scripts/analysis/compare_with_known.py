@@ -18,31 +18,30 @@ config = parse_config_file(config_file)
 
 n_structures = int(config['general']['n_structures'])
 n_replicas = 80
-n_samples = int(config['general']['n_samples']) + 1
+n_samples = int(config['replica']['n_samples']) + 1
 burnin = 10000
-save_figures = False
+save_figures = True
 
 data_file = config['general']['data_file']
+data_file = data_file[-data_file[::-1].find('/'):]
 fnames = [data_file[:4], data_file[5:9]]
 
-knowns = [StructureParser(data_dir + fname1 + '.pdb').parse().get_coordinates(['CA'])]
-if fname2 == 'none':
-    knowns.append(StructureParser(data_dir + fname2 + '.pdb').parse().get_coordinates(['CA']))
+knowns = [StructureParser(data_dir + fnames[0] + '.pdb').parse().get_coordinates(['CA'])]
+if fnames[1] != 'none':
+    knowns.append(StructureParser(data_dir + fnames[1] + '.pdb').parse().get_coordinates(['CA']))
 knowns = np.array(knowns) / 3.8
 
 output_folder = config['general']['output_folder']
 samples = load_sr_samples(output_folder + 'samples/', n_replicas, n_samples, 
-                          config['replica']['dump_interval'],
+                          int(config['replica']['samples_dump_interval']),
                           burnin=burnin)
-ens = np.array([sample.variables['structures'].reshape(-1, len(known1), 3)
+ens = np.array([sample.variables['structures'].reshape(-1, len(knowns[0]), 3)
                 for sample in  samples])
 ens_flat = ens.reshape(ens.shape[0] * ens.shape[1], -1, 3)
 
 figures_folder = output_folder + 'analysis/compare_to_known/'
-if not os.path.exists(output_folder + 'analysis'):
-    os.makedirs(directory)
 if not os.path.exists(figures_folder):
-    os.makedirs(directory)
+    os.makedirs(figures_folder)
 
 if True:
     ## plot histograms of RMSDs to known structures
@@ -53,13 +52,13 @@ if True:
 
     fig = plt.figure()
     for i, known in enumerate(knowns):
-        ax = fig.add_subplot(len(knowns),1,1)
-        ax.hist(rmsds1, bins=len(ens_flat))
+        ax = fig.add_subplot(len(knowns),1,i+1)
+        ax.hist(rmsds[i], bins=np.linspace(0.5,6,np.sqrt(len(ens_flat))))
         ax.set_xlabel('RMSD to ' + fnames[i])
-        ax.set_xlim((min_rmsd, max_rmsd))
+        ax.set_xlim((0.3, 4.0))
     
     fig.tight_layout()
     if save_figures:
-        plt.savefig(figures_folder + 'compare_to_known/RMSDs.pdf')
+        plt.savefig(figures_folder + 'RMSDs.pdf')
     else:
         plt.show()

@@ -6,6 +6,7 @@ from sklearn.cluster import spectral_clustering
 from csb.bio.utils import rmsd, distance_matrix, radius_of_gyration
 from scipy.cluster.vq import kmeans2
 from scipy.spatial.distance import pdist, squareform
+import matplotlib.pyplot as plt
 
 from ensemble_hic.setup_functions import parse_config_file
 from ensemble_hic.analysis_functions import load_sr_samples
@@ -16,8 +17,8 @@ if True:
     settings = parse_config_file(config_file)
     n_replicas = 80
     target_replica = n_replicas
-    n_samples = settings['replica']['n_samples']
-    dump_interval = settings['replica']['dump_interval']
+    n_samples = int(settings['replica']['n_samples'])
+    dump_interval = int(settings['replica']['samples_dump_interval'])
     burnin = 10000
 
     output_folder = settings['general']['output_folder']
@@ -33,17 +34,17 @@ if True:
     if 'norm' in samples[-1,-1].variables:
         norms = np.array([x.variables['norm'] for x in samples.ravel()])
 
-    ens = np.array([sample.variables['structures'].reshape(n_structures, -1, 3) for sample in  samples[-1,::5]])
+    ens = np.array([sample.variables['structures'].reshape(n_structures, -1, 3) for sample in  samples[-1,::25]])
 else:
     ens = np.load('ensemble.npy')
 
 cmethod = 'spectral'
-save_figures = False
+save_figures = True
+n_rows = 1
+n_cols = 2
 figures_folder = output_folder + 'analysis/clustering/'
-if not os.path.exists(output_folder + 'analysis'):
-    os.makedirs(directory)
 if not os.path.exists(figures_folder):
-    os.makedirs(directory)
+    os.makedirs(figures_folder)
     
 
 def spectral_clustering_RMSDs(ens, n_clusters_range):
@@ -51,19 +52,17 @@ def spectral_clustering_RMSDs(ens, n_clusters_range):
     all_labels = []
     all_silhouette_scores = []
     
-    ens_flat = ens.reshape(ens.shape[0] * ens.shape[1], -1, 3)
-    rmsds = squareform([rmsd(ens_flat[i], ens_flat[j])
-                        for i in range(len(ens_flat))
-                        for j in range(i+1, len(ens_flat))])
+    rmsds = squareform([rmsd(ens[i], ens[j])
+                        for i in range(len(ens))
+                        for j in range(i+1, len(ens))])
     for n_clusters in n_clusters_range:
-        print "Running spectral clustering for k={} clusters...".format(n_clusters)
         labels = spectral_clustering(np.exp(-rmsds/10.0), n_clusters=n_clusters,
                                      eigen_solver='arpack')
         all_labels.append(labels)
         all_silhouette_scores.append(silhouette_score(np.exp(-rmsds/10.0),
                                                       labels))
     best_index = np.argmax(all_silhouette_scores)
-    best_labels = all_labels[all_best_index]
+    best_labels = all_labels[best_index]
     n_counts = [(k,np.sum(best_labels==k)) for k in range(max(best_labels)+1)]
     n_counts.sort(lambda a, b: cmp(a[1],b[1]))
     n_counts.reverse()
@@ -79,7 +78,6 @@ def kmeans_clustering_distances(ens, n_clusters_range):
     all_silhouette_scores = []
     dms = np.array([pdist(x) for X in ens for x in X])
     for n_clusters in n_clusters_range:
-        print "Running kmeans for k={} clusters...".format(n_clusters)
         _, labels = kmeans2(dms, n_clusters, 50, check_finite=False)
         all_labels.append(labels)
         all_silhouette_scores.append(silhouette_score(dms, labels))
@@ -90,7 +88,7 @@ def kmeans_clustering_distances(ens, n_clusters_range):
     n_counts.sort(lambda a, b: cmp(a[1],b[1]))
     n_counts.reverse()
     mapping  = {b[0]: a for a, b in enumerate(n_counts)}
-    best_labels = np.array(map(mapping.__getitem__, all_best_labels))
+    best_labels = np.array(map(mapping.__getitem__, best_labels))
 
     all_ddms = np.array([[np.linalg.norm(dms[i] - dms[j])
                           for j in range(len(dms))]
@@ -104,9 +102,9 @@ if True:
     ## cluster all structures
     n_clusters_range = range(2, 20)
     if cmethod == 'spectral':
-        sh_scores, best_labels, dmatrix = spectral_clustering_RMSDs(ens, n_clusters_range)
+        sh_scores, best_labels, dmatrix = spectral_clustering_RMSDs(ens.reshape(ens.shape[0] * ens.shape[1], -1, 3), n_clusters_range)
     if cmethod == 'kmeans':
-        sh_scores, best_labels, dmatrix = kmeans_clustering_RMSDs(ens, n_clusters_range)
+        sh_scores, best_labels, dmatrix = kmeans_clustering_RMSDs(ens.reshape(ens.shape[0] * ens.shape[1], -1, 3), n_clusters_range)
     fig = plt.figure()
     ax = fig.add_subplot(121)
     ax.bar(n_clusters_range, sh_scores)
@@ -141,9 +139,9 @@ if True:
 
     fig = plt.figure()
     for slot in range(n_structures):
-        ax = fig.add_subplot(4, 5, slot + 1)
+        ax = fig.add_subplot(n_rows, n_cols, slot + 1)
         n_clusters = max(results[slot][1])
-        H = np.histogram(best_labels[slot], bins=range(n_clusters))
+        H = np.histogram(results[slot][1], bins=range(n_clusters + 1))
         ax.bar(range(n_clusters), H[0])
         ax.set_xlabel('cluster label')
         ax.set_xticks(range(n_clusters))
@@ -156,11 +154,11 @@ if True:
 
     fig = plt.figure()
     for slot in range(n_structures):
-        ax = fig.add_subplot(4, 5, slot + 1)
+        ax = fig.add_subplot(n_rows, n_cols, slot + 1)
         dmatrix = results[slot][2]
         indices = np.argsort(results[slot][1])
         sorted_dmatrix = np.take(np.take(dmatrix, indices, 1), indices, 0) 
-        ax.matshow(sorted_ddms)
+        ax.matshow(sorted_dmatrix)
         ax.set_xticks([])
         ax.set_yticks([])
         ax.set_title('slot #{}'.format(slot))    
@@ -173,7 +171,7 @@ if True:
 
     fig = plt.figure()
     for slot in range(n_structures):
-        ax = fig.add_subplot(4, 5, slot + 1)
+        ax = fig.add_subplot(n_rows, n_cols, slot + 1)
         ax.bar(n_clusters_range, results[slot][0])
         ax.set_xticks(n_clusters_range)
         ax.set_xlabel('# of clusters')
