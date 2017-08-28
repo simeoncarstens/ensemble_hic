@@ -8,10 +8,13 @@ from ensemble_hic.setup_functions import parse_config_file, make_posterior
 from ensemble_hic.setup_functions import setup_weights
 from ensemble_hic.analysis_functions import load_sr_samples
 
-config_file = '/scratch/scarste/ensemble_hic/protein_1pga_1shf_mpdata_es100_sigma0.05/config.cfg'
-config_file = '/scratch/scarste/ensemble_hic/bau5C_test/config.cfg'
+config_file = '/scratch/scarste/ensemble_hic/proteins/1ubq_2ma1_poisson_radius0.5_2structures_s_80replicas/config.cfg'
+# config_file = '/scratch/scarste/ensemble_hic/proteins/1pga_1shf_maxwell_poisson_es100_sigma0.05_radius0.5_4structures_s_40replicas/config.cfg'
+# config_file = '/scratch/scarste/ensemble_hic/proteins/1pga_1shf_maxwell_poisson_es100_sigma0.05_4structures_sn_40replicas/config.cfg'
+# config_file = '/scratch/scarste/ensemble_hic/bau5C_test/config.cfg'
+# config_file = '/scratch/scarste/ensemble_hic/hairpin_s/hairpin_s_littlenoise_radius10_2structures_sn_20replicas/config.cfg'
 settings = parse_config_file(config_file)
-n_replicas = 40
+n_replicas = 80
 target_replica = n_replicas
 
 
@@ -31,8 +34,8 @@ variables = p.variables
 L = posterior.likelihoods['ensemble_contacts']
 data = L.forward_model.data_points
 
-samples = load_sr_samples(output_folder + 'samples/', n_replicas, 20001, 100,
-                          burnin=0000)
+samples = load_sr_samples(output_folder + 'samples/', n_replicas, 40001, 100,
+                          burnin=5000)
 samples = samples[None,:]
 if 'weights' in samples[-1,-1].variables:
     weights = np.array([x.variables['weights'] for x in samples.ravel()])
@@ -46,7 +49,7 @@ if True:
 
     ax = fig.add_subplot(321)
     energies = [np.load(output_folder + 'energies/replica{}.npy'.format(i+1))
-                for i in range(len(schedule))]
+                for i in range(len(schedule['lammda']))]
     energies = np.array(energies).T
     plt.plot(energies.sum(1))
     plt.xlabel('MC samples?')
