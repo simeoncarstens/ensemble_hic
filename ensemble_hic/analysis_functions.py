@@ -5,10 +5,10 @@ def load_samples(samples_folder, n_replicas, n_samples,
 
     samples = []
     for i in xrange(1, n_replicas + 1):
-        samples += load_sr_samples(samples_folder, i, n_samples, dump_interval,
-                                   burnin, interval)
+        samples.append(load_sr_samples(samples_folder, i, n_samples, dump_interval,
+                                       burnin, interval))
         
-    return np.array(samples)[:,start::interval]
+    return np.array(samples)
 
 def load_sr_samples(samples_folder, replica_id, n_samples,
                     dump_interval, burnin, interval=1):
@@ -23,11 +23,13 @@ def load_sr_samples(samples_folder, replica_id, n_samples,
     
     return np.array(samples[start::interval])
 
-def write_ensemble(X, filename):
+def write_ensemble(X, filename, center=True):
 
     from csb.bio.structure import Atom, ProteinResidue, Chain, Structure, Ensemble
     from csb.bio.sequence import ProteinAlphabet
-    import string
+
+    if center:
+        X -= X.mean(1)[:,None,:]
     
     ensemble = Ensemble()
 
@@ -44,5 +46,23 @@ def write_ensemble(X, filename):
             structure.chains['A'].residues.append(residue)
 
         ensemble.models.append(structure)
-        
     ensemble.to_pdb(filename)
+
+def write_VMD_script(ensemble_pdb_file, bead_radii, output_file):
+
+    lines = ['color Display Background white',
+             'menu main on',
+             'menu graphics on',
+             'mol load pdb {}'.format(ensemble_pdb_file),
+             'mol color Index',
+             'mol delrep 0 0',
+             'mol representation VDW',
+             'mol addrep 0'
+            ]
+
+    for i, r in enumerate(bead_radii):
+        lines.append('set sel [atomselect top "index {}"]'.format(i))
+        lines.append('$sel set radius {}'.format(r))
+
+    with open(output_file,'w') as opf:
+        [opf.write(line + '\n') for line in lines]

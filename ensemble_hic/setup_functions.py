@@ -208,11 +208,15 @@ def make_priors(nonbonded_prior_params, backbone_prior_params,
                         lower_limits=bb_ll, upper_limits=bb_ul,
                         k_bb=float(backbone_prior_params['force_constant']),
                         n_structures=n_structures)
-    SP = SpherePrior('sphere_prior',
-                     sphere_radius=float(sphere_prior_params['radius']),
-                     sphere_k=float(sphere_prior_params['force_constant']),
-                     n_structures=n_structures)
-    priors = {NBP.name: NBP, BBP.name: BBP, SP.name: SP}
+    priors = {NBP.name: NBP, BBP.name: BBP}
+    if (not 'active' in sphere_prior_params) or sphere_prior_params['active'] == 'True':
+        SP = SpherePrior('sphere_prior',
+                         sphere_radius=float(sphere_prior_params['radius']),
+                         sphere_k=float(sphere_prior_params['force_constant']),
+                         n_structures=n_structures)
+        with open('/usr/users/scarste/doof.txt', 'w') as opf:
+            opf.write('asdfasdf')
+        priors.update(**{SP.name: SP})
 
     return priors
 

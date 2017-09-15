@@ -20,7 +20,10 @@ settings = parse_config_file(config_file)
 comm = MPICommunicator()
 
 re_params = settings['replica']
-schedule = make_replica_schedule(re_params, n_replicas)
+if re_params['schedule'] == '':
+    schedule = make_replica_schedule(re_params, n_replicas)
+else:
+    schedule = np.load(re_params['schedule'])
 
 if rank == 0:
 
@@ -61,14 +64,11 @@ else:
     
     from ensemble_hic.setup_functions import make_posterior, make_subsamplers
     from ensemble_hic.setup_functions import setup_initial_state, setup_weights
-        
-    lammda = schedule['lammda'][rank - 1]
-    beta   = schedule['beta'][rank - 1]
 
     settings['initial_state']['weights'] = setup_weights(settings)    
     posterior = make_posterior(settings)
-    posterior['lammda'].set(lammda)
-    posterior['beta'].set(beta)
+    for replica_parameter in schedule:
+        posterior[replica_parameter].set(schedule[replica_parameter][rank - 1])
 
     initial_state = setup_initial_state(settings['initial_state'], posterior)
     subsamplers = make_subsamplers(posterior, initial_state.variables,

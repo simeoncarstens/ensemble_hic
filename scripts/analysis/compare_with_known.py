@@ -53,7 +53,7 @@ if True:
     fig = plt.figure()
     for i, known in enumerate(knowns):
         ax = fig.add_subplot(len(knowns),1,i+1)
-        ax.hist(rmsds[i], bins=np.linspace(0.5,6,np.sqrt(len(ens_flat))))
+        ax.hist(rmsds[i], bins=np.linspace(0.0,6,np.sqrt(len(ens_flat))))
         ax.set_xlabel('RMSD to ' + fnames[i])
         ax.set_xlim((0.3, 4.0))
     
