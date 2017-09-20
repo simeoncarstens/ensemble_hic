@@ -20,7 +20,7 @@ settings = parse_config_file(config_file)
 comm = MPICommunicator()
 
 re_params = settings['replica']
-if re_params['schedule'] == '':
+if re_params['schedule'] in ('linear', 'exponential'):
     schedule = make_replica_schedule(re_params, n_replicas)
 else:
     schedule = np.load(re_params['schedule'])

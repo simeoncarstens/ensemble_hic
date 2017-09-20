@@ -7,8 +7,8 @@ from csb.bio.utils import rmsd, radius_of_gyration
 from ensemble_hic.setup_functions import parse_config_file, make_posterior
 from ensemble_hic.analysis_functions import load_sr_samples
 
-n_replicas = 40
-burnin = 10000
+n_replicas = 106
+burnin = 20000
 save_figures = not True
     
 if not True:
@@ -16,10 +16,10 @@ if not True:
     config_file_K562 = sys.argv[2]
 else:
     path = '/scratch/scarste/ensemble_hic/bau2011/'
-    # config_file_GM12878 = path + 'GM12878_10structures_s_79replicas_bl0_tempering_nosphere_expsched3/config.cfg'
-    # config_file_K562 = path + 'K562_10structures_s_79replicas_bl0_tempering_nosphere_expsched3/config.cfg'
-    config_file_GM12878 = path + 'GM12878_8structures_sn_40replicas/config.cfg'
-    config_file_K562 = path + 'K562_8structures_sn_40replicas/config.cfg'
+    config_file_GM12878 = path + 'GM12878_10structures_s_106replicas_nosphere_optsched3/config.cfg'
+    config_file_K562 = path + 'K562_10structures_s_106replicas_nosphere_optsched3/config.cfg'
+    # config_file_GM12878 = path + 'GM12878_8structures_sn_40replicas/config.cfg'
+    # config_file_K562 = path + 'K562_8structures_sn_40replicas/config.cfg'
         
 PR = 0  # contains promoter
 AG = 1  #          active gene
@@ -53,7 +53,7 @@ for cfg in (config_file_GM12878, config_file_K562):
                               int(config['replica']['samples_dump_interval']),
                               burnin=burnin)
     ens = np.array([sample.variables['structures'].reshape(-1, n_beads, 3)
-                    for sample in  samples])
+                    for sample in samples])
 
     figures_folder = output_folder + 'analysis/bio_validation/'
     if not os.path.exists(figures_folder):
@@ -73,29 +73,27 @@ for cfg in (config_file_GM12878, config_file_K562):
     ## is transcribed. In GM12878, it is repressed and they measure
     ## longer distances
 
-    ens = np.array([x.variables['structures'].reshape(n_structures, n_beads, 3)
-                       for x in samples[::10]]).reshape(-1,n_beads,3)
-    ens -= ens.mean(1)[:,None,:]
+    ens_flat = ens[::10].reshape(-1, n_beads, 3)
     rgs = np.array(map(radius_of_gyration, ens))
-    if True:
+    if not True:
         ## use only structures below radius of gyration threshold
         ## This excludes stretched structures with little contacts
         from csb.bio.utils import radius_of_gyration
         rg_threshold = bead_radii.mean() * 8
-        ens = ens[rgs < rg_threshold]
+        ens_flat = ens_flat[rgs < rg_threshold]
     
-    HS40_aglobin_distances = np.sqrt(np.sum((ens[:,HS40_bead] - ens[:,aglobin_bead])**2, 1))
+    HS40_aglobin_distances = np.sqrt(np.sum((ens_flat[:,HS40_bead] - ens_flat[:,aglobin_bead])**2, 1))
     
     ## now estimate density along the fiber
     bead_radii = posterior.priors['nonbonded_prior'].bead_radii
     density_cutoff = bead_radii.mean() * 3
     densities = []
     for i in range(n_beads):
-        ds = np.sqrt(np.sum((ens[:,i][:,None] - ens) ** 2, 2))
-        densities.append(sum(ds < density_cutoff) / float(len(ens) * n_beads))
+        ds = np.sqrt(np.sum((ens_flat[:,i][:,None] - ens_flat) ** 2, 2))
+        densities.append(sum(ds < density_cutoff) / float(len(ens_flat) * n_beads))
     
     ## calculate and distances between alpha-globin bead and all others
-    ag_all_ds = np.sqrt(np.sum((ens[:,aglobin_bead][:,None] - ens) ** 2, 2))
+    ag_all_ds = np.sqrt(np.sum((ens_flat[:,aglobin_bead][:,None] - ens_flat) ** 2, 2))
 
     if data_set == 'K562':
         ds_K562 = HS40_aglobin_distances
@@ -109,7 +107,6 @@ for cfg in (config_file_GM12878, config_file_K562):
 
 fig = plt.figure()
 ax = fig.add_subplot(221)
-#ax.boxplot(np.vstack((ds_K562, ds_GM12878)).T)
 bpl = ax.boxplot([ds_K562, ds_GM12878], notch=True, patch_artist=True)
 ax.set_xticklabels(['K562', 'GM12878'])
 colors = ['red', 'blue']

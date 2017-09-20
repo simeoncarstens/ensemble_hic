@@ -55,30 +55,49 @@ def setup_weights(settings):
 
     return weights
 
+def expspace(min, max, a, N):
+
+    g = lambda n: (max - min) / (np.exp(a*(N-1.0)) - 1.0) * (np.exp(a*(n-1.0)) - 1.0) + float(min)
+    
+    return np.array(map(g, np.arange(1, N+1)))
+
 def make_replica_schedule(replica_params, n_replicas):
 
-    lambda_min = float(replica_params['lambda_min'])
-    lambda_max = float(replica_params['lambda_max'])
-    beta_min = float(replica_params['beta_min'])
-    beta_max = float(replica_params['beta_max'])
-    separate_prior_annealing = True if replica_params['separate_prior_annealing'] == 'True' else False
+    l_min = float(replica_params['lambda_min'])
+    l_max = float(replica_params['lambda_max'])
+    b_min = float(replica_params['beta_min'])
+    b_max = float(replica_params['beta_max'])
+    
+    if replica_params['schedule'] == 'linear':
+        if replica_params['separate_prior_annealing'] == 'True':
+            separate_prior_annealing = True
+        else:
+            separate_prior_annealing = False
 
-    if separate_prior_annealing:
-        beta_chain = np.arange(0, np.floor(n_replicas / 2))
-        lambda_chain = np.arange(np.floor(n_replicas / 2), n_replicas)
-        lambdas = np.concatenate((np.zeros(len(beta_chain)) + lambda_min,
-                                  np.linspace(lambda_min, lambda_max,
-                                              len(lambda_chain))))
-        betas = np.concatenate((np.linspace(beta_min, beta_max,
-                                            len(beta_chain)),
-                                np.zeros(len(lambda_chain)) + beta_max))
-        schedule = {'lammda': lambdas, 'beta': betas}
+        if separate_prior_annealing:
+            b_chain = np.arange(0, np.floor(n_replicas / 2))
+            l_chain = np.arange(np.floor(n_replicas / 2), n_replicas)
+            lambdas = np.concatenate((np.zeros(len(beta_chain)) + l_min,
+                                      np.linspace(l_min, l_max,
+                                                  len(l_chain))))
+            betas = np.concatenate((np.linspace(b_min, b_max,
+                                                len(b_chain)),
+                                    np.zeros(len(l_chain)) + b_max))
+            schedule = {'lammda': lambdas, 'beta': betas}
+        else:
+            schedule = {'lammda': np.linspace(l_min, l_max, n_replicas),
+                        'beta': np.linspace(b_min, b_max, n_replicas)}
+    elif replica_params['schedule'] == 'exponential':
+        l_rate = float(replica_params['lambda_rate'])
+        b_rate = float(replica_params['beta_rate'])
+        schedule = {'lammda': expspace(l_min, l_max, l_rate, n_replicas),
+                    'beta':   expspace(b_min, b_max, b_rate, n_replicas)}
     else:
-        schedule = {'lammda': np.linspace(lambda_min, lambda_max, n_replicas),
-                    'beta': np.linspace(beta_min, beta_max, n_replicas)}
+        msg = 'Schedule has to be either a file name, ' + \
+              '\'lambda_beta\', or \'exponential\''
+        raise ValueError(msg)
 
     return schedule
-
 
 def make_subsamplers(posterior, initial_state,
                      structures_hmc_params, weights_hmc_params):
