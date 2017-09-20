@@ -2,6 +2,7 @@ import os
 import sys
 import numpy as np
 import matplotlib.pyplot as plt
+from cPickle import dump
 
 from isd2.pdf.posteriors import Posterior
 
@@ -15,11 +16,23 @@ from ensemble_hic.analysis_functions import load_samples
 # config_file = '/scratch/scarste/ensemble_hic/bau2011/GM12878_10structures_s_106replicas_nosphere_optsched3/config.cfg'
 config_file = '/scratch/scarste/ensemble_hic/bau2011/GM12878_10structures_s_123replicas_nosphere_specificoptsched/config.cfg'
 config_file = '/scratch/scarste/ensemble_hic/bau2011/K562_10structures_s_106replicas_nosphere_optsched3/config.cfg'
-# config_file = sys.argv[1]
+config_file = '/scratch/scarste/ensemble_hic/hairpin_s/hairpin_s_littlenoise_radius10_2structures_sn_20replicas/config.cfg'
+config_file = sys.argv[1]
 settings = parse_config_file(config_file)
-n_replicas = 106
+n_replicas = int(settings['replica']['n_replicas'])
 target_replica = n_replicas
-burnin = 20000
+# params = {'burnin': 5000,
+#           'samples_step': 10,
+#           'niter': int(1e6),
+#           'tol': 1e-10
+#           }
+
+params = {'burnin': int(sys.argv[2]),
+          'samples_step': int(sys.argv[3]),
+          'niter': int(sys.argv[4]),
+          'tol': 1e-10
+          }
+
 n_samples = int(settings['replica']['n_samples'])
 dump_interval = int(settings['replica']['samples_dump_interval'])
 
@@ -38,25 +51,32 @@ L = posterior.likelihoods['ensemble_contacts']
 data = L.forward_model.data_points
 
 samples = load_samples(output_folder + 'samples/', n_replicas, n_samples + 1,
-                       dump_interval, burnin=burnin, interval=50)
+                       dump_interval, burnin=params['burnin'],
+                       interval=params['samples_step'])
 L = p.likelihoods['ensemble_contacts']
 P = p.priors['nonbonded_prior']
-energies = numpy.array([[[-L.log_prob(**x.variables),
-                          -P.log_prob(structures=x.variables['structures'])]
+energies = np.array([[[-L.log_prob(**x.variables) if 'lammda' in schedule else 0,
+                       -P.log_prob(structures=x.variables['structures']) if 'beta' in schedule else 0]
                          for x in y] for y in samples])
 energies_flat = energies.reshape(np.prod(samples.shape), -1)
 sched = np.array([schedule['lammda'], schedule['beta']])
-q = numpy.array([[(energy * params).sum() for energy in energies_flat]
-                 for params in sched.T])
+q = np.array([[(energy * replica_params).sum() for energy in energies_flat]
+                 for replica_params in sched.T])
 #q = np.dot(energies_flat, sched).T
 
 wham = WHAM(len(energies_flat), n_replicas)
 wham.N[:] = len(energies_flat)/n_replicas
-wham.run(q, niter=int(1e6), tol=1e-10, verbose=10)
+wham.run(q, niter=params['niter'], tol=params['tol'], verbose=100)
 
 dos = DOS(energies_flat.sum(1), wham.s, sort_energies=False)
 
-
+ana_path = output_folder + 'analysis/'
+if not os.path.exists(ana_path):
+    os.makedirs(ana_path)
+with open(ana_path + 'dos.pickle', 'w') as opf:
+    dump(dos, opf)
+with open(ana_path + 'wham_params.pickle', 'w') as opf:
+    dump(params, opf)
 
 if False:
     import sys, os
@@ -77,7 +97,7 @@ if False:
     beta[0] = 0.
     beta[-1] = 1.
 
-    step = 5
+    step = 1
     tempsched = SimpleScheduler(ensemble, SwapRate(), comparison=np.less)
     pred_swap_rates = [tempsched.eval_criterion(beta[i], beta[i+1])
                        for i in range(len(beta)-1)[::step]]
