@@ -9,8 +9,8 @@ cimport cython
 cdef extern from "math.h":
     double sqrt(double) nogil
 
-def nonbonded_prior_log_prob(double [:,::1] s, double [:] radii, double [:] radii2,
-                             double force_constant):
+def forcefield_energy(double [:,::1] s, double [:] radii, double [:] radii2,
+                      double force_constant):
 
     cdef Py_ssize_t i, j, l, k
     cdef double res = 0.0
@@ -26,8 +26,8 @@ def nonbonded_prior_log_prob(double [:,::1] s, double [:] radii, double [:] radi
 
     return -0.5 * force_constant * res
 
-def nonbonded_prior_gradient(double [:,::1] s, double [:] radii, double [:] radii2,
-                             double force_constant):
+def forcefield_gradient(double [:,::1] s, double [:] radii, double [:] radii2,
+                        double force_constant):
 
     cdef Py_ssize_t i, j, l, k
     cdef double d, g, e

@@ -22,6 +22,21 @@ comm = MPICommunicator()
 re_params = settings['replica']
 if re_params['schedule'] in ('linear', 'exponential'):
     schedule = make_replica_schedule(re_params, n_replicas)
+elif re_params['schedule'][-3:] == '.py':
+    # exec(open(re_params['schedule']).read())
+    import numpy as np
+    from scipy import stats
+    from mpi4py import MPI
+    space = np.linspace(0, 1, n_replicas)
+    m = float(re_params['gauss_mean'])#.65
+    s = float(re_params['gauss_std'])#0.2
+    delta_betas = stats.norm.pdf(space, m, s)
+    delta_betas = [0] + delta_betas
+    betas = np.cumsum(delta_betas)
+    betas /= betas[-1]
+
+    schedule = {'lammda': betas, 'beta': betas}
+
 else:
     schedule = np.load(re_params['schedule'])
 
@@ -71,6 +86,8 @@ else:
         posterior[replica_parameter].set(schedule[replica_parameter][rank - 1])
 
     initial_state = setup_initial_state(settings['initial_state'], posterior)
+    if not 'norm' in initial_state.variables:
+        posterior['norm'].set(np.max(posterior.likelihoods['ensemble_contacts'].error_model.data) / float(settings['general']['n_structures']))
     subsamplers = make_subsamplers(posterior, initial_state.variables,
                                    settings['structures_hmc'],
                                    settings['weights_hmc'])
