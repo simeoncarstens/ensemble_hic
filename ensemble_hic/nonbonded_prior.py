@@ -1,8 +1,9 @@
-import numpy
+import numpy as np
 
 from abc import abstractmethod
 
 from csb.statistics.pdf.parameterized import Parameter
+from csb.numeric import log as csb_log
 
 from isd2.pdf.priors import AbstractPrior
 from isd2 import ArrayParameter
@@ -60,13 +61,13 @@ class AbstractNonbondedPrior(AbstractPrior):
         log_ens = self._log_ensemble
         X = structures.reshape(self.n_structures, -1, 3)
 
-        return -numpy.sum(map(lambda x: log_ens(ff_E(structure=x)), X))
+        return -np.sum(map(lambda x: log_ens(ff_E(structure=x)), X))
 
     def _evaluate_gradient(self, structures):
 
         X = structures.reshape(self.n_structures, -1, 3)
 
-        res = numpy.zeros((X.shape[0], X.shape[1] * 3))
+        res = np.zeros((X.shape[0], X.shape[1] * 3))
         for i, x in enumerate(X):
             evald_ff_E = self._forcefield_energy(structure=x)
             evald_ff_grad = self._forcefield_gradient(structure=x)
@@ -134,7 +135,7 @@ class TsallisNonbondedPrior(AbstractNonbondedPrior):
         if q == 1.0:
             return -E
         else:
-            return -q * np.log(1.0 + (q - 1.0) * E) / (q - 1.0)
+            return -q * csb_log(1.0 + (q - 1.0) * E) / (q - 1.0)
     
     def _log_ensemble_gradient(self, E):
 
@@ -164,7 +165,7 @@ if __name__ == '__main__':
     
     n_structures = 3
     n_beads = 70
-    bead_radii = numpy.ones(n_beads) * 0.5
+    bead_radii = np.ones(n_beads) * 0.5
     X = np.random.uniform(low=-5, high=5, size=(n_structures, n_beads, 3))
     X = X.ravel()
 

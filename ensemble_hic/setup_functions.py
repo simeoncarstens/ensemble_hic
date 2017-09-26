@@ -21,11 +21,26 @@ def parse_config_file(config_file):
 
     return {section: config_section_map(section) for section in config.sections()}    
 
+def update_ensemble_setting(settings):
+
+    rps = settings['replica']
+    if not 'ensemble' in rps or rps['ensemble'] == 'boltzmann':
+        settings['nonbonded_prior'].update(ensemble='boltzmann')
+    elif rps['ensemble'] == 'tsallis':
+        settings['nonbonded_prior'].update(ensemble='tsallis')
+    else:
+        msg = 'ensemble has to be either not present in cfg file,'+\
+               ' or set to \'tsallis\' or \'boltzmann\''
+        raise ValueError(msg)
+
+    return settings    
+
 def make_posterior(settings):
 
     from isd2.pdf.posteriors import Posterior
     from ensemble_hic.setup_functions import make_priors, make_likelihood
 
+    settings = update_ensemble_setting(settings)
     n_beads = int(settings['general']['n_beads'])
     n_structures = int(settings['general']['n_structures'])
     priors = make_priors(settings['nonbonded_prior'],
@@ -207,34 +222,41 @@ def make_conditional_posterior(posterior, settings):
 def make_priors(nonbonded_prior_params, backbone_prior_params,
                 sphere_prior_params, n_beads, n_structures):
 
-    from .nonbonded_prior import NonbondedPrior
     from .backbone_prior import BackbonePrior
-    from .sphere_prior import SpherePrior
 
+    nb_params = nonbonded_prior_params
+    
     try:
-        bead_radius = float(nonbonded_prior_params['bead_radii'])
+        bead_radius = float(nb_params['bead_radii'])
         bead_radii = np.ones(n_beads) * bead_radius
     except:
-        bead_radii = np.loadtxt(nonbonded_prior_params['bead_radii'],
+        bead_radii = np.loadtxt(nb_params['bead_radii'],
                                 dtype=float)
         
     bb_ll, bb_ul = np.zeros(n_beads - 1), bead_radii[:-1] + bead_radii[1:]
-    
-    NBP = NonbondedPrior('nonbonded_prior', bead_radii=bead_radii,
-                         force_constant=nonbonded_prior_params['force_constant'],
-                         beta=1.0, n_structures=n_structures)
+
+    force_constant = nb_params['force_constant']
+    if not 'ensemble' in nb_params or nb_params['ensemble'] == 'boltzmann':
+        from .nonbonded_prior import BoltzmannNonbondedPrior    
+        NBP = BoltzmannNonbondedPrior('nonbonded_prior', bead_radii=bead_radii,
+                                      force_constant=force_constant,
+                                      n_structures=n_structures, beta=1.0)
+    elif nb_params['ensemble'] == 'tsallis':
+        from .nonbonded_prior import TsallisNonbondedPrior
+        NBP = TsallisNonbondedPrior('nonbonded_prior', bead_radii=bead_radii,
+                                    force_constant=force_constant,
+                                    n_structures=n_structures, q=1.0)
     BBP = BackbonePrior('backbone_prior',
                         lower_limits=bb_ll, upper_limits=bb_ul,
                         k_bb=float(backbone_prior_params['force_constant']),
                         n_structures=n_structures)
     priors = {NBP.name: NBP, BBP.name: BBP}
     if (not 'active' in sphere_prior_params) or sphere_prior_params['active'] == 'True':
+        from .sphere_prior import SpherePrior
         SP = SpherePrior('sphere_prior',
                          sphere_radius=float(sphere_prior_params['radius']),
                          sphere_k=float(sphere_prior_params['force_constant']),
                          n_structures=n_structures)
-        with open('/usr/users/scarste/doof.txt', 'w') as opf:
-            opf.write('asdfasdf')
         priors.update(**{SP.name: SP})
 
     return priors
