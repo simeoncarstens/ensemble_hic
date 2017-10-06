@@ -47,6 +47,9 @@ def make_posterior(settings):
                          settings['backbone_prior'],
                          settings['sphere_prior'],
                          n_beads, n_structures)
+    if 'norm' in settings['general']['variables'].split(','):
+        from .gamma_prior import NormGammaPrior
+        priors.update(norm_prior=NormGammaPrior(0.1,0.1))
     bead_radii = priors['nonbonded_prior'].bead_radii
     likelihood = make_likelihood(settings['forward_model'],
                                  settings['general']['error_model'],

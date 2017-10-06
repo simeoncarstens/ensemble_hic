@@ -20,7 +20,7 @@ class AbstractGammaSampler(object):
         pass
 
     @abstractmethod
-    def _calculate_scale(self):
+    def _calculate_rate(self):
         pass
     
     def sample(self, state=42):
@@ -48,15 +48,15 @@ class NormGammaSampler(AbstractGammaSampler):
 
     def _get_prior(self):
 
-        prior = filter(lambda p: 'norm' in p.parameters, self.pdf.priors)[0]
+        prior = filter(lambda p: 'norm' in p.variables, self.pdf.priors.values())[0]
         
         return prior
 
     def _check_gamma_prior(self, prior):
 
-        from .gamma_priors import GammaPrior
+        from .gamma_prior import GammaPrior
         
-        return isinstance(prior, GammaPrior):
+        return isinstance(prior, GammaPrior)
 
     def _calculate_shape(self):
 
@@ -65,7 +65,7 @@ class NormGammaSampler(AbstractGammaSampler):
             L = self.pdf.likelihoods[self._likelihood_name]
             lammda = L['lammda'].value
             
-            return lammda * L.error_model.data.sum() + prior['shape'].value - 1
+            return lammda * L.error_model.data.sum() + prior['shape'].value
         else:
             raise NotImplementedError('Currently, for the scaling parameter, only Gamma priors are supported')
 
