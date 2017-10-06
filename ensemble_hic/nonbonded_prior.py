@@ -8,7 +8,7 @@ from csb.numeric import log as csb_log
 from isd2.pdf.priors import AbstractPrior
 from isd2 import ArrayParameter
 
-from .forcefield_c import forcefield_energy, forcefield_gradient
+from ensemble_hic.forcefield_c import forcefield_energy, forcefield_gradient
 
 
 class AbstractNonbondedPrior(AbstractPrior):
@@ -61,7 +61,7 @@ class AbstractNonbondedPrior(AbstractPrior):
         log_ens = self._log_ensemble
         X = structures.reshape(self.n_structures, -1, 3)
 
-        return -np.sum(map(lambda x: log_ens(ff_E(structure=x)), X))
+        return np.sum(map(lambda x: log_ens(ff_E(structure=x)), X))
 
     def _evaluate_gradient(self, structures):
 
@@ -135,7 +135,7 @@ class TsallisNonbondedPrior(AbstractNonbondedPrior):
         if q == 1.0:
             return -E
         else:
-            return -q * csb_log(1.0 + (q - 1.0) * E) / (q - 1.0)
+            return -csb_log(1.0 + (q - 1.0) * E) / (q - 1.0)
     
     def _log_ensemble_gradient(self, E):
 
@@ -144,7 +144,7 @@ class TsallisNonbondedPrior(AbstractNonbondedPrior):
         if q == 1.0:
             return -E
         else:
-            return -q / (1.0 + (q - 1.0) * E)
+            return -(1.0 + (q - 1.0) * E)
  
     def clone(self):
 
@@ -163,11 +163,12 @@ if __name__ == '__main__':
     import matplotlib.pyplot as plt
     from stuff import numgrad
     
-    n_structures = 3
+    n_structures = 1
     n_beads = 70
     bead_radii = np.ones(n_beads) * 0.5
     X = np.random.uniform(low=-5, high=5, size=(n_structures, n_beads, 3))
     X = X.ravel()
+    X = np.array([[0,0,0],[1.1,0,0]]).ravel()
 
     if not True:
         ## test Boltzmann ensemble
@@ -178,5 +179,19 @@ if __name__ == '__main__':
     g = P.gradient(structures=X)
     ng = numgrad(X, lambda x: -P.log_prob(structures=x))
     print np.max(np.fabs(g-ng))
+
     plt.scatter(g, ng)
     plt.show()
+
+    # space = np.linspace(-1.2,1.2,1000)
+    # P['q'].set(1.0)
+    # Es = map(lambda x: -P.log_prob(structures=concatenate((X[:3], [x], X[4:]))), space)
+    # Es = map(lambda x: -P.log_prob(structures=concatenate((X[:3], [x], X[4:]))), space)
+    # P['q'].set(3.06)
+    # Es2 = map(lambda x: -P.log_prob(structures=concatenate((X[:3], [x], X[4:]))), space)
+    # plt.plot(space, Es, label='q1')
+    # plt.plot(space, Es2, label='q2')
+    # plt.legend()
+    # plt.show()
+             
+    

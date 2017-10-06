@@ -3,7 +3,9 @@ import numpy as np
 from abc import ABCMeta, abstractmethod
 
 class AbstractGammaSampler(object):
-
+    '''
+    Assumes a uniform prior distribution
+    '''
     __metaclass__ = ABCMeta
     
     pdf = None
@@ -23,23 +25,9 @@ class AbstractGammaSampler(object):
     
     def sample(self, state=42):
 
-        scale = self._calculate_scale()        
+        rate = self._calculate_rate()        
         shape = self._calculate_shape()
-
-        if False:
-            ## find out if variable has a Jeffreys prior
-            from hicisd2.priors.jeffreys import JeffreysPrior
-            has_jeffreys = False
-            Ps = self.pdf.priors
-            for P in Ps:
-                if self._variable_name in Ps[P].variables:
-                        if isinstance(Ps[P], JeffreysPrior):
-                            has_jeffreys = True
-
-            ## correct shape
-            shape -= has_jeffreys        
-
-        sample = np.random.gamma(shape, scale)
+        sample = np.random.gamma(shape) / rate
         
         if sample == 0.0:
             sample += 1e-10
@@ -58,12 +46,33 @@ class NormGammaSampler(AbstractGammaSampler):
 
         super(NormGammaSampler, self).__init__('ensemble_contacts', 'norm')
 
+    def _get_prior(self):
+
+        prior = filter(lambda p: 'norm' in p.parameters, self.pdf.priors)[0]
+        
+        return prior
+
+    def _check_gamma_prior(self, prior):
+
+        from .gamma_priors import GammaPrior
+        
+        return isinstance(prior, GammaPrior):
+
     def _calculate_shape(self):
 
-        em = self.pdf.likelihoods[self._likelihood_name].error_model
-        return 1.0 + em.data.sum()
+        prior = self._get_prior()
+        if self._check_gamma_prior(prior):
+            L = self.pdf.likelihoods[self._likelihood_name]
+            lammda = L['lammda'].value
+            
+            return lammda * L.error_model.data.sum() + prior['shape'].value - 1
+        else:
+            raise NotImplementedError('Currently, for the scaling parameter, only Gamma priors are supported')
 
-    def _calculate_scale(self):
+    def _calculate_rate(self):
 
-        md = self.pdf.likelihoods[self._likelihood_name].forward_model(norm=1.0)
-        return 1.0 / md.sum()
+        prior = self._get_prior()
+        L = self.pdf.likelihoods[self._likelihood_name]
+        md = L.forward_model(norm=1.0)
+        
+        return L['lammda'].value * md.sum() + prior['rate'].value

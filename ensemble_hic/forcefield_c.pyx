@@ -24,7 +24,7 @@ def forcefield_energy(double [:,::1] s, double [:] radii, double [:] radii2,
                 d = sqrt(d)
                 res += (d - radii[i] - radii[j]) ** 4
 
-    return -0.5 * force_constant * res
+    return 0.5 * force_constant * res
 
 def forcefield_gradient(double [:,::1] s, double [:] radii, double [:] radii2,
                         double force_constant):

@@ -86,3 +86,13 @@ if True:
         for i in range(n_beads):
             for j in range(i + 1, n_beads):
                 opf.write('{}\t{}\t{}\n'.format(i, j, summed_frequencies[i,j]))
+
+
+def get_angles(x):
+    angles = []
+    for i in range(2, len(x)):
+        vec1 = x[i-1] - x[i-2]
+        vec2 = x[i]   - x[i-1]
+        sp = sum(vec1 * vec2)
+        angles.append(arccos(sp / norm(vec1) / norm(vec2)))
+    return angles
