@@ -49,7 +49,13 @@ def make_posterior(settings):
                          n_beads, n_structures)
     if 'norm' in settings['general']['variables'].split(','):
         from .gamma_prior import NormGammaPrior
-        priors.update(norm_prior=NormGammaPrior(0.1,0.1))
+        if 'norm_prior' in settings:
+            shape = float(settings['norm_prior']['shape'])
+            rate = float(settings['norm_prior']['rate'])
+        else:
+            shape = 0.1
+            rate = 0.1
+        priors.update(norm_prior=NormGammaPrior(shape,rate))
     bead_radii = priors['nonbonded_prior'].bead_radii
     likelihood = make_likelihood(settings['forward_model'],
                                  settings['general']['error_model'],
@@ -60,6 +66,85 @@ def make_posterior(settings):
     full_posterior = Posterior({likelihood.name: likelihood}, priors)
 
     return make_conditional_posterior(full_posterior, settings)
+
+def make_marginalized_posterior(settings):
+
+    from isd2.pdf.posteriors import Posterior
+    from ensemble_hic.setup_functions import make_priors, make_likelihood
+
+    settings = update_ensemble_setting(settings)
+    n_beads = int(settings['general']['n_beads'])
+    n_structures = int(settings['general']['n_structures'])
+    priors = make_priors(settings['nonbonded_prior'],
+                         settings['backbone_prior'],
+                         settings['sphere_prior'],
+                         n_beads, n_structures)
+    from .gamma_prior import NormGammaPrior
+    if 'norm_prior' in settings:
+        shape = float(settings['norm_prior']['shape'])
+        rate = float(settings['norm_prior']['rate'])
+    else:
+        shape = 0.1
+        rate = 0.1
+    priors.update(norm_prior=NormGammaPrior(shape,rate))
+    bead_radii = priors['nonbonded_prior'].bead_radii
+    likelihood = make_likelihood(settings['forward_model'],
+                                 settings['general']['error_model'],
+                                 settings['data_filtering'],
+                                 settings['general']['data_file'],
+                                 n_structures, bead_radii)
+
+    from isd2.pdf import AbstractISDPDF
+    from .marginalized_posterior_c import calculate_gradient
+    alpha = priors['norm_prior']['shape'].value
+    beta = priors['norm_prior']['rate'].value
+
+    class MyPdf(AbstractISDPDF):
+
+        def __init__(self, likelihood, priors, lammda=1.0, beta=1.0):
+
+            from csb.statistics.pdf.parameterized import Parameter
+            super(MyPdf, self).__init__()
+
+            self.L = likelihood
+            self.Ps = priors
+            self._register('lammda')
+            self['lammda'] = Parameter(lammda, 'lammda')
+            self._register('beta')
+            self['beta'] = Parameter(beta, 'lammda')
+            self._register_variable('structures', differentiable=True)
+
+        def _evaluate_log_prob(self, structures):
+            d = self.L.error_model.data
+            md = self.L.forward_model(structures=structures, norm=1.0,
+                                          weights=np.ones(n_structures))
+            
+            return self['lammda'].value * (np.sum(d * np.log(md)) - (d.sum() + alpha) * np.log(md.sum() + beta)) + self['beta'].value * self.Ps['nonbonded_prior'].log_prob(structures=structures) + self.Ps['backbone_prior'].log_prob(structures=structures)
+
+        def _evaluate_gradient(self, structures):
+            L = self.L
+            b = self['beta'].value
+            return calculate_gradient(structures.reshape(n_structures, n_beads, 3),
+                                      L['smooth_steepness'].value,
+                                      L.forward_model['contact_distances'].value,
+                                      L.forward_model.data_points,
+                                      alpha, beta) * self['lammda'].value \
+                    + self.Ps['nonbonded_prior'].gradient(structures=structures) * b\
+                    + self.Ps['backbone_prior'].gradient(structures=structures)
+
+        def clone(self):
+            copy = self.__class__(self.L,
+                                  self.Ps,
+                                  self['lammda'].value,
+                                  self['beta'].value)
+            
+            copy.fix_variables(**{p: self[p].value for p in self.parameters
+                                  if not p in copy.parameters})
+
+            return copy
+            
+    return MyPdf(likelihood, priors, 1.0, 1.0)
+    
 
 def setup_weights(settings):
 
@@ -120,7 +205,7 @@ def make_replica_schedule(replica_params, n_replicas):
 def make_subsamplers(posterior, initial_state,
                      structures_hmc_params, weights_hmc_params):
 
-    from .hmc import HMCSampler
+    from isd2.samplers.hmc import HMCSampler
 
     p = posterior
     variables = initial_state.keys()
@@ -141,7 +226,8 @@ def make_subsamplers(posterior, initial_state,
                                     if not var == 'structures'})
     structures_sampler = HMCSampler(xpdf,
                                     initial_state['structures'],
-                                    structures_timestep, structures_tl)
+                                    structures_timestep, structures_tl,
+                                    variable_name='structures')
 
     subsamplers = dict(structures=structures_sampler)
 
