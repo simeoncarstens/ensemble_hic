@@ -9,9 +9,10 @@ from scipy.cluster.vq import kmeans2
 from ensemble_hic.setup_functions import parse_config_file
 from ensemble_hic.analysis_functions import load_sr_samples
 
-if True:
+if not True:
     config_file = sys.argv[1]
 else:
+    # config_file = '/scratch/scarste/ensemble_hic/proteins/1pga_1shf_fwm_poisson_10structures_sn_80replicas/config.cfg'
     pass
 data_dir = os.path.expanduser('~/projects/ensemble_hic/data/proteins/')
 config = parse_config_file(config_file)
@@ -19,7 +20,7 @@ config = parse_config_file(config_file)
 n_structures = int(config['general']['n_structures'])
 n_replicas = 80
 n_samples = int(config['replica']['n_samples']) + 1
-burnin = 10000
+burnin = 30000
 save_figures = True
 
 data_file = config['general']['data_file']
@@ -55,7 +56,7 @@ if True:
         ax = fig.add_subplot(len(knowns),1,i+1)
         ax.hist(rmsds[i], bins=np.linspace(0.0,6,np.sqrt(len(ens_flat))))
         ax.set_xlabel('RMSD to ' + fnames[i])
-        ax.set_xlim((0.3, 4.0))
+        #ax.set_xlim((0.3, 4.0))
     
     fig.tight_layout()
     if save_figures:

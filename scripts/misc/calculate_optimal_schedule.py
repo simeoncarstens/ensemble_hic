@@ -13,12 +13,14 @@ target_entropy = float(sys.argv[2])
 variables = sys.argv[3]
 output_file = sys.argv[4]
 
-ensemble = BoltzmannEnsemble(dos=dos)
+from csbplus.statmech.dos import DOS
+#ensemble = BoltzmannEnsemble(dos=dos)
+ensemble = BoltzmannEnsemble(dos=DOS(dos.E.sum(1), dos.s))
 entropy  = Scheduler(ensemble, RelativeEntropy(), np.greater)
-entropy.find_schedule(target_entropy, 0., 1., verbose=True)
+entropy.find_schedule(target_entropy, 1e-6, 1., verbose=True)
 
 beta = np.array(entropy.schedule)
-beta[0] = 0.
+beta[0] = 1e-6
 beta[-1] = 1.
 
 if False:

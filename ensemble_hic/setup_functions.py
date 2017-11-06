@@ -180,7 +180,7 @@ def make_replica_schedule(replica_params, n_replicas):
         if separate_prior_annealing:
             b_chain = np.arange(0, np.floor(n_replicas / 2))
             l_chain = np.arange(np.floor(n_replicas / 2), n_replicas)
-            lambdas = np.concatenate((np.zeros(len(beta_chain)) + l_min,
+            lambdas = np.concatenate((np.zeros(len(b_chain)) + l_min,
                                       np.linspace(l_min, l_max,
                                                   len(l_chain))))
             betas = np.concatenate((np.linspace(b_min, b_max,

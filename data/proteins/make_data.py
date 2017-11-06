@@ -3,7 +3,7 @@ Reconstruction of GB1 and Sh3 from mixed contacts
 """
 import os, sys, numpy as np, glob
 
-pypath = os.path.expanduser('~/projects/hic/py/hicisd2/ensemble_scripts/protein_test/')
+pypath = os.path.expanduser('~/projects/ensemble_hic/data/proteins/')
 os.chdir(pypath)
 if not pypath in sys.path: sys.path.insert(0, pypath)
 
@@ -16,7 +16,7 @@ from scipy.spatial.distance import squareform
 from isd import utils
 from isd.Distance import Distance
 from isd.DataSet import DataSet
-
+from ensemble_hic import kth_diag_indices
 
 def zero_diagonals(a, n):
     for i in range(-n, n+1):
@@ -49,9 +49,9 @@ coords2 = StructureParser(prot2 + '.pdb').parse().get_coordinates(['CA']) / 4.0
 
 
 ## size of fake ensemble
-ensemble_size = 1000
+ensemble_size = 100
 ## sigma of Gausian noise added to positions to generate random ensemble
-sigma = 0.05
+sigma = 0.01
 ## cutoff from which to determine contact frequencies
 cutoff = 1.8
 
@@ -68,16 +68,14 @@ if False:
     frequencies1 = numpy.sum(dms1 < cutoff, 0)
     frequencies2 = numpy.sum(dms2 < cutoff, 0)
     summed_frequencies = frequencies1 + frequencies2
-
-if False:
+elif False:
     ## create Poisson-distributed data
     dm1 = distance_matrix(coords)
     dm2 = distance_matrix(coords2)
     cs1 = ensemble_size * (dm1 < cutoff)
     cs2 = ensemble_size * (dm2 < cutoff)
     summed_frequencies = numpy.random.poisson(cs1 + cs2)
-
-if True:
+elif False:
     ## create Poisson-distributed data based on probabilites obtained form
     ## non-central Maxwell distribution
     sys.path.append(os.path.expanduser('~/projects/hic/py/'))
@@ -100,9 +98,25 @@ if True:
         summed_frequencies = numpy.random.poisson(ensemble_size * probs1)      
     else:
         summed_frequencies = numpy.random.poisson(ensemble_size * (probs1 + probs2))
-    
+elif True:    
+    from ensemble_hic.forward_models import EnsembleContactsFWM
 
-from misc import kth_diag_indices
+    suffix = 'fwm_poisson'
+    n_structures = 1 if prot1 == prot2 else 2
+    data_points = array([[i, j, 0] for i in range(n_beads)
+                         for j in xrange(i+1, n_beads)])
+    fwm = EnsembleContactsFWM('asdfasdf', n_structures,
+                              np.ones(len(data_points)) * 2, data_points)
+    structures = np.concatenate((coords,coords2)) if n_structures == 2 else coords
+    md = fwm(norm=1.0, smooth_steepness=10,
+             structures=structures.ravel(), weights=np.ones(n_structures))
+    temp = np.random.poisson(ensemble_size * md)
+    summed_frequencies = np.zeros((n_beads, n_beads))
+    summed_frequencies[data_points[:,0], data_points[:,1]] = temp
+    summed_frequencies[data_points[:,1], data_points[:,0]] = temp
+    summed_frequencies = summed_frequencies.astype(int)
+
+# from misc import kth_diag_indices
 if False:
     fig = plt.figure()
     ax1 = fig.add_subplot(131)
@@ -129,11 +143,7 @@ if False:
 if True:
     if prot1 == prot2:
         prot2 = 'none'
-    if ensemble_size == 100:
-        fname = '{}_{}_maxwell_poisson_data_es100_sigma0.05.txt'.format(prot1, prot2)
-    elif ensemble_size == 1000:
-        fname = '{}_{}_maxwell_poisson_data_sigma0.05.txt'.format(prot1, prot2)
-    with open(os.path.expanduser('~/projects/ensemble_hic/data/proteins/{}'.format(fname)), 'w') as opf:
+    with open(os.path.expanduser('~/projects/ensemble_hic/data/proteins/{}_{}/{}.txt'.format(prot1, prot2, suffix)), 'w') as opf:
         for i in range(n_beads):
             for j in range(i + 1, n_beads):
                 opf.write('{}\t{}\t{}\n'.format(i, j, summed_frequencies[i,j]))
