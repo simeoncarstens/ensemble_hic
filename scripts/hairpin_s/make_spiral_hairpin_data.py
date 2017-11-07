@@ -7,6 +7,7 @@ from csb.bio.utils import distance_matrix
 from csb.statistics.pdf import MultivariateGaussian
 from protlib import writeGNMtraj
 numpy.seterr(all='raise')
+numpy.random.seed(42)
 
 def zero_diagonals(a, n):
     for i in range(-n, n+1):
@@ -34,6 +35,9 @@ if False:
     init2 = numpy.zeros((6,3))
     init2[:,0] = numpy.arange(6)
     init2 = numpy.vstack((init2, [5, 1, 0], init2[::-1,:] + numpy.array([0,2,0])[None,:], numpy.array([-1, 2, 0])))
+
+init1 *= 4
+init2 *= 4
 if True:
     writeGNMtraj(numpy.array([init1]), '/tmp/out1.pdb')
     writeGNMtraj(numpy.array([init2]), '/tmp/out2.pdb')
@@ -81,7 +85,7 @@ if True:
     plt.title('sum')
     fig.colorbar(ms, ax=ax3)
 
-if True:
+if not True:
     with open(os.path.expanduser('~/projects/hic/py/hicisd2/ensemble_scripts/toy_test/spiral_hairpin_data_{}beads_littlenoise.txt'.format(n_beads)), 'w') as opf:
         for i in range(n_beads):
             for j in range(i + 1, n_beads):

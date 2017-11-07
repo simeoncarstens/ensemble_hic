@@ -47,22 +47,24 @@ def make_posterior(settings):
                          settings['backbone_prior'],
                          settings['sphere_prior'],
                          n_beads, n_structures)
-    if 'norm' in settings['general']['variables'].split(','):
-        from .gamma_prior import NormGammaPrior
-        if 'norm_prior' in settings:
-            shape = float(settings['norm_prior']['shape'])
-            rate = float(settings['norm_prior']['rate'])
-        else:
-            shape = 0.1
-            rate = 0.1
-        priors.update(norm_prior=NormGammaPrior(shape,rate))
     bead_radii = priors['nonbonded_prior'].bead_radii
     likelihood = make_likelihood(settings['forward_model'],
                                  settings['general']['error_model'],
                                  settings['data_filtering'],
                                  settings['general']['data_file'],
                                  n_structures, bead_radii)
-
+    if 'norm' in settings['general']['variables'].split(','):
+        from .gamma_prior import NormGammaPrior
+        shape = settings['norm_prior']['shape']
+        rate = settings['norm_prior']['rate']
+        if shape == rate == 'auto':
+            rate = 1.0 / n_structures
+            dp = likelihood.forward_model.data_points[:,2]
+            shape = np.mean(dp[dp > 0]) / float(n_structures)
+        else:
+            shape = float(shape)
+            rate = float(rate)
+        priors.update(norm_prior=NormGammaPrior(shape,rate))
     full_posterior = Posterior({likelihood.name: likelihood}, priors)
 
     return make_conditional_posterior(full_posterior, settings)
@@ -340,10 +342,15 @@ def make_priors(nonbonded_prior_params, backbone_prior_params,
                         k_bb=float(backbone_prior_params['force_constant']),
                         n_structures=n_structures)
     priors = {NBP.name: NBP, BBP.name: BBP}
-    if (not 'active' in sphere_prior_params) or sphere_prior_params['active'] == 'True':
+    if sphere_prior_params['active'] == 'True':
         from .sphere_prior import SpherePrior
+        radius = sphere_prior_params['radius']
+        if radius == 'auto':
+            radius = 2 * bead_radii.mean() * n_beads ** (1 / 3.0)
+        else:
+            radius = float(radius)
         SP = SpherePrior('sphere_prior',
-                         sphere_radius=float(sphere_prior_params['radius']),
+                         sphere_radius=radius,
                          sphere_k=float(sphere_prior_params['force_constant']),
                          n_structures=n_structures)
         priors.update(**{SP.name: SP})
