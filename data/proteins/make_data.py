@@ -1,22 +1,15 @@
 """
 Reconstruction of GB1 and SH3 from mixed contacts
 """
-import os, sys, numpy as np, glob
+import os
+import sys
+import numpy as np
 
-pypath = os.path.expanduser('~/projects/ensemble_hic/data/proteins/')
-os.chdir(pypath)
-if not pypath in sys.path: sys.path.insert(0, pypath)
-
-from csb.io import load
 from csb.bio.io import StructureParser
-from csb.bio.utils import distance_matrix
-from csb.statistics.pdf import MultivariateGaussian
-from csbplus.bio.dynamics import calc_distances
-from scipy.spatial.distance import squareform
-from isd import utils
-from isd.Distance import Distance
-from isd.DataSet import DataSet
+
 from ensemble_hic import kth_diag_indices
+from ensemble_hic.forward_models import EnsembleContactsFWM
+
 np.random.seed(42)
 
 def zero_diagonals(a, n):
@@ -26,6 +19,9 @@ def zero_diagonals(a, n):
         
     return a
 
+data_dir = os.path.expanduser('~/projects/ensemble_hic/data/')
+ensemble_size = 100
+contact_distance = 8.0
 
 prot1 = '1pga'
 prot2 = '1shf'
@@ -49,14 +45,7 @@ coords  = StructureParser(prot1 + '.pdb').parse().get_coordinates(['CA'])
 coords2 = StructureParser(prot2 + '.pdb').parse().get_coordinates(['CA'])
 
 
-## size of fake ensemble
-ensemble_size = 100
-
-contact_distance = 8.0
-
 n_beads = len(coords)
-
-from ensemble_hic.forward_models import EnsembleContactsFWM
 
 suffix = 'fwm_poisson'
 n_structures = 1 if prot1 == prot2 else 2
@@ -101,7 +90,7 @@ if False:
 if True:
     if prot1 == prot2:
         prot2 = 'none'
-    with open(os.path.expanduser('~/projects/ensemble_hic/data/proteins/{0}_{1}/{0}_{1}_{2}.txt'.format(prot1, prot2, suffix)), 'w') as opf:
+    with open(data_dir + 'proteins/{0}_{1}/{0}_{1}_{2}.txt'.format(prot1, prot2, suffix)), 'w') as opf:
         for i in range(n_beads):
             for j in range(i + 1, n_beads):
                 opf.write('{}\t{}\t{}\n'.format(i, j, summed_frequencies[i,j]))
