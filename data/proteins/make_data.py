@@ -19,18 +19,18 @@ def zero_diagonals(a, n):
         
     return a
 
-data_dir = os.path.expanduser('~/projects/ensemble_hic/data/')
+data_dir = os.path.expanduser('~/projects/ensemble_hic/data/proteins/')
 ensemble_size = 100
 contact_distance = 8.0
 
-prot1 = '1pga'
-prot2 = '1shf'
+# prot1 = '1pga'
+# prot2 = '1shf'
 
 # prot1 = '1ubq'
 # prot2 = '2ma1'
 
-# prot1 = '1pga'
-# prot2 = '1pga'
+prot1 = '1pga'
+prot2 = '1pga'
 
 # prot1 = '1shf'
 # prot2 = '1shf'
@@ -41,8 +41,8 @@ prot2 = '1shf'
 # prot1 = '1ubq'
 # prot2 = '1ubq'
 
-coords  = StructureParser(prot1 + '.pdb').parse().get_coordinates(['CA'])
-coords2 = StructureParser(prot2 + '.pdb').parse().get_coordinates(['CA'])
+coords  = StructureParser(data_dir + prot1 + '.pdb').parse().get_coordinates(['CA'])
+coords2 = StructureParser(data_dir + prot2 + '.pdb').parse().get_coordinates(['CA'])
 
 
 n_beads = len(coords)
@@ -90,7 +90,7 @@ if False:
 if True:
     if prot1 == prot2:
         prot2 = 'none'
-    with open(data_dir + 'proteins/{0}_{1}/{0}_{1}_{2}.txt'.format(prot1, prot2, suffix)), 'w') as opf:
+    with open(data_dir + '{0}_{1}/{0}_{1}_{2}.txt'.format(prot1, prot2, suffix), 'w') as opf:
         for i in range(n_beads):
             for j in range(i + 1, n_beads):
                 opf.write('{}\t{}\t{}\n'.format(i, j, summed_frequencies[i,j]))
