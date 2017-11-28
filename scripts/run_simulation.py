@@ -13,8 +13,12 @@ from ensemble_hic.setup_functions import make_replica_schedule, parse_config_fil
 mpicomm = MPI.COMM_WORLD
 rank = mpicomm.Get_rank()
 size = mpicomm.Get_size()
-n_replicas = size - 1
 config_file = sys.argv[1]
+if not True:
+    rank = 4
+    size = 5
+    config_file = '/usr/users/scarste/projects/ensemble_hic/scripts/bau2011/tmpcfg.cfg'
+n_replicas = size - 1
 settings = parse_config_file(config_file)
 
 comm = MPICommunicator()

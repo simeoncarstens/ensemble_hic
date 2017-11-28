@@ -14,6 +14,8 @@ from ensemble_hic.analysis_functions import write_ensemble
 
 numpy.random.seed(42)
 
+write_data = False
+
 def zero_diagonals(a, n):
     b = a.copy()
     for i in range(-n, n+1):
@@ -63,6 +65,58 @@ summed_frequencies[data_points[:,0], data_points[:,1]] = temp
 summed_frequencies[data_points[:,1], data_points[:,0]] = temp
 summed_frequencies = summed_frequencies.astype(int)
 
+if True:
+    from scipy.spatial.distance import squareform
+    from mpl_toolkits.axes_grid1 import make_axes_locatable
+    fwm_ss = EnsembleContactsFWM('asdfasdf', 1,
+                              np.ones(len(data_points)) * contact_distance,
+                              data_points)
+    fig = plt.figure()
+    ax = fig.add_subplot(131)
+    md_ss = fwm_ss(norm=1.0, smooth_steepness=10,
+                   structures=init1.ravel(), weights=np.ones(1))
+    m = ax.matshow(squareform(md_ss))
+    divider = make_axes_locatable(ax)
+    cax = divider.append_axes("right", size="5%", pad=0.05)
+    cb = fig.colorbar(m, cax=cax)
+    cb.set_clim((0,1))
+    # cb.set_ticks(np.linspace(0, 1, 6))
+    cb.set_ticks([])
+    ax.set_xticks([])
+    ax.set_yticks([])
+    ax.set_xlabel('bead index')
+    ax.set_ylabel('bead index')
+    ax = fig.add_subplot(132)
+    md_ss = fwm_ss(norm=1.0, smooth_steepness=10,
+                   structures=init2.ravel(), weights=np.ones(1))
+    m = ax.matshow(squareform(md_ss))
+    divider = make_axes_locatable(ax)
+    cax = divider.append_axes("right", size="5%", pad=0.05)
+    cb = fig.colorbar(m, cax=cax)
+    cb.set_clim((0,1))
+    # cb.set_ticks(np.linspace(0, 1, 6))
+    cb.set_ticks([])
+    ax.set_xticks([])
+    ax.set_yticks([])
+    ax.set_xlabel('bead index')
+    ax.set_ylabel('bead index')
+    ax = fig.add_subplot(133)
+    m = ax.matshow(summed_frequencies)
+    divider = make_axes_locatable(ax)
+    cax = divider.append_axes("right", size="5%", pad=0.05)
+    cb = fig.colorbar(m, cax=cax)
+    cb.set_clim((0,200))
+    # cb.set_ticks(np.linspace(0, 200, 6))
+    cb.set_ticks([])
+    ax.set_xticks([])
+    ax.set_yticks([])
+    ax.set_xlabel('bead index')
+    ax.set_ylabel('bead index')
+
+    fig.tight_layout()
+    plt.show()
+    
+
 if not True:
     fig = plt.figure()
     ax1 = fig.add_subplot(131)
@@ -86,8 +140,8 @@ if not True:
     plt.title('sum')
     fig.colorbar(ms, ax=ax3)
 
-if True:
-    with open(data_dir + 'hairpin_s/hairpin_s{}.txt'.format(suffix)), 'w') as opf:
+if write_data:
+    with open(data_dir + 'hairpin_s/hairpin_s{}.txt'.format(suffix), 'w') as opf:
         for i in range(n_beads):
             for j in range(i + 1, n_beads):
                 opf.write('{}\t{}\t{}\n'.format(i, j, summed_frequencies[i,j]))

@@ -208,20 +208,16 @@ def make_subsamplers(posterior, initial_state,
                      structures_hmc_params, weights_hmc_params):
 
     from isd2.samplers.hmc import ISD2HMCSampler
+    from .hmc import FastHMCSampler as ISD2HMCSampler
 
     p = posterior
     variables = initial_state.keys()
     structures_tl = int(structures_hmc_params['trajectory_length'])
     structures_timestep = float(structures_hmc_params['timestep'])
-    structures_adaption = structures_hmc_params['timestep_adaption']
-    structures_adaption = True if structures_adaption == 'True' else False
+    s_adaption_limit = int(structures_hmc_params['adaption_limit'])
     weights_tl = int(weights_hmc_params['trajectory_length'])
     weights_timestep = float(weights_hmc_params['timestep'])
-    weights_adaption = weights_hmc_params['timestep_adaption']
-    weights_adaption = True if weights_adaption == 'True' else False
-
-    if not structures_adaption or not weights_adaption:
-        raise NotImplementedError('At the moment, timestep cannot be switched off!')
+    w_adaption_limit = int(weights_hmc_params['adaption_limit'])
 
     xpdf = p.conditional_factory(**{var: value for (var, value)
                                     in initial_state.iteritems()
@@ -229,7 +225,8 @@ def make_subsamplers(posterior, initial_state,
     structures_sampler = ISD2HMCSampler(xpdf,
                                         initial_state['structures'],
                                         structures_timestep, structures_tl,
-                                        variable_name='structures')
+                                        variable_name='structures',
+                                        timestep_adaption_limit=s_adaption_limit)
 
     subsamplers = dict(structures=structures_sampler)
 
@@ -381,7 +378,7 @@ def make_likelihood(forward_model_params, error_model, data_filtering_params,
     else:
         raise(NotImplementedError)
 
-    L = Likelihood('ensemble_contacts', FWM, EM, 1.0)
+    L = Likelihood('ensemble_contacts', FWM, EM, 1.0, gradient_cutoff=300000.0)
     L = L.conditional_factory(smooth_steepness=forward_model_params['alpha'])
     
     return L

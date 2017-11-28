@@ -9,6 +9,12 @@ from ensemble_hic.setup_functions import parse_config_file, make_posterior
 from ensemble_hic.setup_functions import setup_weights
 from ensemble_hic.analysis_functions import load_sr_samples
 
+import matplotlib
+font = {'family' : 'normal',
+        'weight' : 'normal',
+        'size'   : 6}
+matplotlib.rc('font', **font)
+
 config_file = sys.argv[1]
 settings = parse_config_file(config_file)
 n_replicas = int(settings['replica']['n_replicas'])
@@ -62,7 +68,7 @@ ax = fig.add_subplot(332)
 acceptance_rates = np.loadtxt(output_folder + 'statistics/re_stats.txt',
                               dtype=float)
 acceptance_rates = acceptance_rates[-1,1:]
-x_interval = 5
+x_interval = 15
 xticks = np.arange(0, n_replicas)[::-1][::x_interval][::-1]
 plt.plot(np.arange(0.5, n_replicas - 0.5), acceptance_rates, '-o')
 plt.xlabel('lambda')
@@ -79,7 +85,7 @@ beta_labels = ['{:.2f}'.format(l) for l in beta_labels]
 ax2.set_xticklabels(beta_labels)
 plt.ylabel('acceptance rate')
 
-ax = fig.add_subplot(335, axisbg='grey')
+ax = fig.add_subplot(335, facecolor='grey')
 def remove_zero_beads(m):
     nm = filter(lambda x: not np.all(np.isnan(x)), m)
     nm = np.array(nm).T
@@ -96,28 +102,34 @@ m = np.zeros((n_beads, n_beads)) * np.nan
 m[data[:,0], data[:,1]] = rec
 m[data[:,1], data[:,0]] = rec
 m = remove_zero_beads(m)
-ms = ax.matshow(np.log(m+1), cmap=plt.cm.jet)
-ax.set_title('reconstructed')
+ms = ax.matshow(np.log(m+1), cmap=plt.cm.jet, interpolation='nearest')
+# ms = ax.matshow(m, cmap=plt.cm.jet)
+ax.set_title('rec')
 cb = fig.colorbar(ms, ax=ax)
-cb.set_label('contact frequency')
+cb.set_label('log(cf)')
+ax.set_xticks([])
+ax.set_yticks([])
 
-ax = fig.add_subplot(336, axisbg='grey')
+ax = fig.add_subplot(336, facecolor='grey')
 m = np.zeros((n_beads, n_beads)) * np.nan
 m[data[:,0],data[:,1]] = data[:,2]
 m[data[:,1],data[:,0]] = data[:,2]
 m = remove_zero_beads(m)
-ms = ax.matshow(np.log(m+1), cmap=plt.cm.jet)
+ms = ax.matshow(np.log(m+1), cmap=plt.cm.jet, interpolation='nearest')
+# ms = ax.matshow(m, cmap=plt.cm.jet)
 ax.set_title('data')
 cb = fig.colorbar(ms, ax=ax)
-cb.set_label('contact frequency')
+cb.set_label('log(cf)')
+ax.set_xticks([])
+ax.set_yticks([])
 
 
 ax = fig.add_subplot(334)
 hmc_pacc = np.loadtxt(output_folder + 'statistics/mcmc_stats.txt',
                       dtype=float)[:,2 * n_replicas]
 plt.plot(hmc_pacc)
-plt.xlabel('~# of MC samples')
-plt.ylabel('target ensemble HMC timestep')
+plt.xlabel('~# of samples')
+plt.ylabel('target HMC dt')
 
 if 'norm' in variables:
     ax = fig.add_subplot(333)
@@ -128,18 +140,20 @@ ax = fig.add_subplot(337)
 E_likelihood = -np.array([L.log_prob(**x.variables)
                           for x in samples[-1,:]])
 plt.plot(E_likelihood, label='likelihood', color='blue')
-plt.xlabel('replica transitions')
-plt.ylabel('target ensemble log likelihood')
+plt.xlabel('rts')
+plt.ylabel('target ll')
 ax = fig.add_subplot(338)
 E_backbone = -np.array([p.priors['backbone_prior'].log_prob(structures=x.variables['structures']) for x in samples[-1,50:]])
 plt.plot(E_backbone, label='backbone', color='green')
-plt.xlabel('replica transitions')
-plt.ylabel('target ensemble backbone energy')
+plt.xlabel('rts')
+plt.ylabel('target bbe')
 ax = fig.add_subplot(339)
 E_exvol = -np.array([p.priors['nonbonded_prior'].log_prob(structures=x.variables['structures']) for x in samples[-1,50:]])
 plt.plot(E_exvol, label='volume exclusion', color='red')
-plt.xlabel('replica transitions')
-plt.ylabel('target ensemble nonbonded energy')
+plt.xlabel('rts')
+plt.ylabel('target nbe')
+
+fig.tight_layout()
 
 if save_figures:
     plt.savefig(figures_folder + 'sampling_stats.pdf')

@@ -12,6 +12,8 @@ from ensemble_hic.forward_models import EnsembleContactsFWM
 
 np.random.seed(42)
 
+write_data = False
+
 def zero_diagonals(a, n):
     for i in range(-n, n+1):
         inds = kth_diag_indices(a, i)
@@ -23,14 +25,14 @@ data_dir = os.path.expanduser('~/projects/ensemble_hic/data/proteins/')
 ensemble_size = 100
 contact_distance = 8.0
 
-# prot1 = '1pga'
-# prot2 = '1shf'
+prot1 = '1pga'
+prot2 = '1shf'
 
 # prot1 = '1ubq'
 # prot2 = '2ma1'
 
-prot1 = '1pga'
-prot2 = '1pga'
+# prot1 = '1pga'
+# prot2 = '1pga'
 
 # prot1 = '1shf'
 # prot2 = '1shf'
@@ -63,6 +65,57 @@ summed_frequencies[data_points[:,0], data_points[:,1]] = temp
 summed_frequencies[data_points[:,1], data_points[:,0]] = temp
 summed_frequencies = summed_frequencies.astype(int)
 
+if True:
+    from scipy.spatial.distance import squareform
+    from mpl_toolkits.axes_grid1 import make_axes_locatable
+    fwm_ss = EnsembleContactsFWM('asdfasdf', 1,
+                                 np.ones(len(data_points)) * contact_distance,
+                                 data_points)
+    fig = plt.figure()
+    ax = fig.add_subplot(131)
+    md_ss = fwm_ss(norm=1.0, smooth_steepness=10,
+                   structures=coords.ravel(), weights=np.ones(1))
+    m = ax.matshow(squareform(md_ss))
+    divider = make_axes_locatable(ax)
+    cax = divider.append_axes("right", size="5%", pad=0.05)
+    cb = fig.colorbar(m, cax=cax)
+    cb.set_clim((0,1))
+    # cb.set_ticks(np.linspace(0, 1, 6))
+    cb.set_ticks([])
+    ax.set_xticks([])
+    ax.set_yticks([])
+    ax.set_xlabel('bead index')
+    ax.set_ylabel('bead index')
+    ax = fig.add_subplot(132)
+    md_ss = fwm_ss(norm=1.0, smooth_steepness=10,
+                   structures=coords2.ravel(), weights=np.ones(1))
+    m = ax.matshow(squareform(md_ss))
+    divider = make_axes_locatable(ax)
+    cax = divider.append_axes("right", size="5%", pad=0.05)
+    cb = fig.colorbar(m, cax=cax)
+    cb.set_clim((0,1))
+    # cb.set_ticks(np.linspace(0, 1, 6))
+    cb.set_ticks([])
+    ax.set_xticks([])
+    ax.set_yticks([])
+    ax.set_xlabel('bead index')
+    ax.set_ylabel('bead index')
+    ax = fig.add_subplot(133)
+    m = ax.matshow(summed_frequencies)
+    divider = make_axes_locatable(ax)
+    cax = divider.append_axes("right", size="5%", pad=0.05)
+    cb = fig.colorbar(m, cax=cax)
+    cb.set_clim((0,200))
+    # cb.set_ticks(np.linspace(0, 200, 6))
+    cb.set_ticks([])
+    ax.set_xticks([])
+    ax.set_yticks([])
+    ax.set_xlabel('bead index')
+    ax.set_ylabel('bead index')
+
+    fig.tight_layout()
+    plt.show()
+
 # from misc import kth_diag_indices
 if False:
     fig = plt.figure()
@@ -87,7 +140,7 @@ if False:
     plt.title('sum')
     fig.colorbar(ms, ax=ax3)
 
-if True:
+if write_data:
     if prot1 == prot2:
         prot2 = 'none'
     with open(data_dir + '{0}_{1}/{0}_{1}_{2}.txt'.format(prot1, prot2, suffix), 'w') as opf:

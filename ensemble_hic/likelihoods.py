@@ -70,12 +70,13 @@ class Likelihood(ISD2Likelihood):
             em_indicator = POISSON_EM
 
         fwm = self.forward_model
-        
+
         result = precision * calculate_gradient(structures, smooth_steepness, 
                                                 weights,
-                                                fwm['cutoff'].value,
-                                                fwm['contact_distances'].value, 
+                                                self.gradient_cutoff,
+                                                fwm['contact_distances'].value,
                                                 fwm.data_points,
+                                                #fwm.data_points,
                                                 em_indicator
                                                 )
         

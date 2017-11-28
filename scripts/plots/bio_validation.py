@@ -16,8 +16,8 @@ if not True:
     config_file_K562 = sys.argv[2]
 else:
     path = '/scratch/scarste/ensemble_hic/bau2011/'
-    config_file_GM12878 = path + 'GM12878_10structures_s_106replicas_nosphere_optsched3/config.cfg'
-    config_file_K562 = path + 'K562_10structures_s_106replicas_nosphere_optsched3/config.cfg'
+    config_file_GM12878 = path + 'GM12878_new_smallercd_nosphere_20structures_sn_122replicas/config.cfg'
+    config_file_K562 = path + 'K562_new_smallercd_nosphere_20structures_sn_112replicas/config.cfg'
     # config_file_GM12878 = path + 'GM12878_8structures_sn_40replicas/config.cfg'
     # config_file_K562 = path + 'K562_8structures_sn_40replicas/config.cfg'
         
@@ -37,7 +37,7 @@ HS40_bead = 20
 
 ## one bead contains the alpha-globin gene cluster
 aglobin_bead = 26 ## according to Bau et al. (2011) SI
-# aglobin_bead = 28 ## according to Wikipedia
+aglobin_bead = 28 ## according to Wikipedia
 
 for cfg in (config_file_GM12878, config_file_K562):
     config = parse_config_file(cfg)
@@ -46,7 +46,7 @@ for cfg in (config_file_GM12878, config_file_K562):
 
     n_structures = int(config['general']['n_structures'])
     n_beads = int(config['general']['n_beads'])
-    n_samples = int(config['replica']['n_samples']) + 1
+    n_samples = 40000#int(config['replica']['n_samples']) + 1
 
     output_folder = config['general']['output_folder']
     samples = load_sr_samples(output_folder + 'samples/', n_replicas, n_samples, 
@@ -119,20 +119,20 @@ ax.plot(range(1,n_beads+1), mean(ag_all_ds_K562, 0),
         c='r', label='mean (K562)')
 ax.plot(range(1,n_beads+1), mean(ag_all_ds_GM12878, 0),
         c='b', label='mean (GM12878)')
-bpl = ax.boxplot(ag_all_ds_K562, patch_artist=True)
-colors = ['red'] * len(bpl['boxes'])
-for patch, color in zip(bpl['boxes'], colors):
-    patch.set_facecolor(color)
+# bpl = ax.boxplot(ag_all_ds_K562, patch_artist=True)
+# colors = ['red'] * len(bpl['boxes'])
+# for patch, color in zip(bpl['boxes'], colors):
+#     patch.set_facecolor(color)
     
-bpl = ax.boxplot(ag_all_ds_GM12878, patch_artist=True)
-colors = ['blue'] * len(bpl['boxes'])
-for patch, color in zip(bpl['boxes'], colors):
-    patch.set_facecolor(color)
-ax.plot([HS40_bead, HS40_bead], [0, ax.get_ylim()[1]], color='green', label='HS40 bead')
+# bpl = ax.boxplot(ag_all_ds_GM12878, patch_artist=True)
+# colors = ['blue'] * len(bpl['boxes'])
+# for patch, color in zip(bpl['boxes'], colors):
+#     patch.set_facecolor(color)
+# ax.plot([HS40_bead, HS40_bead], [0, ax.get_ylim()[1]], color='green', label='HS40 bead')
 ax.set_xlabel('bead index')
 ax.set_ylabel('distance to alpha-globin bead')
-ax.set_xticks(np.arange(1, n_beads+1, 5))
-ax.set_xticklabels([str(x-1) for x in np.arange(1, n_beads+1, 5)])
+#ax.set_xticks(np.arange(1, n_beads+1, 5))
+#ax.set_xticklabels([str(x-1) for x in np.arange(1, n_beads+1, 5)])
 ax.legend()
 
 ax = fig.add_subplot(223)

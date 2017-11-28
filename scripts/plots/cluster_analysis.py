@@ -8,20 +8,23 @@ from scipy.spatial.distance import pdist
 
 from ensemble_hic.analysis_functions import load_sr_samples
 
-if False:
-    config_file = '/scratch/scarste/ensemble_hic/protein_1pga_1shf_mpdata_es100_sigma0.05/config.cfg'
-    # config_file = '/scratch/scarste/ensemble_hic/bau5C_test_bltempering/config.cfg'
-    settings = parse_config_file(config_file)
-    n_replicas = 40
+if True:
+    config_file = sys.argv[1]
+    cfg = parse_config_file(config_file)
+    n_replicas = int(cfg['replica']['n_replicas'])
     target_replica = n_replicas
-    burnin = 5000
+    n_samples = int(cfg['replica']['n_samples'])
+    n_beads = int(cfg['general']['n_beads'])
+    burnin = 35000
+    step = 2
 
-    output_folder = settings['general']['output_folder']
+    output_folder = cfg['general']['output_folder']
     if output_folder[-1] != '/':
         output_folder += '/'
-    n_structures = int(settings['general']['n_structures'])
+    n_structures = int(cfg['general']['n_structures'])
 
-    samples = load_sr_samples(output_folder + 'samples/', n_replicas, 20001, 100,
+    samples = load_sr_samples(output_folder + 'samples/', n_replicas,
+                              n_samples, int(cfg['general']['samples_dump_interval']),
                               burnin=burnin)
     samples = samples[None,:]
     if 'weights' in samples[-1,-1].variables:
@@ -29,9 +32,10 @@ if False:
     if 'norm' in samples[-1,-1].variables:
         norms = np.array([x.variables['norm'] for x in samples.ravel()])
 
-    ens = np.array([sample.variables['structures'].reshape(n_structures, -1, 3) for sample in  samples[-1,::2]])
+    ens = np.array([sample.variables['structures'].reshape(n_structures, -1, 3)
+                    for sample in samples[-1,::step]])
 
-if True:
+if not True:
     ens = np.load('ensemble.npy')
 
 if True:

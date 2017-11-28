@@ -61,6 +61,8 @@ def calculate_gradient(double [:,:,:] structures,
             d = 0.0
             for l in range(3):
                 d += (structures[k,i,l] - structures[k,j,l]) ** 2
+            if d > (cds[u] * cds[u]) * cutoff:
+                continue
             d = sqrt(d)
             f = 0.5 * em_derivative(md[u], data_points[u,2]) * weights[k] * smooth_steepness / (1.0 + smooth_steepness * smooth_steepness * (cds[u] - d) * (cds[u] - d)) ** 1.5 / d
             for l in range(3):
