@@ -104,7 +104,7 @@ class VolumeExclusion(object):
         self._universe.set_connectivity()
 
         ## set forcefield parameters
-        ## will be modified later by NBQuarticVEFF class
+        ## will be modified later
         n_types = n_beads
         d = np.ones((n_types, n_types),'d')
         k = np.ones((n_types, n_types),'d')
@@ -190,10 +190,10 @@ class NBLForceField(AbstractForceField):
 
 if __name__ == '__main__':
 
-    radii = np.loadtxt('/usr/users/scarste/projects/ensemble_hic/data/rao2014/chr16_radii.txt')[:101]
+    import os
+    radii = np.loadtxt(os.path.expanduser('~/projects/ensemble_hic/data/rao2014/chr16_radii.txt'))[:101]
     n_beads = len(radii)
     k = 11.4
-    n_structures = 1
     from ensemble_hic.setup_functions import make_elongated_structures
     X = make_elongated_structures(radii, 1) * 0.6
     res = []
@@ -208,4 +208,4 @@ if __name__ == '__main__':
 
         res.append(newE-oldE)
 
-    print len(filter(lambda x: abs(x) > 0.1, res))/float(len(res))
+    print "fraction of unequal energies: ", len(filter(lambda x: abs(x) > 0.1, res))/float(len(res))
