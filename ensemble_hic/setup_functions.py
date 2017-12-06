@@ -38,7 +38,6 @@ def update_ensemble_setting(settings):
 def make_posterior(settings):
 
     from isd2.pdf.posteriors import Posterior
-    from ensemble_hic.setup_functions import make_priors, make_likelihood
 
     settings = update_ensemble_setting(settings)
     n_beads = int(settings['general']['n_beads'])
@@ -47,7 +46,7 @@ def make_posterior(settings):
                          settings['backbone_prior'],
                          settings['sphere_prior'],
                          n_beads, n_structures)
-    bead_radii = priors['nonbonded_prior'].bead_radii
+    bead_radii = priors['nonbonded_prior'].forcefield.bead_radii
     likelihood = make_likelihood(settings['forward_model'],
                                  settings['general']['error_model'],
                                  settings['data_filtering'],
@@ -72,7 +71,6 @@ def make_posterior(settings):
 def make_marginalized_posterior(settings):
 
     from isd2.pdf.posteriors import Posterior
-    from ensemble_hic.setup_functions import make_priors, make_likelihood
 
     settings = update_ensemble_setting(settings)
     n_beads = int(settings['general']['n_beads'])
@@ -270,7 +268,7 @@ def setup_initial_state(initial_state_params, posterior):
     variables = p.variables
 
     if structures == 'elongated':
-        bead_radii = posterior.priors['nonbonded_prior'].bead_radii
+        bead_radii = posterior.priors['nonbonded_prior'].forcefield.bead_radii
         structures = make_elongated_structures(bead_radii, n_structures)
         structures += np.random.normal(scale=0.5, size=structures.shape)
     else:
@@ -321,38 +319,52 @@ def make_priors(nonbonded_prior_params, backbone_prior_params,
         bead_radii = np.loadtxt(nb_params['bead_radii'],
                                 dtype=float)
         
+    NBP = make_nonbonded_prior(nb_params, bead_radii, n_structures)
     bb_ll, bb_ul = np.zeros(n_beads - 1), bead_radii[:-1] + bead_radii[1:]
-
-    force_constant = nb_params['force_constant']
-    if not 'ensemble' in nb_params or nb_params['ensemble'] == 'boltzmann':
-        from .nonbonded_prior import BoltzmannNonbondedPrior    
-        NBP = BoltzmannNonbondedPrior('nonbonded_prior', bead_radii=bead_radii,
-                                      force_constant=force_constant,
-                                      n_structures=n_structures, beta=1.0)
-    elif nb_params['ensemble'] == 'tsallis':
-        from .nonbonded_prior import TsallisNonbondedPrior
-        NBP = TsallisNonbondedPrior('nonbonded_prior', bead_radii=bead_radii,
-                                    force_constant=force_constant,
-                                    n_structures=n_structures, q=1.0)
     BBP = BackbonePrior('backbone_prior',
                         lower_limits=bb_ll, upper_limits=bb_ul,
                         k_bb=float(backbone_prior_params['force_constant']),
                         n_structures=n_structures)
     priors = {NBP.name: NBP, BBP.name: BBP}
     if sphere_prior_params['active'] == 'True':
+        SP = make_sphere_prior(sphere_prior_params, bead_radii, n_structures)
+        priors.update(**{SP.name: SP})
+
+    return priors
+
+def make_nonbonded_prior(nb_params, bead_radii, n_structures):
+
+    from .forcefields import ForceField
+    from .forcefields import NBLForceField as ForceField
+
+    forcefield = ForceField(bead_radii, float(nb_params['force_constant']))
+    if not 'ensemble' in nb_params or nb_params['ensemble'] == 'boltzmann':
+        from .nonbonded_prior import BoltzmannNonbondedPrior2    
+        NBP = BoltzmannNonbondedPrior2('nonbonded_prior', forcefield,
+                                       n_structures=n_structures, beta=1.0)
+    elif nb_params['ensemble'] == 'tsallis':
+        raise NotImplementedError
+        from .nonbonded_prior import TsallisNonbondedPrior2
+        NBP = TsallisNonbondedPrior('nonbonded_prior', bead_radii=bead_radii,
+                                    force_constant=force_constant,
+                                    n_structures=n_structures, q=1.0)
+
+    return NBP
+
+def make_sphere_prior(sphere_prior_params, bead_radii, n_structures):
+
         from .sphere_prior import SpherePrior
         radius = sphere_prior_params['radius']
         if radius == 'auto':
-            radius = 2 * bead_radii.mean() * n_beads ** (1 / 3.0)
+            radius = 2 * bead_radii.mean() * len(bead_radii) ** (1 / 3.0)
         else:
             radius = float(radius)
         SP = SpherePrior('sphere_prior',
                          sphere_radius=radius,
                          sphere_k=float(sphere_prior_params['force_constant']),
                          n_structures=n_structures)
-        priors.update(**{SP.name: SP})
 
-    return priors
+        return SP    
 
 def make_likelihood(forward_model_params, error_model, data_filtering_params,
                     data_file, n_structures, bead_radii):

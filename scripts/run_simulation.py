@@ -15,9 +15,10 @@ rank = mpicomm.Get_rank()
 size = mpicomm.Get_size()
 config_file = sys.argv[1]
 if not True:
+    np.random.seed(42)
     rank = 4
     size = 5
-    config_file = '/usr/users/scarste/projects/ensemble_hic/scripts/bau2011/tmpcfg.cfg'
+    config_file = '/usr/users/scarste/projects/ensemble_hic/scripts/rao2014/tmpcfg.cfg'
 n_replicas = size - 1
 settings = parse_config_file(config_file)
 

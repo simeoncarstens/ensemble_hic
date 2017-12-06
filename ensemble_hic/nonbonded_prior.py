@@ -80,6 +80,64 @@ class AbstractNonbondedPrior(AbstractPrior):
         pass
 
 
+class AbstractNonbondedPrior2(AbstractPrior):
+
+    def __init__(self, name, forcefield, n_structures):
+
+        super(AbstractNonbondedPrior2, self).__init__(name)
+
+        self.n_structures = n_structures
+        self.forcefield = forcefield
+        
+        self._register_variable('structures', differentiable=True)
+        self.update_var_param_types(structures=ArrayParameter)
+        self._set_original_variables()
+
+    @abstractmethod
+    def _register_ensemble_parameters(self, **parameters):
+        pass
+
+    def _forcefield_gradient(self, structure):
+
+        return self.forcefield.gradient(structure)
+
+    def _forcefield_energy(self, structure):
+
+        return self.forcefield.energy(structure)
+
+    @abstractmethod
+    def _log_ensemble_gradient(self, E):
+        pass
+    
+    @abstractmethod
+    def _log_ensemble(self, E):
+        pass    
+        
+    def _evaluate_log_prob(self, structures):
+
+        ff_E = self._forcefield_energy
+        log_ens = self._log_ensemble
+        X = structures.reshape(self.n_structures, -1, 3)
+
+        return np.sum(map(lambda x: log_ens(ff_E(structure=x)), X))
+
+    def _evaluate_gradient(self, structures):
+
+        X = structures.reshape(self.n_structures, -1, 3)
+
+        res = np.zeros((X.shape[0], X.shape[1] * 3))
+        for i, x in enumerate(X):
+            evald_ff_E = self._forcefield_energy(structure=x)
+            evald_ff_grad = self._forcefield_gradient(structure=x)
+            res[i] = self._log_ensemble_gradient(evald_ff_E) * evald_ff_grad
+
+        return -res.ravel()
+
+    @abstractmethod
+    def clone(self):
+        pass
+
+
 class BoltzmannNonbondedPrior(AbstractNonbondedPrior):
 
     def __init__(self, name, bead_radii, force_constant, n_structures, beta):
@@ -112,6 +170,39 @@ class BoltzmannNonbondedPrior(AbstractNonbondedPrior):
         copy.set_fixed_variables_from_pdf(self)
 
         return copy
+
+
+class BoltzmannNonbondedPrior2(AbstractNonbondedPrior2):
+
+    def __init__(self, name, forcefield, n_structures, beta):
+
+        super(BoltzmannNonbondedPrior2, self).__init__(name, forcefield,
+                                                       n_structures)
+        self._register_ensemble_parameters(beta)
+
+    def _register_ensemble_parameters(self, beta):
+
+        self._register('beta')
+        self['beta'] = Parameter(beta, 'beta')
+
+    def _log_ensemble(self, E):
+
+        return -self['beta'].value * E
+
+    def _log_ensemble_gradient(self, E):
+
+        return -self['beta'].value
+
+    def clone(self):
+
+        copy = self.__class__(self.name,
+                              self.forcefield, 
+                              self.n_structures,
+                              self['beta'].value)
+        copy.set_fixed_variables_from_pdf(self)
+
+        return copy
+
 
 
 class TsallisNonbondedPrior(AbstractNonbondedPrior):
