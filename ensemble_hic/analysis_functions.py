@@ -111,3 +111,40 @@ def load_samples_from_cfg(config_file, burnin=35000):
                               burnin)
 
     return samples
+
+def load_ensemble_from_pdb(filename):
+
+    if False:
+        ## Insanely slow
+        from csb.bio.io.wwpdb import StructureParser
+        ensemble = StructureParser(filename).parse_models()
+
+        return np.array([m.get_coordinates(['CA']) for m in ensemble])
+    else:
+        ## Parse structures from one single file
+        # if not os.path.exists(filename):
+        #     raise("File {} not found!".format(filename))
+
+        ip = open(filename)
+        lines = ip.readlines()
+        ip.close()
+        nres = 0
+        for l in lines:
+            w = l[:4]
+            if nres > 0 and w != 'ATOM':
+                break
+            if l[:4] == 'ATOM':
+                nres += 1
+
+        import re
+        atoms = []
+        for l in lines:
+            if 'ATOM' in l: atoms.append(l)
+        atoms = [x.split() for x in atoms]
+        atoms = [x[6:9] for x in atoms]
+        atoms = np.array([np.array(x).astype(np.float) for x in atoms])
+        atoms = np.array(np.split(atoms, nres))
+        atoms = atoms.reshape(len(filter(lambda x: 'MODEL' in x, lines)), -1, 3)
+        
+        return atoms
+   

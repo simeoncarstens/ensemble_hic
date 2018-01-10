@@ -257,6 +257,13 @@ def make_elongated_structures(bead_radii, n_structures):
 
     return X    
 
+def make_random_structures(bead_radii, n_structures):
+
+    d = bead_radii.mean() * len(bead_radii) ** 0.333
+    X = np.random.normal(scale=d, size=(n_structures, len(bead_radii), 3))
+    
+    return X.ravel()
+
 def setup_initial_state(initial_state_params, posterior):
 
     from isd2.samplers import ISDState
@@ -269,8 +276,11 @@ def setup_initial_state(initial_state_params, posterior):
 
     if structures == 'elongated':
         bead_radii = posterior.priors['nonbonded_prior'].forcefield.bead_radii
-        structures = make_elongated_structures(bead_radii, n_structures)
-        structures += np.random.normal(scale=0.5, size=structures.shape)
+        if False:
+            structures = make_elongated_structures(bead_radii, n_structures)
+            structures += np.random.normal(scale=0.5, size=structures.shape)
+        else:            
+            structures = make_random_structures(bead_radii, n_structures)
     else:
         try:
             structures = np.load(structures)
@@ -321,6 +331,8 @@ def make_priors(nonbonded_prior_params, backbone_prior_params,
         
     NBP = make_nonbonded_prior(nb_params, bead_radii, n_structures)
     bb_ll, bb_ul = np.zeros(n_beads - 1), bead_radii[:-1] + bead_radii[1:]
+    bb_ll = bb_ll[None,:]
+    bb_ul = bb_ul[None,:]
     BBP = BackbonePrior('backbone_prior',
                         lower_limits=bb_ll, upper_limits=bb_ul,
                         k_bb=float(backbone_prior_params['force_constant']),
@@ -447,5 +459,65 @@ def setup_default_re_master(n_replicas, sim_path, comm):
     
     master = ExchangeMaster('master0', replica_names, params, comm=comm, 
                             sampling_statistics=stats, swap_statistics=re_stats)
+
+    return master
+
+
+def setup_continue_re_master(n_replicas, sim_path, cont_path, comm):
+
+    from rexfw.remasters import ExchangeMaster
+    from rexfw.statistics import Statistics, REStatistics
+    from rexfw.statistics.writers import StandardConsoleREStatisticsWriter, StandardFileMCMCStatisticsWriter, StandardFileREStatisticsWriter, StandardFileREWorksStatisticsWriter, StandardConsoleMCMCStatisticsWriter, StandardConsoleMCMCStatisticsWriter
+    from rexfw.convenience import create_standard_RE_params
+    from rexfw.convenience.statistics import create_standard_averages, create_standard_works, create_standard_stepsizes, create_standard_heats
+
+    replica_names = ['replica{}'.format(i) for i in range(1, n_replicas + 1)]
+    params = create_standard_RE_params(n_replicas)
+        
+    from rexfw.statistics.averages import REAcceptanceRateAverage, MCMCAcceptanceRateAverage
+    from rexfw.statistics.logged_quantities import SamplerStepsize
+    
+    local_pacc_avgs = [MCMCAcceptanceRateAverage(r, 'structures')
+                       for r in replica_names]
+    # local_pacc_avgs += [MCMCAcceptanceRateAverage(r, 'weights')
+    #                     for r in replica_names]
+    re_pacc_avgs = [REAcceptanceRateAverage(replica_names[i], replica_names[i+1]) 
+                    for i in range(len(replica_names) - 1)]
+    stepsizes = [SamplerStepsize(r, 'structures') for r in replica_names]
+    # stepsizes += [SamplerStepsize(r, 'weights') for r in replica_names]
+    # stepsizes += [SamplerStepsize(r, 'k2') for r in replica_names]
+    works = create_standard_works(replica_names)
+    heats = create_standard_heats(replica_names)
+    stats_path = cont_path + 'statistics/'
+    stats_writers = [StandardConsoleMCMCStatisticsWriter(['structures',
+                                                          #'weights'
+                                                          #'k2',
+                                                          ],
+                                                         ['acceptance rate',
+                                                          'stepsize']),
+                     StandardFileMCMCStatisticsWriter(stats_path + '/mcmc_stats.txt',
+                                                      ['structures',
+                                                       #'weights'
+                                                       ],
+                                                      ['acceptance rate', 'stepsize'])
+                    ]
+    stats = Statistics(elements=local_pacc_avgs + stepsizes, 
+                       stats_writer=stats_writers)
+    re_stats_writers = [StandardConsoleREStatisticsWriter(),
+                        StandardFileREStatisticsWriter(stats_path + 're_stats.txt',
+                                                       ['acceptance rate'])]
+    works_path = cont_path + 'works/'
+    works_writers = [StandardFileREWorksStatisticsWriter(works_path)]
+    re_stats = REStatistics(elements=re_pacc_avgs,
+                            work_elements=works, heat_elements=heats,
+                            stats_writer=re_stats_writers,
+                            works_writer=works_writers)
+    
+    master = ExchangeMaster('master0', replica_names, params, comm=comm, 
+                            sampling_statistics=stats, swap_statistics=re_stats)
+
+    for p in (stats_path, works_path):
+        if not os.path.exists(p):
+            os.makedirs(p)
 
     return master
