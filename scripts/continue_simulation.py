@@ -53,7 +53,7 @@ if rank == 0:
         output_folder += '/'
 
     ## setup replica exchange
-    master = setup_default_re_master(n_replicas, output_folder, cont_folder, comm)
+    master = setup_continue_re_master(n_replicas, output_folder, cont_folder, comm)
 
     ## run replica exchange
     offset = int(settings['replica']['offset'])
@@ -88,6 +88,8 @@ else:
     initial_state = setup_initial_state(settings['initial_state'], posterior)
     if not 'norm' in initial_state.variables:
         posterior['norm'].set(np.max(posterior.likelihoods['ensemble_contacts'].error_model.data) / float(settings['general']['n_structures']))
+    initial_state.update_variables(structures=np.load(cont_folder + 'init_states.npy')[rank - 1])
+    settings['structures_hmc'].update(timestep=np.load(cont_folder + 'timesteps.npy')[rank - 1])
     subsamplers = make_subsamplers(posterior, initial_state.variables,
                                    settings['structures_hmc'],
                                    settings['weights_hmc'])

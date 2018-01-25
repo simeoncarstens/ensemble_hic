@@ -489,13 +489,20 @@ def setup_continue_re_master(n_replicas, sim_path, cont_path, comm):
     works = create_standard_works(replica_names)
     heats = create_standard_heats(replica_names)
     stats_path = cont_path + 'statistics/'
+    works_path = cont_path + 'works/'
+
+    import os
+    for p in (stats_path, works_path):
+        if not os.path.exists(p):
+            os.makedirs(p)
+
     stats_writers = [StandardConsoleMCMCStatisticsWriter(['structures',
                                                           #'weights'
                                                           #'k2',
                                                           ],
                                                          ['acceptance rate',
                                                           'stepsize']),
-                     StandardFileMCMCStatisticsWriter(stats_path + '/mcmc_stats.txt',
+                     StandardFileMCMCStatisticsWriter(stats_path + 'mcmc_stats.txt',
                                                       ['structures',
                                                        #'weights'
                                                        ],
@@ -506,7 +513,6 @@ def setup_continue_re_master(n_replicas, sim_path, cont_path, comm):
     re_stats_writers = [StandardConsoleREStatisticsWriter(),
                         StandardFileREStatisticsWriter(stats_path + 're_stats.txt',
                                                        ['acceptance rate'])]
-    works_path = cont_path + 'works/'
     works_writers = [StandardFileREWorksStatisticsWriter(works_path)]
     re_stats = REStatistics(elements=re_pacc_avgs,
                             work_elements=works, heat_elements=heats,
@@ -515,9 +521,5 @@ def setup_continue_re_master(n_replicas, sim_path, cont_path, comm):
     
     master = ExchangeMaster('master0', replica_names, params, comm=comm, 
                             sampling_statistics=stats, swap_statistics=re_stats)
-
-    for p in (stats_path, works_path):
-        if not os.path.exists(p):
-            os.makedirs(p)
 
     return master

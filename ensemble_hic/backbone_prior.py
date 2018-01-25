@@ -48,8 +48,8 @@ class BackbonePrior(AbstractPrior):
     def _evaluate_log_prob(self, structures):
 
         log_prob = self._single_structure_log_prob
-        ll = self.lower_limits
-        ul = self.upper_limits
+        ll = self.lower_limits[0]
+        ul = self.upper_limits[0]
         X = structures.reshape(self.n_structures, -1, 3)
 		
         return numpy.sum(map(lambda x: log_prob(x, ll, ul), X))
@@ -57,8 +57,8 @@ class BackbonePrior(AbstractPrior):
     def _evaluate_gradient(self, structures):
 
         grad = self._single_structure_gradient
-        ll = self.lower_limits
-        ul = self.upper_limits
+        ll = self.lower_limits[0]
+        ul = self.upper_limits[0]
         X = structures.reshape(self.n_structures, -1, 3)
 
         return numpy.concatenate(map(lambda x: grad(x, ll, ul), X))
