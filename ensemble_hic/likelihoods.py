@@ -20,7 +20,16 @@ class Likelihood(ISD2Likelihood):
         self.gradient_cutoff = gradient_cutoff
         self._register('lammda')
         self['lammda'] = Parameter(lammda, 'lammda')
-
+        
+        if not True:
+            dps = np.loadtxt('/usr/users/scarste/projects/ensemble_hic/data/rao2014/chr1_coarse.txt').astype(int)
+            dps = dps[np.abs(dps[:,0] - dps[:,1]) > 1]
+            dps = dps[dps[:,2] > 0]
+            counts = dps[:,2] * 1.0
+            counts /= 9.0
+            dps[:,2] = counts.astype(int)
+            self.dps = dps
+        
     def gradient(self, **variables):
 
         self._complete_variables(variables)
@@ -71,12 +80,16 @@ class Likelihood(ISD2Likelihood):
 
         fwm = self.forward_model
 
+        if not True:
+            dps = self.dps
+        else:
+            dps = fwm.data_points
+
         result = precision * calculate_gradient(structures, smooth_steepness, 
                                                 weights,
                                                 self.gradient_cutoff,
                                                 fwm['contact_distances'].value,
-                                                fwm.data_points,
-                                                #fwm.data_points,
+                                                dps,
                                                 em_indicator
                                                 )
         
