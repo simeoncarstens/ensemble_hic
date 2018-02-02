@@ -9,12 +9,14 @@ from rexfw.convenience import create_standard_RE_params, create_directories
 from cPickle import dump
 
 from ensemble_hic.setup_functions import make_replica_schedule, parse_config_file
+from ensemble_hic.setup_functions import expspace
 
 mpicomm = MPI.COMM_WORLD
 rank = mpicomm.Get_rank()
 size = mpicomm.Get_size()
 config_file = sys.argv[1]
-if True:
+
+if not True:
     np.random.seed(42)
     rank = 4
     size = 5
@@ -25,25 +27,12 @@ settings = parse_config_file(config_file)
 comm = MPICommunicator()
 
 re_params = settings['replica']
-if re_params['schedule'] in ('linear', 'exponential'):
-    schedule = make_replica_schedule(re_params, n_replicas)
-elif re_params['schedule'][-3:] == '.py':
-    # exec(open(re_params['schedule']).read())
-    import numpy as np
-    from scipy import stats
-    from mpi4py import MPI
-    space = np.linspace(0, 1, n_replicas)
-    m = float(re_params['gauss_mean'])#.65
-    s = float(re_params['gauss_std'])#0.2
-    delta_betas = stats.norm.pdf(space, m, s)
-    delta_betas = [0] + delta_betas
-    betas = np.cumsum(delta_betas)
-    betas /= betas[-1]
-
-    schedule = {'lammda': betas, 'beta': betas}
-
-else:
-    schedule = np.load(re_params['schedule'])
+bead_radii = np.loadtxt(os.path.expanduser('~/projects/ensemble_hic/scripts/bau2011/bead_radii.txt'))
+n_beads = len(bead_radii)
+target_rogs = expspace(0.1 * bead_radii.sum() ** 0.333,
+                       10 * bead_radii.sum() ** 0.333,
+                       0.075, n_replicas)
+schedule = dict(target_rog=target_rogs)
 
 if rank == 0:
 
@@ -90,17 +79,14 @@ else:
     from ensemble_hic.forcefields import NBLForceField
     from ensemble_hic.hmc import FastHMCSampler
     
-    bead_radii = np.loadtxt(os.path.expanduser('~/projects/ensemble_hic/scripts/bau2011/bead_radii.txt'))
-    n_beads = len(bead_radii)
-    target_rogs = np.linspace(10.0 * bead_radii.sum() ** 0.3333,
-                              0.1 * bead_radii.sum() ** 0.3333,
-                              n_replicas)
     BBP = BackbonePrior('backbone_prior',
                         np.zeros(len(bead_radii) - 1)[None,:],
                         (bead_radii[:-1] + bead_radii[1:])[None,:],
                         500,
                         1)
-    ROGP = GyrationRadiusPrior('rog_prior', target_rogs[rank - 1], 5.0, 1)
+    ROGP = GyrationRadiusPrior('rog_prior',
+                               schedule['target_rog'][rank - 1],
+                               5.0, 1)
     FF = NBLForceField(bead_radii, 50)
     NBP = BoltzmannNonbondedPrior2('nonbonded_prior', FF, 1, 1.0)
     posterior = Posterior({}, {'backbone_prior': BBP,
@@ -111,9 +97,16 @@ else:
                                                               np.sum(bead_radii),
                                                               n_beads * 3)})
 
+    timestep = float(settings['structures_hmc']['timestep'])
+    n_steps = int(settings['structures_hmc']['trajectory_length'])
+    adaption_limit = int(settings['structures_hmc']['adaption_limit'])
+    
     subsamplers = {'structures': FastHMCSampler(posterior,
                                                 initial_state.variables['structures'],
-                                                1e-2, 100, 1000000)}
+                                                timestep,
+                                                n_steps,
+                                                adaption_limit,
+                                                variable_name='structures')}
     sampler = GibbsSampler(pdf=posterior, state=initial_state,
                            subsamplers=subsamplers)    
     proposer = REProposer('prop{}'.format(rank))
