@@ -6,8 +6,8 @@ from ensemble_hic.setup_functions import parse_config_file
 
 sys.argv = ['asdfasdf',
             '/scratch/scarste/ensemble_hic/rao2014/chr1_randominit_it3_50structures_sn_481replicas/config.cfg',
-            20001,
-            1]
+            30001,
+            2]
 
 config_file = sys.argv[1]
 n_samples = int(sys.argv[2])
@@ -40,8 +40,11 @@ start_states = [np.load(fname.format(i, offset - dump_interval, offset))[-1].var
                 for i in range(1, n_replicas + 1)]
 np.save(cont_folder + 'init_states.npy', np.array(start_states))
 
-mcmc_stats = np.loadtxt(output_folder + 'statistics/mcmc_stats.txt')
-
+if n_cont == 1:
+    mcmc_stats = np.loadtxt(output_folder + 'statistics/mcmc_stats.txt')
+else:
+    mcmc_stats = np.loadtxt(output_folder + 'init_continue{}/statistics/mcmc_stats.txt'.format(n_cont - 1))
+    
 ## assemble and write HMC timesteps
 timesteps = mcmc_stats[-1,2::2]
 np.save(cont_folder + 'timesteps.npy', timesteps)

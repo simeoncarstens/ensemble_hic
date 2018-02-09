@@ -87,6 +87,64 @@ else:
     ROGP = GyrationRadiusPrior('rog_prior',
                                schedule['target_rog'][rank - 1],
                                5.0, 1)
+
+    from isd2.pdf import AbstractISDPDF
+    class MaxEntROGPotential(AbstractISDPDF):
+
+        def __init__(self, delta, bead_radii):
+
+            from csb.statistics.pdf.parameterized import Parameter
+            from isd2 import ArrayParameter
+
+            super(MaxEntROGPotential, self).__init__('max_ent_rog_potential')
+
+            self.bead_radii = bead_radii
+            self._register_variable('structures', differentiable=True)
+            self._register('delta')
+            self['delta'] = Parameter(delta, 'delta')        
+            self.update_var_param_types(structures=ArrayParameter)
+            self._set_original_variables()
+
+        def _calculate_wrog_squared(self, X):
+
+            sqrt = np.sqrt
+            sum = np.sum
+            n_beads = X.shape[0]
+            weights = n_beads * self.bead_radii ** 3 / np.sum(self.bead_radii ** 3)
+
+            return sum(weights * sum((X - X.mean(0)[None,:]) ** 2, 1))
+        
+        def _evaluate_log_prob(self, structures):
+
+            X = structures.reshape(-1, 3)
+
+            return -self['delta'].value * np.sqrt(self._calculate_wrog_squared(X))
+
+        def gradient(self, structures):
+
+            sqrt = np.sqrt
+            sum = np.sum
+            X = structures.reshape(-1, 3)
+            n_beads = X.shape[0]
+            delta = self['delta'].value
+            weights = n_beads * self.bead_radii ** 3 / np.sum(self.bead_radii ** 3)
+            weights = weights[:,None]
+            wrog = np.sqrt(self._calculate_wrog_squared(X))
+            Xm = X.mean(0)[None,:]
+
+            return delta / wrog * (weights * (np.ones((n_beads, 3)) * (1-1.0/n_beads) - Xm + X / n_beads)).ravel()
+
+        def clone(self):
+
+            copy = self.__class__(delta=self['delta'].value,
+                                  bead_radii=self.bead_radii)
+
+            copy.set_fixed_variables_from_pdf(self)
+
+            return copy
+
+            
+    
     FF = NBLForceField(bead_radii, 50)
     NBP = BoltzmannNonbondedPrior2('nonbonded_prior', FF, 1, 1.0)
     posterior = Posterior({}, {'backbone_prior': BBP,
