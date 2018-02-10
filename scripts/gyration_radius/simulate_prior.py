@@ -29,9 +29,7 @@ comm = MPICommunicator()
 re_params = settings['replica']
 bead_radii = np.loadtxt(os.path.expanduser('~/projects/ensemble_hic/scripts/bau2011/bead_radii.txt'))
 n_beads = len(bead_radii)
-target_rogs = expspace(0.1 * bead_radii.sum() ** 0.333,
-                       10 * bead_radii.sum() ** 0.333,
-                       0.075, n_replicas)
+betas = expspace(0, 200, 
 schedule = dict(target_rog=target_rogs)
 
 if rank == 0:
@@ -74,7 +72,6 @@ else:
     from isd2.pdf.posteriors import Posterior
 
     from ensemble_hic.backbone_prior import BackbonePrior
-    from ensemble_hic.rog_prior import GyrationRadiusPrior
     from ensemble_hic.nonbonded_prior import BoltzmannNonbondedPrior2
     from ensemble_hic.forcefields import NBLForceField
     from ensemble_hic.hmc import FastHMCSampler
@@ -84,9 +81,6 @@ else:
                         (bead_radii[:-1] + bead_radii[1:])[None,:],
                         500,
                         1)
-    ROGP = GyrationRadiusPrior('rog_prior',
-                               schedule['target_rog'][rank - 1],
-                               5.0, 1)
 
     from isd2.pdf import AbstractISDPDF
     class MaxEntROGPotential(AbstractISDPDF):
@@ -105,6 +99,10 @@ else:
             self.update_var_param_types(structures=ArrayParameter)
             self._set_original_variables()
 
+        def _wmean(self, X, w):
+
+            return np.sum(X * w[:,None], 0) / X.shape[0]
+            
         def _calculate_wrog_squared(self, X):
 
             sqrt = np.sqrt
@@ -112,7 +110,7 @@ else:
             n_beads = X.shape[0]
             weights = n_beads * self.bead_radii ** 3 / np.sum(self.bead_radii ** 3)
 
-            return sum(weights * sum((X - X.mean(0)[None,:]) ** 2, 1))
+            return sum(weights * np.sum((X - self._wmean(X, weights)) ** 2, 1))
         
         def _evaluate_log_prob(self, structures):
 
@@ -128,11 +126,11 @@ else:
             n_beads = X.shape[0]
             delta = self['delta'].value
             weights = n_beads * self.bead_radii ** 3 / np.sum(self.bead_radii ** 3)
-            weights = weights[:,None]
             wrog = np.sqrt(self._calculate_wrog_squared(X))
-            Xm = X.mean(0)[None,:]
 
-            return delta / wrog * (weights * (np.ones((n_beads, 3)) * (1-1.0/n_beads) - Xm + X / n_beads)).ravel()
+            b = delta / wrog * (weights[:,None] * (X - self._wmean(X, weights)))
+
+            return b.ravel()
 
         def clone(self):
 
@@ -147,8 +145,9 @@ else:
     
     FF = NBLForceField(bead_radii, 50)
     NBP = BoltzmannNonbondedPrior2('nonbonded_prior', FF, 1, 1.0)
+    ROGP = MaxEntROGPotential(schedule['beta'][rank-1], FF.bead_radii)
     posterior = Posterior({}, {'backbone_prior': BBP,
-                               'rog_prior': ROGP,
+                               'rog_potential': ROGP,
                                'nonbonded_prior': NBP})
 
     initial_state = ISDState({'structures': np.random.uniform(-np.sum(bead_radii),
