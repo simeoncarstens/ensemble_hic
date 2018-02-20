@@ -34,7 +34,7 @@ def calculate_gradient(double [:,:,:] structures,
                        int em_indicator
                        ):
 
-    cdef double d, value, f
+    cdef double d, value, f, g
     cdef Py_ssize_t i,j,l,u,k,v
     cdef Py_ssize_t n_datapoints = len(data_points)
     cdef Py_ssize_t n_beads = len(structures[0])
@@ -64,7 +64,9 @@ def calculate_gradient(double [:,:,:] structures,
             if d > (cds[u] * cds[u]) * cutoff:
                 continue
             d = sqrt(d)
-            f = 0.5 * em_derivative(md[u], data_points[u,2]) * weights[k] * smooth_steepness / (1.0 + smooth_steepness * smooth_steepness * (cds[u] - d) * (cds[u] - d)) ** 1.5 / d
+            g = 1.0 + smooth_steepness * smooth_steepness * (cds[u] - d) * (cds[u] - d)
+            f = 0.5 * em_derivative(md[u], data_points[u,2]) * weights[k] * smooth_steepness / (g * sqrt(g) * d)
+            # f = 0.5 * em_derivative(md[u], data_points[u,2]) * weights[k] * smooth_steepness / (1.0 + smooth_steepness * smooth_steepness * (cds[u] - d) * (cds[u] - d)) ** 1.5 / d
             for l in range(3):
                 value = (structures[k,j,l] - structures[k,i,l]) * f
                 result[k * n_beads * 3 + i * 3 + l] += value 

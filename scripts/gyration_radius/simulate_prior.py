@@ -20,7 +20,7 @@ if not True:
     np.random.seed(42)
     rank = 4
     size = 5
-    config_file = '/usr/users/scarste/projects/ensemble_hic/scripts/bau2011/tmpcfg.cfg'
+    config_file = '/usr/users/scarste/projects/ensemble_hic/scripts/gyration_radius/tmpcfg.cfg'
 n_replicas = size - 1
 settings = parse_config_file(config_file)
 
@@ -29,8 +29,8 @@ comm = MPICommunicator()
 re_params = settings['replica']
 bead_radii = np.loadtxt(os.path.expanduser('~/projects/ensemble_hic/scripts/bau2011/bead_radii.txt'))
 n_beads = len(bead_radii)
-betas = expspace(0, 200, 
-schedule = dict(target_rog=target_rogs)
+betas = expspace(0, 200, 0.1, n_replicas)
+schedule = dict(beta=betas)
 
 if rank == 0:
 
