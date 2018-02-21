@@ -16,11 +16,12 @@ font = {'family' : 'normal',
 matplotlib.rc('font', **font)
 
 config_file = sys.argv[1]
+print config_file
 settings = parse_config_file(config_file)
 n_replicas = int(settings['replica']['n_replicas'])
 target_replica = n_replicas
 burnin = 5000
-n_samples = 19000#int(settings['replica']['n_samples'])
+n_samples = int(settings['replica']['n_samples'])
 dump_interval = int(settings['replica']['samples_dump_interval'])
 save_figures = True
 
