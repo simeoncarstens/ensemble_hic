@@ -15,13 +15,14 @@ font = {'family' : 'normal',
         'size'   : 6}
 matplotlib.rc('font', **font)
 
+sys.argv[1] = '/scratch/scarste/ensemble_hic/eser2017/chr4_nozeros_it2_10structures_sn_153replicas/config.cfg'
+
 config_file = sys.argv[1]
-print config_file
 settings = parse_config_file(config_file)
 n_replicas = int(settings['replica']['n_replicas'])
 target_replica = n_replicas
 burnin = 5000
-n_samples = int(settings['replica']['n_samples'])
+n_samples = 7001#int(settings['replica']['n_samples'])
 dump_interval = int(settings['replica']['samples_dump_interval'])
 save_figures = True
 
@@ -99,11 +100,22 @@ from csb.bio.utils import distance_matrix
 vardict = {k: samples[-1,-1].variables[k] for k in samples[-1,-1].variables.keys()
            if k in p.likelihoods['ensemble_contacts'].forward_model.variables}
 rec = p.likelihoods['ensemble_contacts'].forward_model(**vardict)
-m = np.zeros((n_beads, n_beads)) * np.nan
-m[data[:,0], data[:,1]] = rec
-m[data[:,1], data[:,0]] = rec
-m = remove_zero_beads(m)
-ms = ax.matshow(np.log(m+1), cmap=plt.cm.jet, interpolation='nearest')
+m_mock = np.zeros((n_beads, n_beads)) * np.nan
+m_mock[data[:,0], data[:,1]] = rec
+m_mock[data[:,1], data[:,0]] = rec
+m_mock = remove_zero_beads(m_mock)
+
+m_data = np.zeros((n_beads, n_beads)) * np.nan
+m_data[data[:,0],data[:,1]] = data[:,2]
+m_data[data[:,1],data[:,0]] = data[:,2]
+m_data = remove_zero_beads(m_data)
+
+m_max = np.max([np.max(m_mock[~np.isnan(m_mock)]), np.max(m_data[~np.isnan(m_data)])])
+m_mock[0,0] = m_max
+m_data[0,0] = m_max
+print m_max
+
+ms = ax.matshow(np.log(m_mock+1), cmap=plt.cm.jet, interpolation='nearest')
 # ms = ax.matshow(m, cmap=plt.cm.jet)
 ax.set_title('rec')
 cb = fig.colorbar(ms, ax=ax)
@@ -112,11 +124,7 @@ ax.set_xticks([])
 ax.set_yticks([])
 
 ax = fig.add_subplot(336, facecolor='grey')
-m = np.zeros((n_beads, n_beads)) * np.nan
-m[data[:,0],data[:,1]] = data[:,2]
-m[data[:,1],data[:,0]] = data[:,2]
-m = remove_zero_beads(m)
-ms = ax.matshow(np.log(m+1), cmap=plt.cm.jet, interpolation='nearest')
+ms = ax.matshow(np.log(m_data+1), cmap=plt.cm.jet, interpolation='nearest')
 # ms = ax.matshow(m, cmap=plt.cm.jet)
 ax.set_title('data')
 cb = fig.colorbar(ms, ax=ax)
@@ -160,3 +168,18 @@ if save_figures:
     plt.savefig(figures_folder + 'sampling_stats.pdf')
 else:
     plt.show()
+
+def calc_Rg_profile(struct, ws):
+
+    from csb.bio.utils import radius_of_gyration
+
+    return np.array([radius_of_gyration(struct[i:i+ws])
+                     for i in range(len(struct)-ws)])
+
+windowsize = 20
+samples = samples.squeeze()
+structs = np.array([x.variables['structures'].reshape(-1, n_beads, 3)
+                    for x in samples[-10:]])
+
+profiles = np.array([map(lambda x: calc_Rg_profile(x, windowsize), states) for states
+                     in structs])

@@ -26,7 +26,7 @@ cont_inter = inter.copy()
 
 all_ifs = np.concatenate((cont_intra, cont_inter))
 
-for i in range(2, 17):
+for i in range(2, len(chrom_lengths) + 1):
         all_ifs[all_ifs[:,0] == i, 1] += cl_cumsums[i-2]
         all_ifs[all_ifs[:,2] == i, 3] += cl_cumsums[i-2]
 
@@ -40,6 +40,7 @@ chrom_ranges = np.insert(np.cumsum(n_beads), 0, 0)
 
 m = np.ones((chrom_ranges[-1], chrom_ranges[-1]))
 ## fill m block by block in order to avoid shared beads at chromosome boundaries
+single_chrom_matrices = []
 for i in range(len(chrom_lengths)):
     for j in range(len(chrom_lengths)):
         print i, j
@@ -60,14 +61,16 @@ for i in range(len(chrom_lengths)):
 
         m[chrom_ranges[i]:chrom_ranges[i+1],
           chrom_ranges[j]:chrom_ranges[j+1]] = subm
+
+        if i == j:
+            single_chrom_matrices.append(subm)
 m[np.tril_indices(len(m))] = m.T[np.tril_indices(len(m))]
     
 if True:
     plotm = m.copy()
     fig = plt.figure()
     ax = fig.add_subplot(111)
-    if with_nans:
-        plotm[np.isnan(plotm)] = 0
+    plotm[np.isnan(plotm)] = 0
     ax.matshow(np.log(plotm+1))
     for last_bead in np.cumsum(n_beads):
         ax.plot([-0.5,len(m)],
@@ -86,14 +89,13 @@ if True:
     fig.tight_layout()
     plt.show()
 
+
+n_rDNA_beads = 200
+
 if not True:
     chrom = 4
-    lim_low, lim_high = chrom_ranges[chrom-1], chrom_ranges[chrom]
-    path = '~/projects/ensemble_hic/data/eser2017/chr{}_withNaNs.txt'.format(chrom)
-    with open(os.path.expanduser(path), 'w') as opf:
-        for i in range(lim_low, lim_high):
-            for j in range(i, lim_high):
-                if np.isnan(m[i,j]):
-                    continue
-                opf.write('{}\t{}\t{}\n'.format(i-lim_low, j-lim_low,
-                                                int(m[i,j])))
+    from yeastlib import write_single_chr_data
+
+    fname = os.path.expanduser('~/projects/ensemble_hic/data/eser2017/chr{}.txt')
+    write_single_chr_data(single_chrom_matrices[chrom - 1], fname)
+

@@ -71,3 +71,35 @@ def map_pos_to_bead(pos, bead_lims):
                                pos - np.insert(np.cumsum(chrom_lengths),
                                                0, 0)[chrom - 1],
                                bead_lims)
+
+def write_single_chr_data(matrix, fname):
+
+    n_beads = len(matrix)
+    with open(fname, 'w') as opf:
+        for i in range(n_beads):
+            for j in range(i + 1, n_beads):
+                if np.isnan(m[i,j]):
+                    continue
+                opf.write('{}\t{}\t{}\n'.format(i, j, int(matrix[i,j])))
+
+def write_whole_genome_data(matrix, n_rDNA_beads, bead_lims, fname):
+
+    rDNA_start_bead = map_chr_pos_to_bead(12, rDNA_to_left, bead_lims)
+    n_normal_beads = len(matrix)
+    with open(fname, 'w') as opf:
+        for i in range(n_normal_beads):
+            for j in range(i + 1, n_normal_beads):
+                if np.isnan(m[i,j]):
+                    continue
+                i_shifted = i
+                j_shifted = j
+                if i > rDNA_start_bead:
+                    i_shifted += n_rDNA_beads
+                if j > rDNA_start_bead:
+                    j_shifted += n_rDNA_beads    
+                opf.write('{}\t{}\t{}\n'.format(i_shifted, j_shifted,
+                                                int(matrix[i,j])))
+    
+
+
+

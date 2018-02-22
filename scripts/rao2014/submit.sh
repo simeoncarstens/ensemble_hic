@@ -1,21 +1,22 @@
 #!/bin/bash
 
-n_replicas=158
+n_replicas=465
 wall_time=48:00
-n_structures=30
+n_structures=20
 variables=structures,norm
 norm=6843
 alpha=10
-schedule=exponential
-schedule=\\/scratch\\/scarste\\/ensemble_hic\\/eser2017\\/chr4_nozeros_it2_20structures_sn_153replicas\\/analysis\\/te1_schedule.pickle
+#schedule=exponential
+schedule=\\/scratch\\/scarste\\/ensemble_hic\\/rao2014\\/chr1_randominit_it3_20structures_sn_464replicas\\/analysis\\/te1_schedule.pickle
 ensemble=boltzmann
+gauss_mean=0.7
+gauss_std=0.3
 rate=0.05
-suffix=_nozeros
+suffix=_randominit_it4_coarse2
 n_samples=100000
 adaption_limit=100000000
 
-data_file=chr4
-n_beads=154
+data_file=chr1
 
 if [ "$variables" == "structures,norm" ]; then
     opf_vars=sn
@@ -47,6 +48,8 @@ sed -i 's/schedule_PH/'"$schedule"'/g' $tmpcfg
 sed -i 's/n_samples_PH/'"$n_samples"'/g' $tmpcfg
 sed -i 's/rate_PH/'"$rate"'/g' $tmpcfg
 sed -i 's/n_replicas_PH/'"$n_replicas"'/g' $tmpcfg
+sed -i 's/gauss_mean_PH/'"$gauss_mean"'/g' $tmpcfg
+sed -i 's/gauss_std_PH/'"$gauss_std"'/g' $tmpcfg
 sed -i 's/ensemble_PH/'"$ensemble"'/g' $tmpcfg
 sed -i 's/norm_rate2_PH/'"$norm_rate"'/g' $tmpcfg
 sed -i 's/norm_shape2_PH/'"$norm_shape"'/g' $tmpcfg
