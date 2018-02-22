@@ -13,7 +13,7 @@ intra = np.array([[x[0][3:], x[1], x[2][3:], x[3], x[4]]
 inter = np.array([[x[0][3:], x[1], x[2][3:], x[3], x[4]]
                   for x in inter]).astype(float).astype(int)
 
-rDNA_length = 1500000
+rDNA_length = 0*1500000
 rDNA_to_left = 450000
 ## from USCS Genome Browser, SacCer3 April 2011 assembly
 chrom_lengths = array([[      1,  230218],
@@ -85,7 +85,7 @@ for i in range(2, 17):
 # all_ifs[all_ifs[:,1] >= cl_cumsums[10] + rDNA_to_left, 1] += rDNA_length
 # all_ifs[all_ifs[:,3] >= cl_cumsums[10] + rDNA_to_left, 3] += rDNA_length
 
-with_nans = False
+with_nans = not False
 if True:
     bin_size = 10000
     n_beads = np.ceil((chrom_lengths[:,1].astype(float)) / bin_size).astype(int)
