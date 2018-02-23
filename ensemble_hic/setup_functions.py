@@ -205,8 +205,7 @@ def make_replica_schedule(replica_params, n_replicas):
 def make_subsamplers(posterior, initial_state,
                      structures_hmc_params, weights_hmc_params):
 
-    from isd2.samplers.hmc import ISD2HMCSampler
-    from .hmc import FastHMCSampler as ISD2HMCSampler
+    from isd2.samplers.hmc import FastHMCSampler as ISD2HMCSampler
 
     p = posterior
     variables = initial_state.keys()
