@@ -10,12 +10,17 @@ if True:
     rank = 2
     size = 3
     config_file = '/home/simeoncarstens/projects/ensemble_hic/scripts/rao2014/tmpcfg.cfg'
+if True:
+    np.random.seed(42)
+    rank = 2
+    size = 3
+    config_file = '/home/simeon/projects/ensemble_hic/scripts/rao2014/tmpcfg.cfg'
+
 n_replicas = size - 1
 settings = parse_config_file(config_file)
 
 re_params = settings['replica']
 schedule = make_replica_schedule(re_params, n_replicas)
-
     
 from isd2.samplers.gibbs import GibbsSampler
 
