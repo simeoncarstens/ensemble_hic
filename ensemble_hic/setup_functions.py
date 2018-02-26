@@ -393,7 +393,7 @@ def make_likelihood(forward_model_params, error_model, data_filtering_params,
     contact_distances = (bead_radii[data[:,0]] + bead_radii[data[:,1]]) * cd_factor
         
     FWM = EnsembleContactsFWM('fwm', n_structures, contact_distances,
-                              cutoff=10000.0, data_points=data)
+                              data_points=data)
 
     if error_model == 'poisson':
         from .error_models import PoissonEM
@@ -401,7 +401,7 @@ def make_likelihood(forward_model_params, error_model, data_filtering_params,
     else:
         raise(NotImplementedError)
 
-    L = Likelihood('ensemble_contacts', FWM, EM, 1.0, gradient_cutoff=300000.0)
+    L = Likelihood('ensemble_contacts', FWM, EM, 1.0)
     L = L.conditional_factory(smooth_steepness=forward_model_params['alpha'])
     
     return L

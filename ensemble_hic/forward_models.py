@@ -10,7 +10,7 @@ from .forward_models_c import ensemble_contacts_evaluate
 
 class EnsembleContactsFWM(AbstractForwardModel):
 
-    def __init__(self, name, n_structures, contact_distances, data_points, cutoff=5000.0):
+    def __init__(self, name, n_structures, contact_distances, data_points):
 
         super(EnsembleContactsFWM, self).__init__(name)
 
@@ -19,10 +19,8 @@ class EnsembleContactsFWM(AbstractForwardModel):
         self.n_structures = n_structures
 
         self._register('contact_distances')
-        self._register('cutoff')
         self['contact_distances'] = ArrayParameter(contact_distances,
                                                    'contact_distance')
-        self['cutoff'] = Parameter(cutoff, 'cutoff')
 
         self._register_variable('structures', differentiable=True)
         self._register_variable('smooth_steepness')
@@ -47,14 +45,12 @@ class EnsembleContactsFWM(AbstractForwardModel):
                                           self['contact_distances'].value, 
                                           smooth_steepness,
                                           data_points=numpy.array(self.data_points,
-                                                                  dtype=int),
-                                          cutoff=self['cutoff'].value)
+                                                                  dtype=int))
     
     def clone(self):
 
         copy = self.__class__(name=self.name, n_structures=self.n_structures, 
                               contact_distances=self['contact_distances'].value, 
-                              cutoff=self['cutoff'].value,
                               data_points=self.data_points)
 
         for p in self.parameters:

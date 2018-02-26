@@ -40,7 +40,7 @@ setup(
     long_description=DESCRIPTION,
     license=LICENSE,
     requires=REQUIRES,
-    ext_modules=cythonize("ensemble_hic/*.pyx"), 
+    ext_modules=cythonize("ensemble_hic/*.pyx","ensemble_hic/*.pyd"), 
     include_dirs = [numpy.get_include()],
     cmdclass={'build_ext': build_ext},
     classifiers=(
