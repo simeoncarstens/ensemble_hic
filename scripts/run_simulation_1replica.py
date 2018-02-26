@@ -15,6 +15,16 @@ if True:
     settings['general']['data_file'] = ppath + 'data/rao2014/chr1.txt'
     settings['nonbonded_prior']['bead_radii'] = ppath + 'data/rao2014/chr1_radii.txt'
     settings['general']['n_structures'] = '3'
+if True:
+    np.random.seed(42)
+    rank = 2
+    size = 3
+    ppath = os.path.expanduser('~/projects/ensemble_hic/')
+    config_file = ppath + 'scripts/eser2017/tmpcfg_wholegenome.cfg'
+    settings = parse_config_file(config_file)
+    # settings['general']['data_file'] = ppath + 'data/rao2014/chr1.txt'
+    # settings['nonbonded_prior']['bead_radii'] = ppath + 'data/rao2014/chr1_radii.txt'
+    settings['general']['n_structures'] = '3'
 
 n_replicas = size - 1
 

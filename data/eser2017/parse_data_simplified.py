@@ -1,7 +1,7 @@
 import numpy as np
 import os, sys
 import matplotlib.pyplot as plt
-sys.path.append(os.path.expanduser('~/projects/ensemble_hic/scripts/eser2017/'))
+sys.path.append(os.path.expanduser('~/projects/ensemble_hic/data/eser2017/'))
 from yeastlib import rDNA_to_left, chrom_lengths, centromeres
 from yeastlib import map_chr_pos_to_bead, determine_chr_from_pos
 from yeastlib import map_pos_to_bead
@@ -99,3 +99,15 @@ if not True:
     fname = os.path.expanduser('~/projects/ensemble_hic/data/eser2017/chr{}.txt')
     write_single_chr_data(single_chrom_matrices[chrom - 1], fname)
 
+if not True:
+    from yeastlib import write_whole_genome_data
+
+    n_rDNA_beads = 150
+    fname = os.path.expanduser('~/projects/ensemble_hic/data/eser2017/whole_genome_rDNA{}.txt'.format(n_rDNA_beads))
+    write_whole_genome_data(matrix=m, n_rDNA_beads=150,
+			    n_beads=n_beads, bead_lims=bead_lims,
+			    fname=fname)
+    fname = os.path.expanduser('~/projects/ensemble_hic/data/eser2017/mol_ranges_whole_genome_rDNA{}.txt'.format(n_rDNA_beads))
+    n_beads_w_rDNA = n_beads.copy()
+    n_beads_w_rDNA[11] += n_rDNA_beads
+    np.savetxt(fname, np.insert(np.cumsum(n_beads_w_rDNA), 0, 0), fmt='%i')
