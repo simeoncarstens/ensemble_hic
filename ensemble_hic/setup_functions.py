@@ -314,10 +314,24 @@ def make_conditional_posterior(posterior, settings):
         return p.conditional_factory(norm=settings['initial_state']['norm'],
                                      weights=settings['initial_state']['weights'])
     
-def make_priors(nonbonded_prior_params, backbone_prior_params,
-                sphere_prior_params, n_beads, n_structures):
+
+def make_backbone_prior(bead_radii, force_constant, n_beads, n_structures):
 
     from .backbone_prior import BackbonePrior
+    
+    bb_ll, bb_ul = np.zeros(n_beads - 1), bead_radii[:-1] + bead_radii[1:]
+    bb_ll = bb_ll[None,:]
+    bb_ul = bb_ul[None,:]
+    BBP = BackbonePrior('backbone_prior',
+                        lower_limits=bb_ll, upper_limits=bb_ul,
+                        k_bb=force_constant, n_structures=n_structures,
+                        mol_ranges=np.array([0, n_beads])
+                        )
+
+    return BBP
+
+def make_priors(nonbonded_prior_params, backbone_prior_params,
+                sphere_prior_params, n_beads, n_structures):
 
     nb_params = nonbonded_prior_params
     
@@ -329,13 +343,9 @@ def make_priors(nonbonded_prior_params, backbone_prior_params,
                                 dtype=float)
         
     NBP = make_nonbonded_prior(nb_params, bead_radii, n_structures)
-    bb_ll, bb_ul = np.zeros(n_beads - 1), bead_radii[:-1] + bead_radii[1:]
-    bb_ll = bb_ll[None,:]
-    bb_ul = bb_ul[None,:]
-    BBP = BackbonePrior('backbone_prior',
-                        lower_limits=bb_ll, upper_limits=bb_ul,
-                        k_bb=float(backbone_prior_params['force_constant']),
-                        n_structures=n_structures)
+    BBP = make_backbone_prior(bead_radii,
+                              float(backbone_prior_params['force_constant']),
+                              n_beads, n_structures)
     priors = {NBP.name: NBP, BBP.name: BBP}
     if sphere_prior_params['active'] == 'True':
         SP = make_sphere_prior(sphere_prior_params, bead_radii, n_structures)

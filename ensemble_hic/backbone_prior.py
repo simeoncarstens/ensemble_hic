@@ -1,4 +1,4 @@
-import numpy, os, sys
+import numpy as np, os, sys
 
 from csb.statistics.pdf.parameterized import Parameter
 
@@ -9,7 +9,8 @@ from ensemble_hic.backbone_prior_c import backbone_prior_gradient
 
 class BackbonePrior(AbstractPrior):
 
-    def __init__(self, name, lower_limits, upper_limits, k_bb, n_structures):
+    def __init__(self, name, lower_limits, upper_limits, k_bb, n_structures,
+                 mol_ranges):
 
         from isd2 import ArrayParameter
         from csb.statistics.pdf.parameterized import Parameter
@@ -27,66 +28,25 @@ class BackbonePrior(AbstractPrior):
         self.update_var_param_types(structures=ArrayParameter)
         self._set_original_variables()
 
+        self._mol_ranges = mol_ranges
+
     def _single_structure_log_prob(self, structure, ll, ul):
 
         x = structure.reshape(-1, 3)
         k_bb = self['k_bb'].value
 
-        d = numpy.sqrt(numpy.sum((x[1:] - x[:-1]) ** 2, 1))
+        d = np.sqrt(np.sum((x[1:] - x[:-1]) ** 2, 1))
         
         u_viols = d > ul
         l_viols = d < ll
         delta = ul - ll
 
-        return -0.5 * k_bb * (  numpy.sum((d[u_viols] - ul[u_viols]) ** 2 ) \
-                              + numpy.sum((ll[l_viols] - d[l_viols]) ** 2))
+        return -0.5 * k_bb * (  np.sum((d[u_viols] - ul[u_viols]) ** 2 ) \
+                              + np.sum((ll[l_viols] - d[l_viols]) ** 2))
     
     def _single_structure_gradient(self, structure, ll, ul):
         
         return backbone_prior_gradient(structure.ravel(), ll, ul, self['k_bb'].value)
-        
-    def _evaluate_log_prob(self, structures):
-
-        log_prob = self._single_structure_log_prob
-        ll = self.lower_limits[0]
-        ul = self.upper_limits[0]
-        X = structures.reshape(self.n_structures, -1, 3)
-		
-        return numpy.sum(map(lambda x: log_prob(x, ll, ul), X))
-
-    def _evaluate_gradient(self, structures):
-
-        grad = self._single_structure_gradient
-        ll = self.lower_limits[0]
-        ul = self.upper_limits[0]
-        X = structures.reshape(self.n_structures, -1, 3)
-
-        return numpy.concatenate(map(lambda x: grad(x, ll, ul), X))
-		
-    def clone(self):
-
-        copy = self.__class__(self.name,
-                              self.lower_limits,
-                              self.upper_limits,
-                              self['k_bb'].value, 
-                              self.n_structures)
-
-        copy.fix_variables(**{p: self[p].value for p in self.parameters
-                              if not p in copy.parameters})
-
-        return copy
-
-
-class MultiMolBackbonePrior(BackbonePrior):
-
-    def __init__(self, name, lower_limits, upper_limits, k_bb, n_structures,
-                 mol_ranges):
-
-        super(MultiMolBackbonePrior, self).__init__(name, lower_limits,
-                                                    upper_limits, k_bb,
-                                                    n_structures)
-
-        self._mol_ranges = mol_ranges
 
     def _evaluate_log_prob(self, structures):
 
@@ -99,7 +59,7 @@ class MultiMolBackbonePrior(BackbonePrior):
             return np.sum([log_prob(x[mr[i]:mr[i+1]], ll[i], ul[i])
                            for i in range(len(mr) - 1)])
             
-        return numpy.sum(map(lambda x: ss_lp(x), X))
+        return np.sum(map(lambda x: ss_lp(x), X))
 
     def _evaluate_gradient(self, structures):
 
@@ -112,7 +72,7 @@ class MultiMolBackbonePrior(BackbonePrior):
             return np.concatenate([grad(x[mr[i]:mr[i+1]], ll[i], ul[i])
                                    for i in range(len(mr) - 1)])
 
-        return numpy.concatenate(map(lambda x: ss_grad(x), X))
+        return np.concatenate(map(lambda x: ss_grad(x), X))
 		
     def clone(self):
 
