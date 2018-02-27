@@ -2,7 +2,7 @@
 
 n_replicas=200
 wall_time=48:00
-n_structures=10
+n_structures=50
 variables=structures,norm
 norm=6843
 alpha=10

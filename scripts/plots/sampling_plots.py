@@ -15,14 +15,14 @@ font = {'family' : 'normal',
         'size'   : 6}
 matplotlib.rc('font', **font)
 
-sys.argv[1] = '/scratch/scarste/ensemble_hic/eser2017/chr4_nozeros_it2_10structures_sn_153replicas/config.cfg'
+#sys.argv[1] = '/scratch/scarste/ensemble_hic/eser2017/chr4_nozeros_it2_10structures_sn_153replicas/config.cfg'
 
 config_file = sys.argv[1]
 settings = parse_config_file(config_file)
 n_replicas = int(settings['replica']['n_replicas'])
 target_replica = n_replicas
-burnin = 5000
-n_samples = 7001#int(settings['replica']['n_samples'])
+burnin = 000
+n_samples = 2001#int(settings['replica']['n_samples'])
 dump_interval = int(settings['replica']['samples_dump_interval'])
 save_figures = True
 
@@ -113,7 +113,6 @@ m_data = remove_zero_beads(m_data)
 m_max = np.max([np.max(m_mock[~np.isnan(m_mock)]), np.max(m_data[~np.isnan(m_data)])])
 m_mock[0,0] = m_max
 m_data[0,0] = m_max
-print m_max
 
 ms = ax.matshow(np.log(m_mock+1), cmap=plt.cm.jet, interpolation='nearest')
 # ms = ax.matshow(m, cmap=plt.cm.jet)
