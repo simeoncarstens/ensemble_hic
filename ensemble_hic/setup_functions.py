@@ -47,10 +47,15 @@ def make_posterior(settings):
                          settings['sphere_prior'],
                          n_beads, n_structures)
     bead_radii = priors['nonbonded_prior'].forcefield.bead_radii
+    if 'grad_data_file' in settings['structures_hmc']:
+        grad_data_file = settings['structures_hmc']['grad_data_file']
+    else:
+        grad_data_file = settings['general']['data_file']
     likelihood = make_likelihood(settings['forward_model'],
                                  settings['general']['error_model'],
                                  settings['data_filtering'],
                                  settings['general']['data_file'],
+                                 settings['structures_hmc']['grad_data_file'],
                                  n_structures, bead_radii)
     if 'norm' in settings['general']['variables'].split(','):
         from .gamma_prior import NormGammaPrior
@@ -325,19 +330,20 @@ def make_backbone_prior(bead_radii, backbone_prior_params, n_beads,
     else:
         mol_ranges = None
 
-    bb_ll, bb_ul = np.zeros(n_beads - 1), bead_radii[:-1] + bead_radii[1:]
-    bb_ll = bb_ll[None,:]
-    bb_ul = bb_ul[None,:]
     if mol_ranges is None:
         mol_ranges = np.array([0, n_beads])
     else:
         mol_ranges = np.loadtxt(mol_ranges).astype(int)
-        
+    bb_ll = [np.zeros(mol_ranges[i+1] - mol_ranges[i] - 1)
+             for i in range(len(mol_ranges) - 1)]
+    bb_ul = [np.array([bead_radii[j] + bead_radii[j+1]
+              for j in range(mol_ranges[i], mol_ranges[i+1] - 1)])
+             for i in range(len(mol_ranges) - 1)]  
     BBP = BackbonePrior('backbone_prior',
                         lower_limits=bb_ll, upper_limits=bb_ul,
                         k_bb=float(backbone_prior_params['force_constant']),
                         n_structures=n_structures,
-                        mol_ranges=mol_ranges)
+                        mol_ranges=mol_ranges
                         )
 
     return BBP
@@ -355,7 +361,7 @@ def make_priors(nonbonded_prior_params, backbone_prior_params,
                                 dtype=float)
         
     NBP = make_nonbonded_prior(nb_params, bead_radii, n_structures)
-    BBP = make_backbone_prior(bead_radii, backbone_prior_params),
+    BBP = make_backbone_prior(bead_radii, backbone_prior_params,
                               n_beads, n_structures)
     priors = {NBP.name: NBP, BBP.name: BBP}
     if sphere_prior_params['active'] == 'True':
@@ -399,7 +405,7 @@ def make_sphere_prior(sphere_prior_params, bead_radii, n_structures):
         return SP    
 
 def make_likelihood(forward_model_params, error_model, data_filtering_params,
-                    data_file, n_structures, bead_radii):
+                    data_file, hmc_grad_data_file, n_structures, bead_radii):
 
     from .forward_models import EnsembleContactsFWM
     from .likelihoods import Likelihood
@@ -422,7 +428,7 @@ def make_likelihood(forward_model_params, error_model, data_filtering_params,
     else:
         raise(NotImplementedError)
 
-    L = Likelihood('ensemble_contacts', FWM, EM, 1.0)
+    L = Likelihood('ensemble_contacts', FWM, EM, 1.0, hmc_grad_data_file)
     L = L.conditional_factory(smooth_steepness=forward_model_params['alpha'])
     
     return L

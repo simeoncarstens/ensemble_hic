@@ -53,6 +53,7 @@ sed -i 's/norm_shape2_PH/'"$norm_shape"'/g' $tmpcfg
 sed -i 's/n_beads_PH/'"$n_beads"'/g' $tmpcfg
 sed -i 's/alpha_PH/'"$alpha"'/g' $tmpcfg
 sed -i 's/adaption_limit_PH/'"$adaption_limit"'/g' $tmpcfg
+sed -i 's/grad_datafile_PH/'"$grad_datafile"'/g' $tmpcfg
 
 sed -i 's/wall_time_PH/'"$wall_time"'/g' $tmpstart
 sed -i 's/n_replicas_PH/'"$((n_replicas+1))"'/g' $tmpstart

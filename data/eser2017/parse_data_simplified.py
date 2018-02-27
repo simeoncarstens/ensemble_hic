@@ -103,11 +103,12 @@ if not True:
     from yeastlib import write_whole_genome_data
 
     n_rDNA_beads = 150
-    fname = os.path.expanduser('~/projects/ensemble_hic/data/eser2017/whole_genome_rDNA{}.txt'.format(n_rDNA_beads))
+    suffix = '_mintrans10'
+    fname = os.path.expanduser('~/projects/ensemble_hic/data/eser2017/whole_genome_rDNA{}{}.txt'.format(n_rDNA_beads, suffix))
     write_whole_genome_data(matrix=m, n_rDNA_beads=150,
 			    n_beads=n_beads, bead_lims=bead_lims,
-			    fname=fname)
-    fname = os.path.expanduser('~/projects/ensemble_hic/data/eser2017/mol_ranges_whole_genome_rDNA{}.txt'.format(n_rDNA_beads))
+			    trans_min = 10, fname=fname)
+    fname = os.path.expanduser('~/projects/ensemble_hic/data/eser2017/mol_ranges_whole_genome_rDNA{}{}.txt'.format(n_rDNA_beads, suffix))
     n_beads_w_rDNA = n_beads.copy()
     n_beads_w_rDNA[11] += n_rDNA_beads
     np.savetxt(fname, np.insert(np.cumsum(n_beads_w_rDNA), 0, 0), fmt='%i')
