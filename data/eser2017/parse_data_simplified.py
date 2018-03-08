@@ -66,7 +66,7 @@ for i in range(len(chrom_lengths)):
             single_chrom_matrices.append(subm)
 m[np.tril_indices(len(m))] = m.T[np.tril_indices(len(m))]
     
-if True:
+if not True:
     plotm = m.copy()
     fig = plt.figure()
     ax = fig.add_subplot(111)
@@ -90,7 +90,7 @@ if True:
     plt.show()
 
 
-n_rDNA_beads = 200
+n_rDNA_beads = 23
 
 if not True:
     chrom = 4
@@ -102,12 +102,12 @@ if not True:
 if not True:
     from yeastlib import write_whole_genome_data
 
-    n_rDNA_beads = 150
-    suffix = '_mintrans10'
+    n_rDNA_beads = 23
+    suffix = '_arbona2017'
     fname = os.path.expanduser('~/projects/ensemble_hic/data/eser2017/whole_genome_rDNA{}{}.txt'.format(n_rDNA_beads, suffix))
-    write_whole_genome_data(matrix=m, n_rDNA_beads=150,
+    write_whole_genome_data(matrix=m, n_rDNA_beads=n_rDNA_beads,
 			    n_beads=n_beads, bead_lims=bead_lims,
-			    trans_min = 10, fname=fname)
+			    trans_min = 0, fname=fname)
     fname = os.path.expanduser('~/projects/ensemble_hic/data/eser2017/mol_ranges_whole_genome_rDNA{}{}.txt'.format(n_rDNA_beads, suffix))
     n_beads_w_rDNA = n_beads.copy()
     n_beads_w_rDNA[11] += n_rDNA_beads

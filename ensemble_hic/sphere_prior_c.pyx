@@ -10,7 +10,8 @@ cdef extern from "math.h":
     double sqrt(double)
 
 def sphere_prior_gradient(double [:,:] structure, double [:] center,
-                          double radius, double k, Py_ssize_t [:] beads):
+                          double radius, double k, Py_ssize_t [:] beads,
+                          double [:] bead_radii, double [:] bead_radii2):
 
     cdef Py_ssize_t i, j
     cdef double d, f
@@ -21,13 +22,13 @@ def sphere_prior_gradient(double [:,:] structure, double [:] center,
     for i in range(n_beads):
         d = 0.0
         for j in range(3):
-            d += (structure[beads[i],j] - center[j]) ** 2
+            d += (structure[beads[i],j] - center[j]) * (structure[beads[i],j] - center[j])
 
-        if d < radius2:
+        if d < radius2 + bead_radii2[i] - 2 * radius * bead_radii[i]:
             continue
         d = sqrt(d)
 
-        f = (d - radius) / d
+        f = (d + bead_radii[i] - radius) / d
         for j in range(3):
             res[i,j] += (structure[beads[i],j] - center[j]) * f
 

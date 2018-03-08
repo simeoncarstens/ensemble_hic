@@ -2,20 +2,19 @@
 
 n_replicas=200
 wall_time=48:00
-n_structures=50
+n_structures=10
 variables=structures,norm
 norm=6843
 alpha=10
 schedule=exponential
 ensemble=boltzmann
 rate=0.025
-suffix=_mintrans10
+suffix=_arbona2017
 n_samples=100000
 adaption_limit=100000000
 
-data_file=whole_genome_rDNA150
-grad_datafile=\\/usr\\/users\\/scarste\\/projects\\/ensemble_hic\\/data\\/eser2017\\/whole_genome_rDNA150_mintrans10.txt
-mol_ranges=\\/usr\\/users\\/scarste\\/projects\\/ensemble_hic\\/data\\/eser2017\\/mol_ranges_rDNA150.txt
+data_file=whole_genome_rDNA23_arbona2017.txt
+mol_ranges=\\/usr\\/users\\/scarste\\/projects\\/ensemble_hic\\/data\\/eser2017\\/mol_ranges_whole_genome_rDNA23_arbona2017.txt
 n_beads=1366
 
 if [ "$variables" == "structures,norm" ]; then
@@ -55,7 +54,6 @@ sed -i 's/n_beads_PH/'"$n_beads"'/g' $tmpcfg
 sed -i 's/alpha_PH/'"$alpha"'/g' $tmpcfg
 sed -i 's/adaption_limit_PH/'"$adaption_limit"'/g' $tmpcfg
 sed -i 's/mol_ranges_PH/'"$mol_ranges"'/g' $tmpcfg
-sed -i 's/grad_datafile_PH/'"$grad_datafile"'/g' $tmpcfg
 
 sed -i 's/wall_time_PH/'"$wall_time"'/g' $tmpstart
 sed -i 's/n_replicas_PH/'"$((n_replicas+1))"'/g' $tmpstart

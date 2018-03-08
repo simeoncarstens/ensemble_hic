@@ -8,15 +8,12 @@ from .likelihoods_c import calculate_gradient
 
 class Likelihood(ISD2Likelihood):
 
-    def __init__(self, name, fwm, em, lammda, hmc_grad_data_file):
+    def __init__(self, name, fwm, em, lammda):
 
         super(Likelihood, self).__init__(name, fwm, em)
 
         self._register('lammda')
         self['lammda'] = Parameter(lammda, 'lammda')
-
-        self._hmc_grad_data_file = hmc_grad_data_file
-        self._hmc_grad_data = np.loadtxt(hmc_grad_data_file, dtype=int)
         
     def gradient(self, **variables):
 
@@ -62,7 +59,7 @@ class Likelihood(ISD2Likelihood):
         result = calculate_gradient(structures, smooth_steepness, 
                                     weights,
                                     fwm['contact_distances'].value,
-                                    self._hmc_grad_data)
+                                    fwm.data_points)
         
         return self['lammda'].value * result
 
@@ -71,8 +68,7 @@ class Likelihood(ISD2Likelihood):
         copy = self.__class__(self.name,
                               self.forward_model.clone(),
                               self.error_model.clone(),
-                              self['lammda'].value,
-                              self._hmc_grad_data_file)
+                              self['lammda'].value)
 
         for v in copy.variables.difference(self.variables):
             copy._delete_variable(v)
@@ -87,7 +83,6 @@ class Likelihood(ISD2Likelihood):
         fwm.fix_variables(**fwm._get_variables_intersection(fixed_vars))
         em = self.error_model.conditional_factory(**self.error_model._get_variables_intersection(fixed_vars))
         result = self.__class__(self.name, fwm, em,
-                                self['lammda'].value,
-                                self._hmc_grad_data_file)
+                                self['lammda'].value)
 
         return result            
