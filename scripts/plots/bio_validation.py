@@ -37,7 +37,7 @@ HS40_bead = 20
 
 ## one bead contains the alpha-globin gene cluster
 aglobin_bead = 26 ## according to Bau et al. (2011) SI
-aglobin_bead = 28 ## according to Wikipedia
+# aglobin_bead = 28 ## according to Wikipedia (probably different genome assembly?)
 
 for cfg in (config_file_GM12878, config_file_K562):
     config = parse_config_file(cfg)

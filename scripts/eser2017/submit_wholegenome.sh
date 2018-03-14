@@ -1,21 +1,23 @@
 #!/bin/bash
 
-n_replicas=200
+n_replicas=608
 wall_time=48:00
-n_structures=10
+n_structures=50
 variables=structures,norm
 norm=6843
 alpha=10
 schedule=exponential
+schedule=\\/scratch\\/scarste\\/ensemble_hic\\/eser2017\\/whole_genome_rDNA23_arbona2017_arbona2017_50structures_sn_200replicas\\/analysis\\/te1_schedule.pickle
 ensemble=boltzmann
 rate=0.025
-suffix=_arbona2017
+suffix=_it2
 n_samples=100000
 adaption_limit=100000000
 
-data_file=whole_genome_rDNA23_arbona2017.txt
+data_file=whole_genome_rDNA23_arbona2017
 mol_ranges=\\/usr\\/users\\/scarste\\/projects\\/ensemble_hic\\/data\\/eser2017\\/mol_ranges_whole_genome_rDNA23_arbona2017.txt
-n_beads=1366
+bead_radii=\\/usr\\/users\\/scarste\\/projects\\/ensemble_hic\\/data\\/eser2017\\/bead_radii_arbona2017.txt
+n_beads=1239
 
 if [ "$variables" == "structures,norm" ]; then
     opf_vars=sn
@@ -54,6 +56,7 @@ sed -i 's/n_beads_PH/'"$n_beads"'/g' $tmpcfg
 sed -i 's/alpha_PH/'"$alpha"'/g' $tmpcfg
 sed -i 's/adaption_limit_PH/'"$adaption_limit"'/g' $tmpcfg
 sed -i 's/mol_ranges_PH/'"$mol_ranges"'/g' $tmpcfg
+sed -i 's/bead_radii_PH/'"$bead_radii"'/g' $tmpcfg
 
 sed -i 's/wall_time_PH/'"$wall_time"'/g' $tmpstart
 sed -i 's/n_replicas_PH/'"$((n_replicas+1))"'/g' $tmpstart

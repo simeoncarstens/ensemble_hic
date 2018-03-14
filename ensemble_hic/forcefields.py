@@ -95,7 +95,7 @@ class VolumeExclusion(object):
         n_beads    = self._universe.n_atoms
         forcefield = PROLSQ()
         forcefield.n_types = n_beads
-        nblist     = NBList(1.0 + 1e-3, 90, 500, n_beads)
+        nblist     = NBList(1.0 + 1e-3, 90, n_beads, n_beads)
         forcefield.nblist = nblist
 
         for i in range(n_beads):
