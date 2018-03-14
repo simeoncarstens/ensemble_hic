@@ -82,14 +82,26 @@ def write_single_chr_data(matrix, fname):
                     continue
                 opf.write('{}\t{}\t{}\n'.format(i, j, int(matrix[i,j])))
 
-def write_whole_genome_data(matrix, n_rDNA_beads, bead_lims, fname):
+def is_trans(i, j, n_beads):
+    result = True
+    tmp = np.insert(n_beads, 0, 0)
+    for k in range(len(tmp) - 1):
+        if i >= tmp[k] and i < tmp[k+1] and j >= tmp[k] and j < tmp[k+1]:
+            result = False
+
+    return result
+
+def write_whole_genome_data(matrix, n_rDNA_beads, n_beads, bead_lims, trans_min, fname):
 
     rDNA_start_bead = map_chr_pos_to_bead(12, rDNA_to_left, bead_lims)
+    rDNA_start_bead += np.cumsum(n_beads)[10]
     n_normal_beads = len(matrix)
     with open(fname, 'w') as opf:
         for i in range(n_normal_beads):
             for j in range(i + 1, n_normal_beads):
-                if np.isnan(m[i,j]):
+                if np.isnan(matrix[i,j]):
+                    continue
+                if is_trans(i, j, n_beads) and matrix[i,j] < trans_min:
                     continue
                 i_shifted = i
                 j_shifted = j
@@ -99,7 +111,4 @@ def write_whole_genome_data(matrix, n_rDNA_beads, bead_lims, fname):
                     j_shifted += n_rDNA_beads    
                 opf.write('{}\t{}\t{}\n'.format(i_shifted, j_shifted,
                                                 int(matrix[i,j])))
-    
-
-
 

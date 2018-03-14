@@ -314,10 +314,37 @@ def make_conditional_posterior(posterior, settings):
         return p.conditional_factory(norm=settings['initial_state']['norm'],
                                      weights=settings['initial_state']['weights'])
     
-def make_priors(nonbonded_prior_params, backbone_prior_params,
-                sphere_prior_params, n_beads, n_structures):
+
+def make_backbone_prior(bead_radii, backbone_prior_params, n_beads,
+                        n_structures):
 
     from .backbone_prior import BackbonePrior
+
+    if 'mol_ranges' in backbone_prior_params:
+        mol_ranges = backbone_prior_params['mol_ranges']
+    else:
+        mol_ranges = None
+
+    if mol_ranges is None:
+        mol_ranges = np.array([0, n_beads])
+    else:
+        mol_ranges = np.loadtxt(mol_ranges).astype(int)
+    bb_ll = [np.zeros(mol_ranges[i+1] - mol_ranges[i] - 1)
+             for i in range(len(mol_ranges) - 1)]
+    bb_ul = [np.array([bead_radii[j] + bead_radii[j+1]
+              for j in range(mol_ranges[i], mol_ranges[i+1] - 1)])
+             for i in range(len(mol_ranges) - 1)]  
+    BBP = BackbonePrior('backbone_prior',
+                        lower_limits=bb_ll, upper_limits=bb_ul,
+                        k_bb=float(backbone_prior_params['force_constant']),
+                        n_structures=n_structures,
+                        mol_ranges=mol_ranges
+                        )
+
+    return BBP
+
+def make_priors(nonbonded_prior_params, backbone_prior_params,
+                sphere_prior_params, n_beads, n_structures):
 
     nb_params = nonbonded_prior_params
     
@@ -329,13 +356,8 @@ def make_priors(nonbonded_prior_params, backbone_prior_params,
                                 dtype=float)
         
     NBP = make_nonbonded_prior(nb_params, bead_radii, n_structures)
-    bb_ll, bb_ul = np.zeros(n_beads - 1), bead_radii[:-1] + bead_radii[1:]
-    bb_ll = bb_ll[None,:]
-    bb_ul = bb_ul[None,:]
-    BBP = BackbonePrior('backbone_prior',
-                        lower_limits=bb_ll, upper_limits=bb_ul,
-                        k_bb=float(backbone_prior_params['force_constant']),
-                        n_structures=n_structures)
+    BBP = make_backbone_prior(bead_radii, backbone_prior_params,
+                              n_beads, n_structures)
     priors = {NBP.name: NBP, BBP.name: BBP}
     if sphere_prior_params['active'] == 'True':
         SP = make_sphere_prior(sphere_prior_params, bead_radii, n_structures)
@@ -373,7 +395,7 @@ def make_sphere_prior(sphere_prior_params, bead_radii, n_structures):
         SP = SpherePrior('sphere_prior',
                          sphere_radius=radius,
                          sphere_k=float(sphere_prior_params['force_constant']),
-                         n_structures=n_structures)
+                         n_structures=n_structures, bead_radii=bead_radii)
 
         return SP    
 
@@ -393,7 +415,7 @@ def make_likelihood(forward_model_params, error_model, data_filtering_params,
     contact_distances = (bead_radii[data[:,0]] + bead_radii[data[:,1]]) * cd_factor
         
     FWM = EnsembleContactsFWM('fwm', n_structures, contact_distances,
-                              cutoff=10000.0, data_points=data)
+                              data_points=data)
 
     if error_model == 'poisson':
         from .error_models import PoissonEM
@@ -401,7 +423,7 @@ def make_likelihood(forward_model_params, error_model, data_filtering_params,
     else:
         raise(NotImplementedError)
 
-    L = Likelihood('ensemble_contacts', FWM, EM, 1.0, gradient_cutoff=300000.0)
+    L = Likelihood('ensemble_contacts', FWM, EM, 1.0)
     L = L.conditional_factory(smooth_steepness=forward_model_params['alpha'])
     
     return L

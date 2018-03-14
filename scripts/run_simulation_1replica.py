@@ -9,15 +9,24 @@ if True:
     np.random.seed(42)
     rank = 2
     size = 3
-    config_file = '/home/simeoncarstens/projects/ensemble_hic/scripts/rao2014/tmpcfg.cfg'
+    ppath = os.path.expanduser('~/projects/ensemble_hic/')
+    config_file = ppath + 'scripts/rao2014/testcfg.cfg'
+    settings = parse_config_file(config_file)
+    settings['general']['data_file'] = ppath + 'data/rao2014/chr1.txt'
+    settings['nonbonded_prior']['bead_radii'] = ppath + 'data/rao2014/chr1_radii.txt'
+    settings['general']['n_structures'] = '3'
 if True:
     np.random.seed(42)
     rank = 2
     size = 3
-    config_file = '/home/simeon/projects/ensemble_hic/scripts/rao2014/tmpcfg.cfg'
+    ppath = os.path.expanduser('~/projects/ensemble_hic/')
+    config_file = ppath + 'scripts/eser2017/tmpcfg_wholegenome.cfg'
+    settings = parse_config_file(config_file)
+    # settings['general']['data_file'] = ppath + 'data/rao2014/chr1.txt'
+    # settings['nonbonded_prior']['bead_radii'] = ppath + 'data/rao2014/chr1_radii.txt'
+    settings['general']['n_structures'] = '3'
 
 n_replicas = size - 1
-settings = parse_config_file(config_file)
 
 re_params = settings['replica']
 schedule = make_replica_schedule(re_params, n_replicas)
@@ -35,6 +44,7 @@ for replica_parameter in schedule:
 initial_state = setup_initial_state(settings['initial_state'], posterior)
 if not 'norm' in initial_state.variables:
     posterior['norm'].set(np.max(posterior.likelihoods['ensemble_contacts'].error_model.data) / float(settings['general']['n_structures']))
+initial_state.update_variables(norm=1.0)
 subsamplers = make_subsamplers(posterior, initial_state.variables,
                                settings['structures_hmc'],
                                settings['weights_hmc'])

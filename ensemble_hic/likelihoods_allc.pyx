@@ -1,8 +1,7 @@
-## cython: profile=True
+# cython: profile=True
 # cython: boundscheck=False
 # cython: wraparound=False
 # cython: cdivision=True
-## cython: nonecheck = True
 
 import numpy
 cimport numpy
@@ -172,14 +171,19 @@ class Likelihood(ISD2Likelihood):
 
     def _evaluate_log_prob(self, **variables):
 
-        pass
-        # fwm_variables, em_variables = self._split_variables(variables)
-        # mock_data = ensemble_contacts_evaluate(fwm_variables['structures'].reshape(-1,213,3),
-        #                                        fwm_variables['weights'], self.forward_model.contact_distances.value,
-        #                                        self['smooth_steepness'].value,
-        #                                        self.forward_model.data_points, 10.0, numpy.zeros((20, self.forward_model.data_points.shape[0])))
+        fwm_variables, em_variables = self._split_variables(variables)
+        mock_data = ensemble_contacts_evaluate(fwm_variables['structures'].reshape(-1,213,3),
+                                               #fwm_variables['weights'],
+                                               np.ones(20),
+                                               self.forward_model['contact_distances'].value,
+                                               self['smooth_steepness'].value,
+                                               self.forward_model.data_points,
+                                               10.0,
+                                               numpy.zeros((20, self.forward_model.data_points.shape[0])),
+                                               numpy.zeros((20, self.forward_model.data_points.shape[0])),
+                                               numpy.zeros(len(self.forward_model['contact_distances'].value)))
         
-        # return self.error_model.log_prob(mock_data=mock_data)
+        return self.error_model.log_prob(mock_data=mock_data)
 
     def clone(self):
 
