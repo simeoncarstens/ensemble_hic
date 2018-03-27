@@ -1,16 +1,16 @@
 #!/bin/bash
 
-n_replicas=608
+n_replicas=366
 wall_time=48:00
-n_structures=50
+n_structures=100
 variables=structures,norm
 norm=6843
 alpha=10
 schedule=exponential
-schedule=\\/scratch\\/scarste\\/ensemble_hic\\/eser2017\\/whole_genome_rDNA23_arbona2017_arbona2017_50structures_sn_200replicas\\/analysis\\/te1_schedule.pickle
+schedule=\\/scratch\\/scarste\\/ensemble_hic\\/eser2017\\/whole_genome_rDNA23_arbona2017_it2_10structures_sn_438replicas\\/analysis\\/te1.5_schedule.pickle
 ensemble=boltzmann
 rate=0.025
-suffix=_it2
+suffix=
 n_samples=100000
 adaption_limit=100000000
 

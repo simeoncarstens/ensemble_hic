@@ -67,13 +67,18 @@ def write_VMD_script(ensemble_pdb_file, bead_radii, output_file):
              'mol addrep 0'
             ]
 
-    for i, r in enumerate(bead_radii):
-        lines.append('set sel [atomselect top "index {}"]'.format(i))
-        lines.append('$sel set radius {}'.format(r))
-
+    radii_set = set(bead_radii)
+    for br in radii_set:
+        p1 = 'set sel [atomselect top "index '
+        p2 = ''
+        for i, r in enumerate(bead_radii):
+            if r == br:
+                p2 += '{} '.format(i)
+        p3 = '"]'
+        lines.append(p1 + p2[:-1] + p3)
+        lines.append('$sel set radius {}'.format(br))
     with open(output_file,'w') as opf:
         [opf.write(line + '\n') for line in lines]
-
 
 
 def write_pymol_script(ensemble_pdb_file, bead_radii, output_file,
