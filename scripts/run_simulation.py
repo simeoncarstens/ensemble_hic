@@ -5,7 +5,7 @@ import ConfigParser
 from mpi4py import MPI
 
 from rexfw.communicators.mpi import MPICommunicator
-from rexfw.convenience import create_standard_RE_params, create_directories
+from rexfw.convenience import create_directories
 from cPickle import dump
 
 from ensemble_hic.setup_functions import make_replica_schedule, parse_config_file
@@ -16,9 +16,11 @@ size = mpicomm.Get_size()
 config_file = sys.argv[1]
 n_replicas = size - 1
 settings = parse_config_file(config_file)
-
+output_folder = settings['general']['output_folder']
+if output_folder[-1] != '/':
+        output_folder += '/'
 comm = MPICommunicator()
-
+        
 re_params = settings['replica']
 if re_params['schedule'] in ('linear', 'exponential'):
     schedule = make_replica_schedule(re_params, n_replicas)
@@ -46,9 +48,7 @@ if rank == 0:
     from rexfw.convenience import create_directories
     from shutil import copy2
 
-    output_folder = settings['general']['output_folder']
-    if output_folder[-1] != '/':
-        output_folder += '/'
+
     create_directories(output_folder)
     copy2(config_file, output_folder + 'config.cfg')
     with open(output_folder + 'schedule.pickle','w') as opf:
@@ -62,7 +62,6 @@ if rank == 0:
                swap_interval=int(re_params['swap_interval']),
                status_interval=int(re_params['print_status_interval']),
                dump_interval=int(re_params['samples_dump_interval']),
-               samples_folder=output_folder + 'samples/',
                dump_step=int(re_params['samples_dump_step']),
                statistics_update_interval=int(re_params['statistics_update_interval']))
 
@@ -73,12 +72,13 @@ else:
     
     from rexfw.replicas import Replica
     from rexfw.slaves import Slave
-    from rexfw.proposers import REProposer
+    from rexfw.proposers.re import REProposer
 
     from isd2.samplers.gibbs import GibbsSampler
     
     from ensemble_hic.setup_functions import make_posterior, make_subsamplers
     from ensemble_hic.setup_functions import setup_initial_state, setup_weights
+    from ensemble_hic.replica import CompatibleReplica
 
     settings['initial_state']['weights'] = setup_weights(settings)    
     posterior = make_posterior(settings)
@@ -96,11 +96,9 @@ else:
                            subsamplers=subsamplers)    
     proposer = REProposer('prop{}'.format(rank))
     proposers = {proposer.name: proposer}
-    replica = Replica('replica{}'.format(rank), initial_state, 
-                      posterior, {},
-                      GibbsSampler,
-                      {'subsamplers': subsamplers},
-                      proposers, comm)
+    replica = CompatibleReplica('replica{}'.format(rank), initial_state, posterior,
+				GibbsSampler, {'subsamplers': subsamplers},
+				proposers, output_folder, comm)
 
     slave = Slave({'replica{}'.format(rank): replica}, comm)
 
