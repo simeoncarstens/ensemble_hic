@@ -205,7 +205,7 @@ def make_replica_schedule(replica_params, n_replicas):
 def make_subsamplers(posterior, initial_state,
                      structures_hmc_params, weights_hmc_params):
 
-    from isd2.samplers.hmc import FastHMCSampler as ISD2HMCSampler
+    from isd2.samplers.hmc import HMCSampler
 
     p = posterior
     variables = initial_state.keys()
@@ -219,11 +219,11 @@ def make_subsamplers(posterior, initial_state,
     xpdf = p.conditional_factory(**{var: value for (var, value)
                                     in initial_state.iteritems()
                                     if not var == 'structures'})
-    structures_sampler = ISD2HMCSampler(xpdf,
-                                        initial_state['structures'],
-                                        structures_timestep, structures_tl,
-                                        variable_name='structures',
-                                        timestep_adaption_limit=s_adaption_limit)
+    structures_sampler = HMCSampler(xpdf,
+                                    initial_state['structures'],
+                                    structures_timestep, structures_tl,
+                                    variable_name='structures',
+                                    timestep_adaption_limit=s_adaption_limit)
 
     subsamplers = dict(structures=structures_sampler)
 
