@@ -23,27 +23,34 @@ def load_sr_samples(samples_folder, replica_id, n_samples,
     
     return np.array(samples[start::interval])
 
-def write_ensemble(X, filename, center=True):
+def write_ensemble(X, filename, mol_ranges=None, center=True):
 
     from csb.bio.structure import Atom, ProteinResidue, Chain, Structure, Ensemble
     from csb.bio.sequence import ProteinAlphabet
 
     if center:
         X -= X.mean(1)[:,None,:]
+
+    if mol_ranges is None:
+        mol_ranges = np.array([0, X.shape[1]])
     
     ensemble = Ensemble()
 
     for i, x in enumerate(X):
         structure = Structure('')
         structure.model_id = i + 1
-        structure.chains.append(Chain('A'))
-        x = x.reshape(-1, 3)
 
-        for k, y in enumerate(x):
-            atom = Atom(k+1, 'CA', 'C', y)
-            residue = ProteinResidue(k, 'ALA')
-            residue.atoms.append(atom)
-            structure.chains['A'].residues.append(residue)
+        mol_coordinates = np.array([x[start:end]
+                                    for start, end in zip(mol_ranges[:-1],
+                                                          mol_ranges[1:])])
+        for j, mol in enumerate(mol_coordinates):
+            structure.chains.append(Chain(chr(65 + j)))
+
+            for k, y in enumerate(mol):
+                atom = Atom(k+1, 'CA', 'C', y)
+                residue = ProteinResidue(k, 'ALA')
+                residue.atoms.append(atom)
+                structure.chains[chr(65 + j)].residues.append(residue)
 
         ensemble.models.append(structure)
     ensemble.to_pdb(filename)
@@ -60,13 +67,18 @@ def write_VMD_script(ensemble_pdb_file, bead_radii, output_file):
              'mol addrep 0'
             ]
 
-    for i, r in enumerate(bead_radii):
-        lines.append('set sel [atomselect top "index {}"]'.format(i))
-        lines.append('$sel set radius {}'.format(r))
-
+    radii_set = set(bead_radii)
+    for br in radii_set:
+        p1 = 'set sel [atomselect top "index '
+        p2 = ''
+        for i, r in enumerate(bead_radii):
+            if r == br:
+                p2 += '{} '.format(i)
+        p3 = '"]'
+        lines.append(p1 + p2[:-1] + p3)
+        lines.append('$sel set radius {}'.format(br))
     with open(output_file,'w') as opf:
         [opf.write(line + '\n') for line in lines]
-
 
 
 def write_pymol_script(ensemble_pdb_file, bead_radii, output_file,

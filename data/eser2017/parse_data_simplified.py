@@ -19,7 +19,7 @@ inter = np.array([[x[0][3:], x[1], x[2][3:], x[3], x[4]]
 
 
 cl_cumsums = np.cumsum(chrom_lengths[:,1])
-centromeres[1:,:] += cl_cumsums[:-1][:,None]
+#centromeres[1:,:] += cl_cumsums[:-1][:,None]
 
 cont_intra = intra.copy()
 cont_inter = inter.copy()
@@ -77,7 +77,13 @@ if not True:
                 [last_bead - 0.5, last_bead - 0.5], color='r', linewidth=0.5)
         ax.plot([last_bead - 0.5, last_bead - 0.5],
                 [-0.5,len(plotm) - 0.5], color='r', linewidth=0.5)
-    for b, e in centromeres / bin_size:
+    cm_beads_b = np.array([map_chr_pos_to_bead(i, centromeres[i-1,0], bead_lims)
+			 for i in range(1,17)])
+    cm_beads_b = np.array(cm_beads) + np.insert(n_beads.cumsum(), 0, 0)[:-1]
+    cm_beads_e = np.array([map_chr_pos_to_bead(i, centromeres[i-1,1], bead_lims)
+			 for i in range(1,17)])
+    cm_beads_e = np.array(cm_beads) + np.insert(n_beads.cumsum(), 0, 0)[:-1]
+    for (b, e) in zip(cm_beads_b, cm_beads_e):
         for a in (b, e):
             ax.plot([-0.5,len(m)],
                     [a - 0.5, a - 0.5], color='y', linewidth=0.5)
@@ -103,7 +109,7 @@ if not True:
     from yeastlib import write_whole_genome_data
 
     n_rDNA_beads = 23
-    suffix = '_arbona2017'
+    suffix = '_arbona2017test'
     fname = os.path.expanduser('~/projects/ensemble_hic/data/eser2017/whole_genome_rDNA{}{}.txt'.format(n_rDNA_beads, suffix))
     write_whole_genome_data(matrix=m, n_rDNA_beads=n_rDNA_beads,
 			    n_beads=n_beads, bead_lims=bead_lims,
