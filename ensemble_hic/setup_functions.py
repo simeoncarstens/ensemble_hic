@@ -205,7 +205,7 @@ def make_replica_schedule(replica_params, n_replicas):
 def make_subsamplers(posterior, initial_state,
                      structures_hmc_params, weights_hmc_params):
 
-    from isd2.samplers.hmc import FastHMCSampler as ISD2HMCSampler
+    from isd2.samplers.hmc import HMCSampler
 
     p = posterior
     variables = initial_state.keys()
@@ -219,11 +219,11 @@ def make_subsamplers(posterior, initial_state,
     xpdf = p.conditional_factory(**{var: value for (var, value)
                                     in initial_state.iteritems()
                                     if not var == 'structures'})
-    structures_sampler = ISD2HMCSampler(xpdf,
-                                        initial_state['structures'],
-                                        structures_timestep, structures_tl,
-                                        variable_name='structures',
-                                        timestep_adaption_limit=s_adaption_limit)
+    structures_sampler = HMCSampler(xpdf,
+                                    initial_state['structures'],
+                                    structures_timestep, structures_tl,
+                                    variable_name='structures',
+                                    timestep_adaption_limit=s_adaption_limit)
 
     subsamplers = dict(structures=structures_sampler)
 
@@ -433,37 +433,26 @@ def setup_default_re_master(n_replicas, sim_path, comm):
     from rexfw.remasters import ExchangeMaster
     from rexfw.statistics import Statistics, REStatistics
     from rexfw.statistics.writers import StandardConsoleREStatisticsWriter, StandardFileMCMCStatisticsWriter, StandardFileREStatisticsWriter, StandardFileREWorksStatisticsWriter, StandardConsoleMCMCStatisticsWriter, StandardConsoleMCMCStatisticsWriter
-    from rexfw.convenience import create_standard_RE_params
-    from rexfw.convenience.statistics import create_standard_averages, create_standard_works, create_standard_stepsizes, create_standard_heats
+    from rexfw.convenience import create_default_RE_params
+    from rexfw.convenience.statistics import create_default_RE_averages, create_default_MCMC_averages, create_default_works, create_default_stepsizes, create_default_heats
 
     replica_names = ['replica{}'.format(i) for i in range(1, n_replicas + 1)]
-    params = create_standard_RE_params(n_replicas)
+    params = create_default_RE_params(n_replicas)
         
     from rexfw.statistics.averages import REAcceptanceRateAverage, MCMCAcceptanceRateAverage
     from rexfw.statistics.logged_quantities import SamplerStepsize
-    
-    local_pacc_avgs = [MCMCAcceptanceRateAverage(r, 'structures')
-                       for r in replica_names]
-    # local_pacc_avgs += [MCMCAcceptanceRateAverage(r, 'weights')
-    #                     for r in replica_names]
-    re_pacc_avgs = [REAcceptanceRateAverage(replica_names[i], replica_names[i+1]) 
-                    for i in range(len(replica_names) - 1)]
-    stepsizes = [SamplerStepsize(r, 'structures') for r in replica_names]
-    # stepsizes += [SamplerStepsize(r, 'weights') for r in replica_names]
-    # stepsizes += [SamplerStepsize(r, 'k2') for r in replica_names]
-    works = create_standard_works(replica_names)
-    heats = create_standard_heats(replica_names)
+
+    local_pacc_avgs = create_default_MCMC_averages(replica_names, 'structures')
+    re_pacc_avgs = create_default_RE_averages(replica_names)
+    stepsizes = create_default_stepsizes(replica_names, 'structures')
+    works = create_default_works(replica_names)
+    heats = create_default_heats(replica_names)
     stats_path = sim_path + 'statistics/'
-    stats_writers = [StandardConsoleMCMCStatisticsWriter(['structures',
-                                                          #'weights'
-                                                          #'k2',
-                                                          ],
+    stats_writers = [StandardConsoleMCMCStatisticsWriter(['structures'],
                                                          ['acceptance rate',
                                                           'stepsize']),
                      StandardFileMCMCStatisticsWriter(stats_path + '/mcmc_stats.txt',
-                                                      ['structures',
-                                                       #'weights'
-                                                       ],
+                                                      ['structures',],
                                                       ['acceptance rate', 'stepsize'])
                     ]
     stats = Statistics(elements=local_pacc_avgs + stepsizes, 
