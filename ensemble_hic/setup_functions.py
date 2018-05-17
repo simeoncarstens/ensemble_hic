@@ -46,7 +46,8 @@ def make_posterior(settings):
                          settings['backbone_prior'],
                          settings['sphere_prior'],
                          n_beads, n_structures)
-    bead_radii = priors['nonbonded_prior'].forcefield.bead_radii
+    # bead_radii = priors['nonbonded_prior'].forcefield.bead_radii
+    bead_radii = priors['nonbonded_prior'].forcefields[0].bead_radii
     likelihood = make_likelihood(settings['forward_model'],
                                  settings['general']['error_model'],
                                  settings['data_filtering'],
@@ -274,7 +275,8 @@ def setup_initial_state(initial_state_params, posterior):
     variables = p.variables
 
     if structures == 'elongated':
-        bead_radii = posterior.priors['nonbonded_prior'].forcefield.bead_radii
+        # bead_radii = posterior.priors['nonbonded_prior'].forcefield.bead_radii
+        bead_radii = posterior.priors['nonbonded_prior'].forcefields[0].bead_radii
         if False:
             structures = make_elongated_structures(bead_radii, n_structures)
             structures += np.random.normal(scale=0.5, size=structures.shape)
@@ -374,10 +376,15 @@ def make_nonbonded_prior(nb_params, bead_radii, n_structures):
     from .forcefields import ForceField
     from .forcefields import NBLForceField as ForceField
 
-    forcefield = ForceField(bead_radii, float(nb_params['force_constant']))
+    #forcefield = ForceField(bead_radii, float(nb_params['force_constant']))
+    forcefield_params = dict(bead_radii=bead_radii,
+                             force_constant=float(nb_params['force_constant']))
     if not 'ensemble' in nb_params or nb_params['ensemble'] == 'boltzmann':
         from .nonbonded_prior import BoltzmannNonbondedPrior2    
-        NBP = BoltzmannNonbondedPrior2('nonbonded_prior', forcefield,
+        # NBP = BoltzmannNonbondedPrior2('nonbonded_prior', forcefield,
+        #                                n_structures=n_structures, beta=1.0)
+        NBP = BoltzmannNonbondedPrior2('nonbonded_prior', ForceField,
+                                       forcefield_params,
                                        n_structures=n_structures, beta=1.0)
     elif nb_params['ensemble'] == 'tsallis':
         raise NotImplementedError

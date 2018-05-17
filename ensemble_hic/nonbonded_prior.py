@@ -82,12 +82,15 @@ class AbstractNonbondedPrior(AbstractPrior):
 
 class AbstractNonbondedPrior2(AbstractPrior):
 
-    def __init__(self, name, forcefield, n_structures):
+    def __init__(self, name, forcefield_class, forcefield_params, n_structures):
 
         super(AbstractNonbondedPrior2, self).__init__(name)
 
         self.n_structures = n_structures
-        self.forcefield = forcefield
+        self.forcefield_class = forcefield_class
+        self.forcefield_params = forcefield_params
+        self.forcefields = [forcefield_class(**forcefield_params)
+                            for _ in range(n_structures)]
         
         self._register_variable('structures', differentiable=True)
         self.update_var_param_types(structures=ArrayParameter)
@@ -97,13 +100,13 @@ class AbstractNonbondedPrior2(AbstractPrior):
     def _register_ensemble_parameters(self, **parameters):
         pass
 
-    def _forcefield_gradient(self, structure):
+    def _forcefield_gradient(self, structure, structure_index):
 
-        return self.forcefield.gradient(structure)
+        return self.forcefields[structure_index].gradient(structure)
 
-    def _forcefield_energy(self, structure):
+    def _forcefield_energy(self, structure, structure_index):
 
-        return self.forcefield.energy(structure)
+        return self.forcefields[structure_index].energy(structure)
 
     @abstractmethod
     def _log_ensemble_gradient(self, E):
@@ -119,7 +122,8 @@ class AbstractNonbondedPrior2(AbstractPrior):
         log_ens = self._log_ensemble
         X = structures.reshape(self.n_structures, -1, 3)
 
-        return np.sum(map(lambda x: log_ens(ff_E(structure=x)), X))
+        return np.sum([log_ens(ff_E(structure=x, structure_index=i))
+                       for i, x in enumerate(X)])
 
     def _evaluate_gradient(self, structures):
 
@@ -127,8 +131,8 @@ class AbstractNonbondedPrior2(AbstractPrior):
 
         res = np.zeros((X.shape[0], X.shape[1] * 3))
         for i, x in enumerate(X):
-            evald_ff_E = self._forcefield_energy(structure=x)
-            evald_ff_grad = self._forcefield_gradient(structure=x)
+            evald_ff_E = self._forcefield_energy(structure=x, structure_index=i)
+            evald_ff_grad = self._forcefield_gradient(structure=x, structure_index=i)
             res[i] = self._log_ensemble_gradient(evald_ff_E) * evald_ff_grad
 
         return -res.ravel()
@@ -174,9 +178,11 @@ class BoltzmannNonbondedPrior(AbstractNonbondedPrior):
 
 class BoltzmannNonbondedPrior2(AbstractNonbondedPrior2):
 
-    def __init__(self, name, forcefield, n_structures, beta):
+    def __init__(self, name, forcefield_class, forcefield_params,
+                 n_structures, beta):
 
-        super(BoltzmannNonbondedPrior2, self).__init__(name, forcefield,
+        super(BoltzmannNonbondedPrior2, self).__init__(name, forcefield_class,
+                                                       forcefield_params,
                                                        n_structures)
         self._register_ensemble_parameters(beta)
 
@@ -196,7 +202,8 @@ class BoltzmannNonbondedPrior2(AbstractNonbondedPrior2):
     def clone(self):
 
         copy = self.__class__(self.name,
-                              self.forcefield, 
+                              self.forcefield_class,
+                              self.forcefield_params,
                               self.n_structures,
                               self['beta'].value)
         copy.set_fixed_variables_from_pdf(self)
