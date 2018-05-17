@@ -1,13 +1,13 @@
 #!/bin/bash
 
-n_replicas=140
-wall_time=48:00
-n_structures=40
+n_replicas=281
+wall_time=10:00
+n_structures=1
 variables=structures,norm
 norm=6843
 alpha=10
 data_set=bothdomains
-schedule=\\/scratch\\/scarste\\/ensemble_hic\\/bau2011\\/GM12878_new_smallercd_nosphere_40structures_sn_122replicas\\/analysis\\/te1_schedule.pickle
+schedule=\\/scratch\\/scarste\\/ensemble_hic\\/bau2011\\/GM12878_new_smallercd_nosphere_40structures_sn_122replicas\\/analysis\\/te0.25_schedule.pickle
 ensemble=boltzmann
 gauss_mean=0.7
 gauss_std=0.3

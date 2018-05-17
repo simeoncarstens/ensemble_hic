@@ -411,7 +411,10 @@ def make_likelihood(forward_model_params, error_model, data_filtering_params,
 
     disregard_lowest = data_filtering_params['disregard_lowest']
     ignore_sequential_neighbors = int(data_filtering_params['ignore_sequential_neighbors'])
+    include_zero_counts = data_filtering_params['include_zero_counts']
     data = np.loadtxt(data_file, dtype=int)
+    if include_zero_counts == 'False':
+        data = data[data[:,2] > 0]
     data = data[np.argsort(data[:,2])]
     data = data[int(disregard_lowest * len(data)):]
     data = data[np.abs(data[:,0] - data[:,1]) > ignore_sequential_neighbors]
