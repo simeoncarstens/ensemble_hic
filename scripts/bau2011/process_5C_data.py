@@ -1,4 +1,5 @@
 import numpy as np
+import os
 
 ignored_rfs = np.array([[5693, 11138, 1],
                         [109838, 120933, 1],
@@ -81,15 +82,36 @@ def calculate_bead_radii(data_matrix):
     radii /= np.median(radii)
     return radii
 
-def map_pos_to_bead(pos, data_file, ignored_rfs, no_data_rfs):
+map_pos_to_bead = lambda pos: map_pos_to_bead_general(pos, os.path.expanduser('~/projects/ensemble_hic/data/bau2011/K562.txt'), ignored_rfs, no_data_rfs)
+
+def map_pos_to_bead_general(pos, data_file, ignored_rfs, no_data_rfs):
     ext_data_matrix = add_leftout_RFs(data_file, ignored_rfs, no_data_rfs)
     fw_beads_RFs, rv_beads_RFs = make_beads_RF_list(ext_data_matrix)
     all_beads_RFs = np.concatenate((fw_beads_RFs, rv_beads_RFs))
 
-    raise
-
     return all_beads_RFs[np.logical_and(all_beads_RFs[:,1] <= pos,
                                         pos < all_beads_RFs[:,2]),0][0]
+
+
+def convert_hg19_to_hg18(interactions):
+
+    from pyliftover import LiftOver
+
+    lo = LiftOver('hg19', 'hg18')
+    interactions_hg18 = []
+    for x in interactions:
+        y = []
+        for i in range(4):
+            new_coords = lo.convert_coordinate('chr16', x[i])
+            if len(new_coords) > 1:
+                raise
+            if new_coords[0][0] == 'chr16':
+                y.append(new_coords[0][1])
+        interactions_hg18.append(y + [x[-1]])
+    interactions_hg18 = np.array(interactions_hg18)
+
+    return interactions_hg18
+
 
 if __name__ == '__main__':
 

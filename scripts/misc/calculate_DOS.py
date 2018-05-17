@@ -19,8 +19,8 @@ settings = parse_config_file(config_file)
 n_replicas = int(settings['replica']['n_replicas'])
 target_replica = n_replicas
 
-# params = {'n_samples': 100001,
-#           'burnin': 80001,
+# params = {'n_samples': 3251,
+#           'burnin': 2000,
 #           'samples_step': 10,
 #           'niter': int(1e6),
 #           'tol': 1e-10
@@ -51,25 +51,43 @@ if False:
 p = posterior
 variables = p.variables
 
-samples = load_samples(output_folder + 'samples/',
-                       n_replicas,
-                       n_samples + 1,
-                       dump_interval, burnin=params['burnin'],
-                       interval=params['samples_step'])
-print samples.shape
-if not False:
+if False:
+    samples = load_samples(output_folder + 'samples/',
+                           n_replicas,
+                           n_samples + 1,
+                           dump_interval, burnin=params['burnin'],
+                           interval=params['samples_step'])
+    print samples.shape
+    if not False:
+        L = p.likelihoods['ensemble_contacts']
+        data = L.forward_model.data_points
+        P = p.priors['nonbonded_prior']
+        energies = np.array([[[-L.log_prob(**x.variables) if 'lammda' in schedule else 0,
+                               -P.log_prob(structures=x.variables['structures']) if 'beta' in schedule else 0]
+                              for x in y] for y in samples])
+    else:
+        energies = np.array([[[-p.log_prob(structures=x),
+                               0]
+                             for x in y] for y in samples])
+
+    energies_flat = energies.reshape(np.prod(samples.shape[:2]), -1)
+if True:
+    from ensemble_hic.analysis_functions import load_sr_samples
+
+    energies = []
     L = p.likelihoods['ensemble_contacts']
     data = L.forward_model.data_points
     P = p.priors['nonbonded_prior']
-    energies = np.array([[[-L.log_prob(**x.variables) if 'lammda' in schedule else 0,
-                           -P.log_prob(structures=x.variables['structures']) if 'beta' in schedule else 0]
-                          for x in y] for y in samples])
-else:
-    energies = np.array([[[-p.log_prob(structures=x),
-                           0]
-                         for x in y] for y in samples])
+    for i in range(n_replicas):
+        print i
+        samples = load_sr_samples(output_folder + 'samples/', i+1,n_samples+1, dump_interval,
+                                  burnin=params['burnin'], interval=params['samples_step'])
+        energies.append([[-L.log_prob(**x.variables) if 'lammda' in schedule else 0,
+                          -P.log_prob(structures=x.variables['structures']) if 'beta' in schedule else 0]
+                         for x in samples])
+    energies = np.array(energies)
+    energies_flat = energies.reshape(np.prod(energies.shape[:2]), 2)
 
-energies_flat = energies.reshape(np.prod(samples.shape[:2]), -1)
 sched = np.array([schedule['lammda'], schedule['beta']])
 q = np.array([[(energy * replica_params).sum() for energy in energies_flat]
                  for replica_params in sched.T])

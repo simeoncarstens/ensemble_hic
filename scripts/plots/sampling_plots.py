@@ -21,8 +21,8 @@ config_file = sys.argv[1]
 settings = parse_config_file(config_file)
 n_replicas = int(settings['replica']['n_replicas'])
 target_replica = n_replicas
-burnin = 000
-n_samples = 2001#int(settings['replica']['n_samples'])
+burnin = 20000
+n_samples = int(settings['replica']['n_samples'])
 dump_interval = int(settings['replica']['samples_dump_interval'])
 save_figures = True
 

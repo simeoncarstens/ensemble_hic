@@ -157,6 +157,61 @@ def load_ensemble_from_pdb(filename):
         atoms = np.array([np.array(x).astype(np.float) for x in atoms])
         atoms = np.array(np.split(atoms, nres))
         atoms = atoms.reshape(len(filter(lambda x: 'MODEL' in x, lines)), -1, 3)
-        
+
         return atoms
    
+def calculate_KL((posterior_distances, prior_distances, bins)):
+
+    from csb.statistics.pdf import Gamma
+    from csb.numeric import log
+
+    g = Gamma()
+    g.estimate(prior_distances)
+    posterior_hist = np.histogram(posterior_distances, bins=bins, normed=True)[0]
+
+    return np.trapz(posterior_hist * log(posterior_hist / g(bins[:-1])), bins[:-1])
+
+def calculate_KL_KDE((posterior_distances, prior_distances)):
+
+    from sklearn.neighbors import KernelDensity
+    from scipy.integrate import quad
+
+    h_silverman = lambda d: d.std() * (4. / 3 / len(d)) ** (1. / 5)
+    h = h_silverman
+
+    prior = KernelDensity(kernel='gaussian',
+                          bandwidth=h(prior_distances)).fit(prior_distances.reshape(-1,1))
+    posterior = KernelDensity(kernel='gaussian',
+                              bandwidth=h(posterior_distances)).fit(posterior_distances.reshape(-1,1))
+
+    ce = lambda x: -prior.score(x) * np.exp(posterior.score(x))
+    hh = lambda x: -posterior.score(x) * np.exp(posterior.score(x))
+
+    x_max = np.max((posterior_distances.max(), prior_distances.max()))
+    vals = (quad(ce, 0., x_max)[0], quad(hh, 0., x_max)[0])
+
+    return vals[0] - vals[1]
+
+
+def calculate_KL_KDE_log((posterior_distances, prior_distances)):
+
+    from sklearn.neighbors import KernelDensity
+    from scipy.integrate import quad
+
+    posterior_distances = np.log(posterior_distances)
+    prior_distances = np.log(prior_distances)
+
+    h_silverman = lambda d: d.std() * (4. / 3 / len(d)) ** (1. / 5)
+    h = h_silverman
+
+    prior = KernelDensity(kernel='gaussian',
+                          bandwidth=h(prior_distances)).fit(prior_distances.reshape(-1,1))
+    posterior = KernelDensity(kernel='gaussian',
+                              bandwidth=h(posterior_distances)).fit(posterior_distances.reshape(-1,1))
+
+    ce = lambda x: -prior.score(x) * np.exp(posterior.score(x))
+    hh = lambda x: -posterior.score(x) * np.exp(posterior.score(x))
+
+    vals = (quad(ce, -np.inf, np.inf)[0], quad(hh, -np.inf, np.inf)[0])
+
+    return vals[0] - vals[1]

@@ -5,7 +5,7 @@ import ConfigParser
 from mpi4py import MPI
 
 from rexfw.communicators.mpi import MPICommunicator
-from rexfw.convenience import create_standard_RE_params, create_directories
+from rexfw.convenience import create_directories
 from cPickle import dump
 
 from ensemble_hic.setup_functions import make_replica_schedule, parse_config_file
@@ -42,17 +42,17 @@ else:
 
 cont_folder = settings['general']['cont_folder']
 
+output_folder = settings['general']['output_folder']
+if output_folder[-1] != '/':
+    output_folder += '/'
+
 if rank == 0:
 
     from ensemble_hic.setup_functions import setup_continue_re_master
     from rexfw.convenience import create_directories
     from shutil import copy2
 
-    output_folder = settings['general']['output_folder']
-    if output_folder[-1] != '/':
-        output_folder += '/'
-
-    ## setup replica exchange
+    ## Setup replica exchange
     master = setup_continue_re_master(n_replicas, output_folder, cont_folder, comm)
 
     ## run replica exchange
@@ -61,7 +61,6 @@ if rank == 0:
                swap_interval=int(re_params['swap_interval']),
                status_interval=int(re_params['print_status_interval']),
                dump_interval=int(re_params['samples_dump_interval']),
-               samples_folder=output_folder + 'samples/',
                dump_step=int(re_params['samples_dump_step']),
                statistics_update_interval=int(re_params['statistics_update_interval']),
                offset=offset)
@@ -73,12 +72,13 @@ else:
     
     from rexfw.replicas import Replica
     from rexfw.slaves import Slave
-    from rexfw.proposers import REProposer
+    from rexfw.proposers.re import REProposer
 
     from isd2.samplers.gibbs import GibbsSampler
     
     from ensemble_hic.setup_functions import make_posterior, make_subsamplers
     from ensemble_hic.setup_functions import setup_initial_state, setup_weights
+    from ensemble_hic.replica import CompatibleReplica
 
     settings['initial_state']['weights'] = setup_weights(settings)    
     posterior = make_posterior(settings)
@@ -98,11 +98,11 @@ else:
                            subsamplers=subsamplers)    
     proposer = REProposer('prop{}'.format(rank))
     proposers = {proposer.name: proposer}
-    replica = Replica('replica{}'.format(rank), initial_state, 
-                      posterior, {},
-                      GibbsSampler,
-                      {'subsamplers': subsamplers},
-                      proposers, comm)
+    replica = CompatibleReplica('replica{}'.format(rank), initial_state, 
+                                posterior,
+                                GibbsSampler,
+                                {'subsamplers': subsamplers},
+                                proposers, output_folder, comm)
 
     slave = Slave({'replica{}'.format(rank): replica}, comm)
 

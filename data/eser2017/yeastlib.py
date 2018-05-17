@@ -213,7 +213,7 @@ class CGRep(object):
 
         res = np.hstack(([0],
                          np.array([(n_beads_cs[i]-1, n_beads_cs[i])
-                                   for i in range(len(n_beads_cs) - 2)]).ravel(),
+                                   for i in range(len(n_beads_cs) - 1)]).ravel(),
                          [n_beads_cs[-1]]))
         res[-1] = n_beads_cs[-1] - 1
         

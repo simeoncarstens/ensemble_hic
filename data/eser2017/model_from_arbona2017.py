@@ -1,4 +1,5 @@
-import numpy as np
+import os, sys, numpy as np
+sys.path.append(os.path.expanduser('~/projects/ensemble_hic/data/eser2017/'))
 from yeastlib import chrom_lengths
 
 ## best model from Arbona et al., 2017
