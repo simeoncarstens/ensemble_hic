@@ -53,20 +53,27 @@ def make_posterior(settings):
                                  settings['general']['data_file'],
                                  n_structures, bead_radii)
     if 'norm' in settings['general']['variables'].split(','):
-        from .gamma_prior import NormGammaPrior
-        shape = settings['norm_prior']['shape']
-        rate = settings['norm_prior']['rate']
-        if shape == rate == 'auto':
-            rate = 1.0 / n_structures
-            dp = likelihood.forward_model.data_points[:,2]
-            shape = np.mean(dp[dp > 0]) / float(n_structures)
-        else:
-            shape = float(shape)
-            rate = float(rate)
-        priors.update(norm_prior=NormGammaPrior(shape,rate))
+        priors.update(norm_prior=make_norm_prior(settings['norm_prior'],
+                                                 likelihood, n_structures))
     full_posterior = Posterior({likelihood.name: likelihood}, priors)
 
     return make_conditional_posterior(full_posterior, settings)
+
+def make_norm_prior(norm_prior_settings, likelihood, n_structures):
+    
+    from .gamma_prior import NormGammaPrior
+
+    shape = norm_prior_settings['shape']
+    rate = norm_prior_settings['rate']
+    if shape == rate == 'auto':
+        rate = 1.0 / n_structures
+        dp = likelihood.forward_model.data_points[:,2]
+        shape = np.mean(dp[dp > 0]) / float(n_structures)
+    else:
+        shape = float(shape)
+        rate = float(rate)
+
+    return NormGammaPrior(shape, rate)
 
 def make_marginalized_posterior(settings):
 
