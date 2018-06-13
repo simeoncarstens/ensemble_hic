@@ -9,3 +9,7 @@ syntax: glob
 *.c
 *.so
 *.sh
+build/
+dist/
+ensemble_hic.egg-info/
+scripts/*/tmp*/

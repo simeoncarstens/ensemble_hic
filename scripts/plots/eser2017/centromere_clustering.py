@@ -16,6 +16,9 @@ if False:
 if False:
     s = load_sr_samples('/scratch/scarste/ensemble_hic/eser2017/whole_genome_rDNA150_prior2_arbona2017_fixed_1structures_s_100replicas/samples/', 100, 23300, 100, 15000, 1)
     X = np.array([x.variables['structures'].reshape(-1,3) for x in s])
+if True:
+    s = load_sr_samples('/scratch/scarste/ensemble_hic/eser2017/whole_genome_rDNA23_arbona2017_kve500_50structures_sn_871replicas/samples/', 871, 575, 25, 300)
+    X = np.array([x.variables['structures'].reshape(50,-1,3) for x in s])
 
 X = X.reshape(-1,1239,3) * scale_factor
 from csb.bio.utils import fit
@@ -123,7 +126,7 @@ if True:
     axr = plt.subplot(gs[1,1], sharey=ax)
     axt = plt.subplot(gs[0,0], sharex=ax)
 
-    bins = np.linspace(-18 * scale_factor,18 * scale_factor, 50)
+    bins = np.linspace(-18 * scale_factor,18 * scale_factor, 30)
     ax.hist2d(complete_structure[:,ncbeads,axes[sel_axes][0]].ravel(),
               complete_structure[:,ncbeads,axes[sel_axes][1]].ravel(),
               bins=bins)
@@ -187,11 +190,12 @@ if False:
     ax2.axvline(0.,ls='--',color='r',lw=2)
     plt.show()
 
-print np.mean(complete_structure[:,sel_beads,axes[0]].ravel()>0)
+print np.mean(complete_structure[:,sel_beads,axes[sel_axes][0]].ravel()>0)
 
+from csb.statistics.pdf import MultivariateGaussian
 mg_sel_beads = MultivariateGaussian()
-mg_sel_beads.estimate(np.array(zip(complete_structure[:,sel_beads,axes[0]].ravel(),
-                                   complete_structure[:,sel_beads,axes[1]].ravel())))
+mg_sel_beads.estimate(np.array(zip(complete_structure[:,sel_beads,axes[sel_axes][0]].ravel(),
+                                   complete_structure[:,sel_beads,axes[sel_axes][1]].ravel())))
 fit_str = "CM beads: mu ({:.2f},{:.2f}), sigma ({:.2f},{:.2f})"
 print fit_str.format(mg_sel_beads.mu[0],  mg_sel_beads.mu[1],
                      mg_sel_beads.sigma[0,0], mg_sel_beads.sigma[1,1])

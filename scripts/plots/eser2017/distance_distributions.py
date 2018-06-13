@@ -11,10 +11,10 @@ from yeastlib import CGRep
 from model_from_arbona2017 import *
 # from cg.utils import rdf
 
-n_structures = 100
-n_replicas = 725
-suffix = '_it3'
-n_samples = 401
+n_structures = 50
+n_replicas = 871
+suffix = '_kve500'
+n_samples = 575
 dump_interval = 25
 burnin = 300
 n_dms = 200
