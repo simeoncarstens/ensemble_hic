@@ -1,9 +1,22 @@
+"""
+A lot of helper functions to set up the posterior distribution,
+samplers and replica exchange scheme
+"""
 import numpy as np
 
 from rexfw.statistics.writers import ConsoleStatisticsWriter
 
 def parse_config_file(config_file):
+    """
+    Parses a config file consisting of several sections.
+    I think I adapted this from the ConfigParser docs.
 
+    :param config_file: config file name
+    :type config_file: str
+
+    :returns: a nested dictionary with sections and section content
+    :rtype: dict of dicts
+    """
     import ConfigParser
 
     config = ConfigParser.ConfigParser()
@@ -22,7 +35,20 @@ def parse_config_file(config_file):
     return {section: config_section_map(section) for section in config.sections()}    
 
 def update_ensemble_setting(settings):
+    """
+    Copies ensemble setting (either 'boltzmann' or 'tsallis') from
+    'replica' replica section in config dicts to the nonbonded section
 
+    If no ensemble is set in the 'replica' section, 'boltzmann' is
+    assumed.
+
+    :param settings: settings specified in 'replica' section of
+                     a config file
+    :type settings: dict
+
+    :returns: updated settings
+    :rtype: dict of dicts
+    """
     rps = settings['replica']
     if not 'ensemble' in rps or rps['ensemble'] == 'boltzmann':
         settings['nonbonded_prior'].update(ensemble='boltzmann')
@@ -36,7 +62,19 @@ def update_ensemble_setting(settings):
     return settings    
 
 def make_posterior(settings):
+    """
+    Builds a posterior object from settings
 
+    You usually want to do something like
+        p = make_posterior(parse_config_file('config.cfg'))
+
+    :param settings: settings specified in 'replica' section of
+                     a config file
+    :type settings: dict
+
+    :returns: a posterior object
+    :rtype: :ref:`binf.pdf.posteriors.Posterior`
+    """
     from isd2.pdf.posteriors import Posterior
 
     settings = update_ensemble_setting(settings)
@@ -60,7 +98,26 @@ def make_posterior(settings):
     return make_conditional_posterior(full_posterior, settings)
 
 def make_norm_prior(norm_prior_settings, likelihood, n_structures):
-    
+    """
+    Makes the Gamma prior object for the scaling parameter
+
+    Shape and rate of the Gamma distribution are set to rather broad
+    values depending on the average number of counts in the data
+
+    :param norm_prior_settings: settings for the scaling factor prior
+                                as specified in a config file
+    :type norm_prior_settings: dict
+
+    :param likelihood: a likelihood object from which the count data
+                       can be retrieved
+    :type likelihood: :ref:`.likelihoods.Likelihood`
+
+    :param n_structures: number of ensemble members
+    :type n_structures: int
+
+    :returns: a scaling factor prior object
+    :rtype: :ref:`.gamma_prior.NormGammaPrior`
+    """
     from .gamma_prior import NormGammaPrior
 
     shape = norm_prior_settings['shape']
@@ -154,7 +211,16 @@ def make_marginalized_posterior(settings):
     
 
 def setup_weights(settings):
+    """
+    Sets up the vector of initial weights
 
+    :param settings: simulation settings as specified in a
+                     config file
+    :type settings: dict of dicts
+
+    :returns: a weights vector
+    :rtype: numpy.ndarray of floats; length: # of ensemble members
+    """
     weights_string = settings['initial_state']['weights']
     n_structures = int(settings['general']['n_structures'])
     try:
@@ -166,13 +232,53 @@ def setup_weights(settings):
     return weights
 
 def expspace(min, max, a, N):
+    """
+    Helper function which creates an array of exponentially spaced values
 
+    I use this to create temperature schedules for 
+    replica exchange simulations.
+    
+    :param min: minimum value
+    :type min: float
+
+    :param max: maximum value
+    :type max: float
+
+    :param a: rate parameter
+    :type a: float
+
+    :param N: desired # of values (including min and max)
+    :type N: int
+
+    :returns: array of exponentially spaced numbers
+    :rtype: numpy.ndarray of floats; length: N    
+    """
     g = lambda n: (max - min) / (np.exp(a*(N-1.0)) - 1.0) * (np.exp(a*(n-1.0)) - 1.0) + float(min)
     
     return np.array(map(g, np.arange(1, N+1)))
 
 def make_replica_schedule(replica_params, n_replicas):
+    """
+    Makes a replica exchange schedule from settings specified in
+    a config file.
 
+    You can either have a linear or an exponential schedule
+    and a separate prior annealing chain or not. You can also
+    load a schedule from a Python pickle. It has to be a
+    dict with the keys being the tempered parameters and the
+    values the schedule for that parameter.
+    But the latter option is currently handled in the run_simulation.py
+    script.
+
+    :param replica_params: replica settings as specified in a config file
+    :type replica_params: dict
+
+    :param n_replicas: # of replicas
+    :type n_replicas: int
+
+    :returns: a replica exchange schedule
+    :rtype: dict, e.g., {'beta': np.array([0, 0.33, 0.66, 1.0])}
+    """
     l_min = float(replica_params['lambda_min'])
     l_max = float(replica_params['lambda_max'])
     b_min = float(replica_params['beta_min'])
@@ -211,7 +317,28 @@ def make_replica_schedule(replica_params, n_replicas):
 
 def make_subsamplers(posterior, initial_state,
                      structures_hmc_params, weights_hmc_params):
+    """
+    Makes a dictionary of (possibly MCMC) samplers for all variables
 
+    :param posterior: posterior distribution you want to sample
+    :type posterior: :ref:`binf.pdf.posteriors.Posterior
+
+    :param initial_state: intial state
+    :type initial_state: :ref:`binf.samplers.ISDState`
+
+    :param structures_hmc_params: settings for the structures HMC
+                                  sampler as specified in a config file
+    :type structures_hmc_params: dict
+
+    :param weights_hmc_params: settings for the weights HMC
+                               sampler as specified in a config file
+    :type weights_hmc_params: dict
+
+    :returns: a dictionary with the keys being the variables and
+              the values the corresponding samplers over which
+              a Gibbs sampler eventually will iterate
+    :rtype: dict
+    """
     from isd2.samplers.hmc import HMCSampler
 
     p = posterior

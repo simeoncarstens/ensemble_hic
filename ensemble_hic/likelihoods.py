@@ -1,3 +1,7 @@
+"""
+Likelihoods modeling the process of generating contact frequency
+/ count data
+"""
 import numpy as np
 
 from csb.statistics.pdf.parameterized import Parameter
@@ -9,7 +13,26 @@ from .likelihoods_c import calculate_gradient
 class Likelihood(ISD2Likelihood):
 
     def __init__(self, name, fwm, em, lammda):
+        """
+        A modification of :ref:`binf.pdf.likelihoods.Likelihood'
+        allowing for a temperature and direct gradient evaluation.
 
+        It also contains some messy code to deal with possible weights
+        for ensemble members.
+
+        :param name: some unique name for this object, usually 'ensemble_contacts'
+        :type name: str
+
+        :param fwm: a forward model to back-calclate data from structure ensembles
+        :type fwm: sub-classed from :ref:`binf.models.forwardmodels.AbstractForwardModel`
+
+        :param em: an error model to model deviations of data from back-calculated data
+        :type em: sub-classed from :ref:`binf.models.errormodels.AbstractErrorModel`
+
+        :param lammda: temperature-like parameter to downweigh likelihood in a
+                       Replica Exchange simulation
+        :type lammda: float
+        """
         super(Likelihood, self).__init__(name, fwm, em)
 
         self._register('lammda')

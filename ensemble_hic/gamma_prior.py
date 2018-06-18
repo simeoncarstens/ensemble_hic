@@ -1,3 +1,6 @@
+"""
+Prior distributions of Gamma distribution type
+"""
 from abc import ABCMeta, abstractmethod
 
 import numpy as np
@@ -12,7 +15,22 @@ class GammaPrior(AbstractPrior):
 
     @abstractmethod
     def __init__(self, name, shape, rate, variable_name):
+        """
+        General class implementing a Gamma prior distribution
 
+        :param name: a unique name for this object
+        :type name: str
+
+        :param shape: the shape of the Gamma distribution
+        :type shape: float > 0
+
+        :param rate: the rate of the Gamma distribution
+        :type rate: float > 0
+
+        :param variable_name: the name of the variable this
+                              object servers as a prior for
+        :type variable_name: str
+        """
         from csb.statistics.pdf.parameterized import Parameter
 
         super(GammaPrior, self).__init__(name)

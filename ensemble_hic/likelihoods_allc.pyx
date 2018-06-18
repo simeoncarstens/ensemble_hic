@@ -1,8 +1,11 @@
-# cython: profile=True
+## cython: profile=True
 # cython: boundscheck=False
 # cython: wraparound=False
 # cython: cdivision=True
-
+"""
+I think this is a full Cython implementation of a likelihood with
+the usual forward model and a Poisson error model. I don't use this.
+"""
 import numpy
 cimport numpy
 cimport cython
@@ -33,9 +36,6 @@ cdef double [:] calculate_gradient(double [:,:,::1] structures,
     cdef double [:,::1] sqrtdenoms = numpy.empty((n_structures, n_datapoints))
     cdef double [::1] md = numpy.zeros(n_datapoints)
     
-    # cdef double [:] md = ensemble_contacts_evaluate(structures, weights, cds,
-    #                                                 smooth_steepness, data_points,
-    #                                                 cutoff, distances, sqrtdenoms)
     ensemble_contacts_evaluate(structures, weights, cds,
                                smooth_steepness, data_points,
                                cutoff, distances, sqrtdenoms, md)
@@ -73,11 +73,10 @@ cdef double [:] ensemble_contacts_evaluate(double [:,:,::1] structures, double [
                                            double cutoff, 
                                            double [:,::1] distances, double [:,::1] sqrtdenoms, double [::1] res) nogil:
  
-    cdef Py_ssize_t N = 20#len(structures)
-    cdef Py_ssize_t n_data_points = 22366#len(data_points)
+    cdef Py_ssize_t N = len(structures)
+    cdef Py_ssize_t n_data_points = len(data_points)
     cdef Py_ssize_t i, j, k, l, m
     cdef double d
-    #cdef double [:] res = numpy.zeros(n_data_points)
 
     for m in range(n_data_points):
         i = data_points[m,0]
@@ -103,15 +102,6 @@ class Likelihood(ISD2Likelihood):
         self.gradient_cutoff = gradient_cutoff
         self._register('lammda')
         self['lammda'] = Parameter(lammda, 'lammda')
-        
-        if not True:
-            dps = np.loadtxt('/usr/users/scarste/projects/ensemble_hic/data/rao2014/chr1_coarse.txt').astype(int)
-            dps = dps[np.abs(dps[:,0] - dps[:,1]) > 1]
-            dps = dps[dps[:,2] > 0]
-            counts = dps[:,2] * 1.0
-            counts /= 9.0
-            dps[:,2] = counts.astype(int)
-            self.dps = dps
         
     def gradient(self, **variables):
 

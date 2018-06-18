@@ -1,3 +1,8 @@
+"""
+Classes defining various error models for ensemble-averaged 3C data.
+Currently, only the Poisson error model is used and is thus the only
+one being tested and documented.
+"""
 import numpy
 
 from csb.statistics.pdf.parameterized import Parameter
@@ -52,7 +57,18 @@ class GaussianEM(AbstractErrorModel):
 class PoissonEM(AbstractErrorModel):
 
     def __init__(self, name, data):
+        """Poisson error model for contact count / frequency data
 
+        This implements a Poisson distribution as an error model
+        for count data. The rates are given by the back-calculated
+        counts (the mock data).
+
+        :param name: some name for this object, usually, 'poisson_em'
+        :type name: str
+
+        :param data: count / frequency data
+        :type data: float
+        """
         super(PoissonEM, self).__init__(name)
 
         self._register_variable('mock_data', differentiable=True)
@@ -60,17 +76,34 @@ class PoissonEM(AbstractErrorModel):
         self.update_var_param_types(mock_data=ArrayParameter)
         self._set_original_variables()
 
-    def _evaluate_log_prob(self, **variables):
+    def _evaluate_log_prob(self, mock_data):
+        """
+        Evaluates the log-probability of the data given the mock data
+        
+        :param mock_data: back-calculated count / frequency data
+        :type mock_data: numpy.ndarray of floats
 
-        mock_data = variables['mock_data']
+        :returns: log-probablity of the data
+        :rtype: float
+        """
         d_counts = self.data
 
         return -mock_data.sum() + numpy.sum(d_counts * numpy.log(mock_data))
 
     def _evaluate_gradient(self, **variables):
+        """
+        In theory, this evaluates the gradient of the negative log-probability,
+        but I usually hardcode the multiplication of this with the forward
+        model Jacobian in Cython (see :ref:`.likelihoods_c`)
+        """
         pass
     
     def clone(self):
+        """Returns a copy of an instance of this class
+
+        :returns: copy of this object
+        :rtype: :class:`.PoissonEM`
+        """
 
         copy = self.__class__(self.name, self.data)
 

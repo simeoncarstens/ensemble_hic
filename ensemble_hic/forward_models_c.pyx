@@ -16,7 +16,9 @@ def ensemble_contacts_evaluate(double [:,:,::1] structures,
                                double [::1] contact_distances, 
                                double alpha,
                                Py_ssize_t [:,::1] data_points):
-
+    """
+    Cython implementation of the only implemented forward model
+    """
     cdef double [:,::1] distances = numpy.empty((structures.shape[0],
                                                  data_points.shape[0]))
     cdef double [:,::1] sqrtdenoms = numpy.empty((structures.shape[0],

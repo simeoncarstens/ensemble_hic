@@ -1,7 +1,6 @@
 # cython: boundscheck=False
 # cython: wraparound=False
 # cython: cdivision=True
-
 import numpy
 cimport numpy
 cimport cython
@@ -10,14 +9,18 @@ cdef extern from "math.h" nogil:
     double sqrt(double)
 
 cdef inline int ensemble_contacts_evaluate_pureC(double [:,:,::1] structures,
-                                             double [::1] weights,	
-                                             double [::1] contact_distances, 
-                                             double alpha,
-                                             Py_ssize_t [:,::1] data_points,
-                                             double [:,::1] distances,
-                                             double [:,::1] sqrtdenoms,
-                                             double [::1] res) nogil:
- 
+                                                 double [::1] weights,	
+                                                 double [::1] contact_distances, 
+                                                 double alpha,
+                                                 Py_ssize_t [:,::1] data_points,
+                                                 double [:,::1] distances,
+                                                 double [:,::1] sqrtdenoms,
+                                                 double [::1] res) nogil:
+    """
+    Evaluates the ensemble contacts forward model without any Python API calls.
+
+    Result is stored in res.
+    """ 
     cdef Py_ssize_t N = structures.shape[0]
     cdef Py_ssize_t n_data_points = data_points.shape[0]
     cdef Py_ssize_t i, j, k, l, m

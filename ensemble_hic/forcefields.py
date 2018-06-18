@@ -1,46 +1,115 @@
+"""
+Forcefields describing non-bonded interactions
+"""
 import numpy as np
 
 from abc import abstractmethod
 
 
 class AbstractForceField(object):
-
+    
     def __init__(self, bead_radii, force_constant):
+        """
+        A purely repulsive forcefield for non-bonded interactions with a potential
+        in which pairwise distances closer than the sum of two bead radii are penalized
+        quadratically.
 
+        :param bead_radii: list of bead radii
+        :type bead_radii: list-like of floats, length: # beads
+
+        :param force_constant: force constant
+        :type force constant: float
+        """
         self._bead_radii = bead_radii
         self._bead_radii2 = bead_radii * bead_radii
         self._force_constant = force_constant
 
     @abstractmethod
     def energy(self, structure):
+        """
+        Evaluates the potentital energy of a structure
+
+        :param structure: coordinates of a structure
+        :type structure: numpy.ndarray of floats; length: # beads * 3
+
+        :returns: potential energy of a structure
+        :rtype: float
+        """
         pass
 
     @abstractmethod
     def gradient(self, structure):
+        """
+        Evaluates the energy gradient for a structure
+
+        :param structure: coordinates of a structure
+        :type structure: numpy.ndarray of floats; length: # beads * 3
+
+        :returns: gradient vector
+        :rtype: numpy.ndarray of floats; length: # beads * 3
+        """
         pass
 
     @property
     def bead_radii(self):
+        """
+        Bead radii
+
+        :returns: list of bead radii
+        :rtype: list-like of floats; length: # beads
+        """
         return self._bead_radii
     @bead_radii.setter
     def bead_radii(self, value):
+        """
+        Sets bead radii
+
+        :param value: list of bead radii
+        :type value: numpy.ndarray of floats; length: # beads
+        """
         self._bead_radii = value
 
     @property
     def bead_radii2(self):
+        """
+        Squared bead radii
+
+        :returns: list of squared bead radii
+        :rtype: list-like of floats; length: # beads
+        """
         return self._bead_radii2
     
     @property
     def force_constant(self):
+        """
+        Force constant
+
+        :returns: force constant
+        :rtype: float
+        """
         return self._force_constant
     @force_constant.setter
     def force_constant(self, value):
+        """
+        Sets force constant
+
+        :param value: new force constant
+        :type value: float
+        """
         self._force_constant = value
 
 class ForceField(AbstractForceField):
-
+    
     def energy(self, structure):
-        
+        """
+        Cython implementation of the potential energy
+
+        :param structure: coordinates of a structure
+        :type structure: numpy.ndarray of floats; length: # beads * 3
+
+        :returns: potential energy of a structure
+        :rtype: float
+        """
         from ensemble_hic.forcefield_c import forcefield_energy
         
         E = forcefield_energy(structure, self.bead_radii,
@@ -50,7 +119,15 @@ class ForceField(AbstractForceField):
         return E
     
     def gradient(self, structure):
-        
+        """
+        Cython implementation of the energy gradient
+
+        :param structure: coordinates of a structure
+        :type structure: numpy.ndarray of floats; length: # beads * 3
+
+        :returns: gradient vector
+        :rtype: numpy.ndarray of floats; length: # beads * 3
+        """        
         from ensemble_hic.forcefield_c import forcefield_gradient
         
         grad = forcefield_gradient(structure, self.bead_radii,
@@ -74,7 +151,7 @@ def make_universe(n_beads, L=100):
 class VolumeExclusion(object):
 
     def __init__(self, universe, bead_types=None):
-
+        
         self._bead_types = bead_types
 
         self._universe = universe
@@ -134,8 +211,23 @@ class VolumeExclusion(object):
 
 
 class NBLForceField(AbstractForceField):
-
+    
     def __init__(self, bead_radii, force_constant):
+        """
+        A purely repulsive forcefield for non-bonded interactions with a potential
+        in which pairwise distances closer than the sum of two bead radii are penalized
+        quadratically. 
+
+        This implementation uses a non-bonded list written by Michael Habeck.
+        It makes evaluating the energy / gradient linear instead quadratic in the
+        number of beads.
+
+        :param bead_radii: list of bead radii
+        :type bead_radii: list-like of floats, length: # beads
+
+        :param force_constant: force constant
+        :type force constant: float
+        """
 
         super(NBLForceField, self).__init__(bead_radii, force_constant)
 
