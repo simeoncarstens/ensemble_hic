@@ -5,9 +5,9 @@ import numpy as np
 from ensemble_hic.setup_functions import parse_config_file
 
 sys.argv = ['asdfasdf',
-            '/scratch/scarste/ensemble_hic/rao2014/chr1_randominit_it3_50structures_sn_481replicas/config.cfg',
-            30001,
-            2]
+            '/scratch/scarste/ensemble_hic/nora2012/bothdomains_it3_rep4_20structures_309replicas/config.cfg',
+            80001,
+            1]
 
 config_file = sys.argv[1]
 n_samples = int(sys.argv[2])

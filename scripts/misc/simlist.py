@@ -195,6 +195,18 @@ simulations = {'hairpin_s_fwm_poisson_new':
                                 'it5_50structures_sn_629replicas',
                                 'it3_100structures_sn_725replicas',
                               )
+                },
+               'nora2012':
+               {'n_structures': (1, 5, 10, 20, 20, 20, 40),
+                'common_path': '/scratch/scarste/ensemble_hic/nora2012/bothdomains_',
+                'output_dirs': ('it3_1structures_298replicas',
+                                'it3_5structures_218replicas',
+                                '10structures_297replicas',
+                                'it3_20structures_309replicas',
+                                'it3_rep3_20structures_309replicas',
+                                'it3_rep4_20structures_309replicas',
+                                'it2_40structures_330replicas',
+                              )
                 }
 
                }
