@@ -28,14 +28,13 @@ class EnsembleContactsFWM(AbstractForwardModel):
         :type n_structures: int
 
         :param contact_distances: contact distances for each data point
-        :type contact_distances: numpy.ndarray of floats;
-                                 length: # of data points
+        :type contact_distances: :class:`numpy.ndarray`
 
         :param data_points: list of pairwise bead indices and corresponding
-                            contact counts / frequencies
-        :type data_points: numpy.ndarray of ints; 
-                           shape: (# data points, 3). Second axis is
-                           (1st bead index, 2nd bead index, count)
+                            contact counts / frequencies.
+                            shape: (# data points, 3). Second axis is
+                            (1st bead index, 2nd bead index, count)
+        :type data_points: :class:`numpy.ndarray`
         """
         super(EnsembleContactsFWM, self).__init__(name)
 
@@ -64,8 +63,7 @@ class EnsembleContactsFWM(AbstractForwardModel):
         data from a structure ensemble and other (nuisance) parameters
 
         :param structures: coordinates of structure ensemble
-        :type structures: numpy.ndarray of floats;
-                          length: # ensemble members * # beads * 3
+        :type structures: :class:`numpy.ndarray`
 
         :param smooth_steepness: determines the steepness of the smoothed
                                  contact function
@@ -73,7 +71,7 @@ class EnsembleContactsFWM(AbstractForwardModel):
 
         :param weights: weights assigned to structures. This is deprecated;
                         it should always be set to zeros
-        :type weights: numpy.ndarray of floats; length: # ensemble members
+        :type weights: :class:`numpy.ndarray`
                           
         :param norm: scaling parameter with which the sum
                      of single-structure contact matrices
@@ -81,7 +79,7 @@ class EnsembleContactsFWM(AbstractForwardModel):
         :type norm: float
 
         :returns: back-calculated contact frequency data
-        :rtype: numpy.ndarray of floats; length: # data points
+        :rtype: :class:`numpy.ndarray`
         """
         X = structures.reshape(self.n_structures, -1, 3)
 
@@ -116,7 +114,7 @@ class EnsembleContactsFWM(AbstractForwardModel):
         """
         In theory, this evaluates the Jacobian matrix of the forward model,
         but I usually hardcode the multiplication of this with the error
-        model gradient in Cython (see :ref:`.likelihoods_c`)
+        model gradient in Cython (see :module:`.likelihoods_c`)
         """        
         raise NotImplementedError("Use fast likelihood gradients in " +
                                   "likelihoods_c.pyx instead!")    

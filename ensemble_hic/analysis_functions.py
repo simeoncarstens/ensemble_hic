@@ -25,7 +25,7 @@ def load_samples(samples_folder, n_replicas, n_samples,
 
     :returns: a two-dimensional array of MCMC samples with the first axis being
               the replicas and the second axis the samples for a given replica
-    :rtype: numpy.ndarray or samples
+    :rtype: :class:`numpy.ndarray`
     """
 
     samples = []
@@ -59,7 +59,7 @@ def load_sr_samples(samples_folder, replica_id, n_samples,
     :type interval: int
 
     :returns: an array of MCMC samples
-    :rtype: numpy.ndarray of samples
+    :rtype: :class:`numpy.ndarray`
     """
 
     samples = []
@@ -76,15 +76,14 @@ def write_ensemble(X, filename, mol_ranges=None, center=True):
     """Writes a structure ensemble to a PDB file.
 
     :param X: coordinates of a structure ensemble
-    :type X: numpy.ndarray of shape (# ensemble members, # beads, 3)
+    :type X: :class:`numpy.ndarray`
 
     :param filename: file name of output PDB file
     :type filename: str
 
     :param mol_ranges: if writing structures consisting of several molecules, this
-                       specifies start and end beads of the single molecules
-    :type mol_ranges: numpy.ndarray of ints; e.g., [0, 9, 19] for two molecules of 10
-                      beads each
+                       specifies start and end beads of the single molecules. Example:                       [0, 9, 19] for two molecules of 10 beads each
+    :type mol_ranges: :class:`numpy.ndarray`
 
     :param center: if True, aligns the centers of mass of all structures
     :type center: bool
@@ -172,7 +171,7 @@ def write_pymol_script(ensemble_pdb_file, bead_radii, output_file,
     :type ensemble_pdb_file: str
 
     :param bead_radii: bead radii
-    :type bead_radii: list-like of floats, length: # beads
+    :type bead_radii: :class:`numpy.ndarray`
 
     :param output_file: output file name
     :type output_file: str
@@ -219,7 +218,7 @@ def load_samples_from_cfg(config_file, burnin=35000):
     :type burnin: int
 
     :returns: posterior samples
-    :rtype: numpy.ndarray of samples
+    :rtype: :class:`numpy.ndarray`
     """
 
     from .setup_functions import parse_config_file
@@ -238,13 +237,13 @@ def load_samples_from_cfg(config_file, burnin=35000):
     return samples
 
 def load_ensemble_from_pdb(filename):
-    """Loads a structure ensemble from a PDB file"
+    """Loads a structure ensemble from a PDB file
 
     :param filename: file name of PDB file
     :type filename: str
 
     :returns: atom coordinates of structure ensemble
-    :rtype: numpy.ndarray of shape (# ensemble members, # beads, 3)
+    :rtype: :class:`numpy.ndarray`
     """
     if False:
         ## Insanely slow

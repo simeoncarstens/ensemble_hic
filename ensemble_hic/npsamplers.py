@@ -75,7 +75,7 @@ class NormGammaSampler(AbstractGammaSampler):
         scaling factor variable
 
         :returns: prior distribution object
-        :rtype: :ref:`.NormGammaPrior`
+        :rtype: :class:`.NormGammaPrior`
         """
         prior = filter(lambda p: 'norm' in p.variables, self.pdf.priors.values())[0]
         
@@ -87,7 +87,7 @@ class NormGammaSampler(AbstractGammaSampler):
         distribution
 
         :param prior: a prior distribution object
-        :type prior: :ref:`binf.pdf.priors.AbstractPrior`
+        :type prior: :class:`binf.pdf.priors.AbstractPrior`
 
         :returns: isn't this self-documenting??
         :rtype: bool

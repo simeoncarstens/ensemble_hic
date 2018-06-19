@@ -20,17 +20,19 @@ class BackbonePrior(AbstractPrior):
         between consecutive beads quadratically
 
         :param name: name describing this class, usually something like
-                     "backbone_prior". Should be unique among other posterior
+                     'backbone_prior'. Should be unique among other posterior
                      components.
         :type name: str
 
-        :param lower_limits: lower limits for distances between consecutive beads
-        :type lower_limits: non-recangular numpy.ndarray of 
-                            shape (# molecules, # beads per molecule - 1)
+        :param lower_limits: lower limits for distances between consecutive beads.
+                             This will have shape
+                             (# molecules, # beads per molecule - 1)
+        :type lower_limits: :class:`numpy.ndarray` 
 
-        :param upper_limits: upper limits for distances between consecutive beads
-        :type upper_limits: non-recangular numpy.ndarray of 
-                            shape (# molecules, # beads per molecule - 1)
+        :param upper_limits: upper limits for distances between consecutive beads.
+                             This will have shape
+                             (# molecules, # beads per molecule - 1)
+        :type upper_limits: :class:`numpy.ndarray`
 
         :param k_bb: force constant for quadratic restraining potential
         :type k_bb: float
@@ -38,9 +40,8 @@ class BackbonePrior(AbstractPrior):
         :param n_structures: number of ensemble members
         :type n_structures: int
 
-        :param mol_ranges: specifies start and end beads of the single molecules
-        :type mol_ranges: numpy.ndarray of ints; e.g., [0, 9, 19] for two molecules of 10
-                          beads each
+         :param mol_ranges: specifies start and end beads of the single molecules. For                            example: [0, 9, 19] for two molecules of 10 beads each
+        :type mol_ranges: :class:`numpy.ndarray` 
         """
         from isd2 import ArrayParameter
         from csb.statistics.pdf.parameterized import Parameter
@@ -64,13 +65,13 @@ class BackbonePrior(AbstractPrior):
         """Evaluates log-probability for a single structure
 
         :param structure: coordinates of a single structure
-        :type structure: numpy.ndarray of shape (# beads, 3)
+        :type structure: :class:`numpy.ndarray`
 
         :param ll: lower distance limits for consecutive beads
-        :type ll: numpy.ndarray of floats; length: # beads - 1
+        :type ll: :class:`numpy.ndarray`
 
         :param ul: upper distance limits for consecutive beads
-        :type ul: numpy.ndarray of floats; length: # beads - 1
+        :type ul: :class:`numpy.ndarray`
 
         :returns: (unnormalized) log-probability
         :rtype: float
@@ -92,16 +93,18 @@ class BackbonePrior(AbstractPrior):
         """Evaluates gradient of energy for a single structure
 
         :param structure: coordinates of a single structure
-        :type structure: numpy.ndarray of shape (# beads, 3)
+        :type structure: :class:`numpy.ndarray`
 
-        :param ll: lower distance limits for consecutive beads
-        :type ll: numpy.ndarray of floats; length: # beads - 1
+        :param ll: lower distance limits for consecutive beads.
+                   This will have length # of beads - 1
+        :type ll: :class:`numpy.ndarray`
 
-        :param ul: upper distance limits for consecutive beads
-        :type ul: numpy.ndarray of floats; length: # beads - 1
+        :param ul: upper distance limits for consecutive beads.
+                   This will have length # of beads - 1
+        :type ul: :class:`numpy.ndarray`
 
         :returns: gradient vector
-        :rtype: numpy.ndarray of floats; length: # beads * 3
+        :rtype: :class:`numpy.ndarray`
         """
         
         return backbone_prior_gradient(structure.ravel(), ll, ul, self['k_bb'].value)
@@ -110,8 +113,7 @@ class BackbonePrior(AbstractPrior):
         """Evaluates log-probability of a structure ensemble
 
         :param structures: coordinates of structure ensemble
-        :type structures: numpy.ndarray of floats;
-                          length: # ensemble members * # beads * 3
+        :type structures: :class:`numpy.ndarray`
 
         :returns: log-probability of the structure ensemble
         :rtype: float
@@ -132,12 +134,10 @@ class BackbonePrior(AbstractPrior):
         """Evaluates gradient of energy of a structure ensemble
 
         :param structures: coordinates of structure ensemble
-        :type structures: numpy.ndarray of floats;
-                          length: # ensemble members * # beads * 3
+        :type structures: :class:`numpy.ndarray`
 
         :returns: flattened gradient vector
-        :rtype: numpy.ndarray of floats;
-                length: # ensemble members * # beads * 3
+        :rtype: :class:`numpy.ndarray`
         """
         grad = self._single_structure_gradient
         X = structures.reshape(self.n_structures, -1, 3)

@@ -81,7 +81,7 @@ class PoissonEM(AbstractErrorModel):
         Evaluates the log-probability of the data given the mock data
         
         :param mock_data: back-calculated count / frequency data
-        :type mock_data: numpy.ndarray of floats
+        :type mock_data: :class:`numpy.ndarray`
 
         :returns: log-probablity of the data
         :rtype: float
@@ -94,7 +94,7 @@ class PoissonEM(AbstractErrorModel):
         """
         In theory, this evaluates the gradient of the negative log-probability,
         but I usually hardcode the multiplication of this with the forward
-        model Jacobian in Cython (see :ref:`.likelihoods_c`)
+        model Jacobian in Cython (see :mod:`.likelihoods_c`)
         """
         pass
     

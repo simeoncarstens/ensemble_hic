@@ -14,7 +14,7 @@ class Likelihood(ISD2Likelihood):
 
     def __init__(self, name, fwm, em, lammda):
         """
-        A modification of :ref:`binf.pdf.likelihoods.Likelihood'
+        A modification of :class:`binf.pdf.likelihoods.Likelihood'
         allowing for a temperature and direct gradient evaluation.
 
         It also contains some messy code to deal with possible weights
@@ -24,10 +24,10 @@ class Likelihood(ISD2Likelihood):
         :type name: str
 
         :param fwm: a forward model to back-calclate data from structure ensembles
-        :type fwm: sub-classed from :ref:`binf.models.forwardmodels.AbstractForwardModel`
+        :type fwm: sub-classed from :class:`binf.models.forwardmodels.AbstractForwardModel`
 
         :param em: an error model to model deviations of data from back-calculated data
-        :type em: sub-classed from :ref:`binf.models.errormodels.AbstractErrorModel`
+        :type em: sub-classed from :class:`binf.models.errormodels.AbstractErrorModel`
 
         :param lammda: temperature-like parameter to downweigh likelihood in a
                        Replica Exchange simulation

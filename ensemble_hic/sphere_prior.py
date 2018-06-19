@@ -33,14 +33,14 @@ class SpherePrior(AbstractPrior):
         :type n_structures: int
 
         :param bead_radii: bead radii for each bead
-        :type bead_radii: numpy.ndarray of floats; length: # beads
+        :type bead_radii: :class:`numpy.ndarray`
 
         :param sphere_center: coordinates of the sphere center,
                               if none, (0, 0, 0) is assumed
-        :type sphere_center: numpy.ndarray of floats; length: 3
+        :type sphere_center: :class:`numpy.ndarray`
 
         :returns: set-up spherical prior distribution object
-        :rtype: :ref:`.sphere_prior.SpherePrior`    
+        :rtype: :class:`.SpherePrior`    
         """
         super(SpherePrior, self).__init__(name)
 

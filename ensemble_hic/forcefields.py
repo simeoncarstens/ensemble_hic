@@ -15,7 +15,7 @@ class AbstractForceField(object):
         quadratically.
 
         :param bead_radii: list of bead radii
-        :type bead_radii: list-like of floats, length: # beads
+        :type bead_radii: list-like
 
         :param force_constant: force constant
         :type force constant: float
@@ -30,7 +30,7 @@ class AbstractForceField(object):
         Evaluates the potentital energy of a structure
 
         :param structure: coordinates of a structure
-        :type structure: numpy.ndarray of floats; length: # beads * 3
+        :type structure: :class:`numpy.ndarray`
 
         :returns: potential energy of a structure
         :rtype: float
@@ -43,10 +43,10 @@ class AbstractForceField(object):
         Evaluates the energy gradient for a structure
 
         :param structure: coordinates of a structure
-        :type structure: numpy.ndarray of floats; length: # beads * 3
+        :type structure: :class:`numpy.ndarray`
 
         :returns: gradient vector
-        :rtype: numpy.ndarray of floats; length: # beads * 3
+        :rtype: :class:`numpy.ndarray`
         """
         pass
 
@@ -65,7 +65,7 @@ class AbstractForceField(object):
         Sets bead radii
 
         :param value: list of bead radii
-        :type value: numpy.ndarray of floats; length: # beads
+        :type value: :class:`numpy.ndarray`
         """
         self._bead_radii = value
 
@@ -75,7 +75,7 @@ class AbstractForceField(object):
         Squared bead radii
 
         :returns: list of squared bead radii
-        :rtype: list-like of floats; length: # beads
+        :rtype: list-like
         """
         return self._bead_radii2
     
@@ -105,7 +105,7 @@ class ForceField(AbstractForceField):
         Cython implementation of the potential energy
 
         :param structure: coordinates of a structure
-        :type structure: numpy.ndarray of floats; length: # beads * 3
+        :type structure: :class:`numpy.ndarray`
 
         :returns: potential energy of a structure
         :rtype: float
@@ -123,10 +123,10 @@ class ForceField(AbstractForceField):
         Cython implementation of the energy gradient
 
         :param structure: coordinates of a structure
-        :type structure: numpy.ndarray of floats; length: # beads * 3
+        :type structure: :class:`numpy.ndarray`
 
         :returns: gradient vector
-        :rtype: numpy.ndarray of floats; length: # beads * 3
+        :rtype: :class:`numpy.ndarray`
         """        
         from ensemble_hic.forcefield_c import forcefield_gradient
         
@@ -223,7 +223,7 @@ class NBLForceField(AbstractForceField):
         number of beads.
 
         :param bead_radii: list of bead radii
-        :type bead_radii: list-like of floats, length: # beads
+        :type bead_radii: list-like
 
         :param force_constant: force constant
         :type force constant: float

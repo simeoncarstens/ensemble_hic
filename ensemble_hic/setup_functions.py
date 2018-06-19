@@ -73,7 +73,7 @@ def make_posterior(settings):
     :type settings: dict
 
     :returns: a posterior object
-    :rtype: :ref:`binf.pdf.posteriors.Posterior`
+    :rtype: :class:`binf.pdf.posteriors.Posterior`
     """
     from isd2.pdf.posteriors import Posterior
 
@@ -110,13 +110,13 @@ def make_norm_prior(norm_prior_settings, likelihood, n_structures):
 
     :param likelihood: a likelihood object from which the count data
                        can be retrieved
-    :type likelihood: :ref:`.likelihoods.Likelihood`
+    :type likelihood: :class:`.Likelihood`
 
     :param n_structures: number of ensemble members
     :type n_structures: int
 
     :returns: a scaling factor prior object
-    :rtype: :ref:`.gamma_prior.NormGammaPrior`
+    :rtype: :class:`.NormGammaPrior`
     """
     from .gamma_prior import NormGammaPrior
 
@@ -219,7 +219,7 @@ def setup_weights(settings):
     :type settings: dict of dicts
 
     :returns: a weights vector
-    :rtype: numpy.ndarray of floats; length: # of ensemble members
+    :rtype: :class:`numpy.ndarray`
     """
     weights_string = settings['initial_state']['weights']
     n_structures = int(settings['general']['n_structures'])
@@ -251,7 +251,7 @@ def expspace(min, max, a, N):
     :type N: int
 
     :returns: array of exponentially spaced numbers
-    :rtype: numpy.ndarray of floats; length: N    
+    :rtype: :class:`numpy.ndarray`
     """
     g = lambda n: (max - min) / (np.exp(a*(N-1.0)) - 1.0) * (np.exp(a*(n-1.0)) - 1.0) + float(min)
     
@@ -321,10 +321,10 @@ def make_subsamplers(posterior, initial_state,
     Makes a dictionary of (possibly MCMC) samplers for all variables
 
     :param posterior: posterior distribution you want to sample
-    :type posterior: :ref:`binf.pdf.posteriors.Posterior
+    :type posterior: :class:`binf.pdf.posteriors.Posterior
 
     :param initial_state: intial state
-    :type initial_state: :ref:`binf.samplers.ISDState`
+    :type initial_state: :class:`binf.samplers.ISDState`
 
     :param structures_hmc_params: settings for the structures HMC
                                   sampler as specified in a config file
@@ -382,14 +382,13 @@ def make_elongated_structures(bead_radii, n_structures):
     Makes a set of fully elongated structures
 
     :param bead_radii: bead radii for each bead
-    :type bead_radii: numpy.ndarray of floats; length: # beads
+    :type bead_radii: :class:`numpy.ndarray`
 
     :param n_structures: number of ensemble members
     :type n_structures: int
     
     :returns: a population of fully elongated structures
-    :rtype: numpy.ndarray of floats;
-            shape: (# ensemble members, # beads, 3)
+    :rtype: :class:`numpy.ndarray`
     """
     X = [bead_radii[0]]
     for i in range(len(bead_radii) -1):
@@ -408,14 +407,13 @@ def make_random_structures(bead_radii, n_structures):
     from a normal distribution
 
     :param bead_radii: bead radii for each bead
-    :type bead_radii: numpy.ndarray of floats; length: # beads
+    :type bead_radii: :class:`numpy.ndarray`
 
     :param n_structures: number of ensemble members
     :type n_structures: int
 
     :returns: a population of random structures
-    :rtype: numpy.ndarray of floats;
-            shape: (# ensemble members, # beads, 3)  
+    :rtype: :class:`numpy.ndarray`
     """
 
     d = bead_radii.mean() * len(bead_radii) ** 0.333
@@ -437,11 +435,11 @@ def setup_initial_state(initial_state_params, posterior):
 
     :param posterior: posterior distribution from which the
                       variables of the initial state are retreived
-    :type posterior: :ref:`binf.pdf.posteriors.Posterior`
+    :type posterior: :class:`binf.pdf.posteriors.Posterior`
 
     :returns: an state containing initial values for all variables
               of the posterior distribution
-    :rtype: :ref:`binf.samplers.ISDState`
+    :rtype: :class:`binf.samplers.ISDState`
     """
     from isd2.samplers import ISDState
 
@@ -484,7 +482,7 @@ def make_conditional_posterior(posterior, settings):
     Conditions the posterior on the fixed variables
 
     :param posterior: full posterior distribution
-    :type posterior: :ref:`binf.pdf.posteriors.Posterior`
+    :type posterior: :class:`binf.pdf.posteriors.Posterior`
 
     :param settings: simulation settings as specified in a
                      config file
@@ -492,7 +490,7 @@ def make_conditional_posterior(posterior, settings):
 
     :returns: a copy of the input posterior distribution, but with
               some variables set to values specified in settings
-    :rtype: :ref:`binf.pdf.posteriors.Posterior`
+    :rtype: :class:`binf.pdf.posteriors.Posterior`
     """
     variables = settings['general']['variables'].split(',')
     variables = [x.strip() for x in variables]
@@ -516,7 +514,7 @@ def make_backbone_prior(bead_radii, backbone_prior_params, n_beads,
     Makes the default backbone prior object.
 
     :param bead_radii: list of bead radii
-    :type bead_radii: numpy.ndarray of floats; length: # beads
+    :type bead_radii: :class:`numpy.ndarray`
 
     :param backbone_prior_params: settings for the backbone prior as
                                   specified in a config file
@@ -530,7 +528,7 @@ def make_backbone_prior(bead_radii, backbone_prior_params, n_beads,
 
     :returns: the backbone prior object with parameters set as given
               in the settings
-    :rtype: :ref:`.backbone_prior.BackbonePrior`
+    :rtype: :class:`.BackbonePrior`
     """
     from .backbone_prior import BackbonePrior
 
@@ -583,7 +581,7 @@ def make_priors(nonbonded_prior_params, backbone_prior_params,
     :returns: a dictionary with keys being the names of the
               structural prior distributions and values
               the prior objects themselves
-    :rtype: dict of :ref:`binf.pdf.priors.AbstractPrior`-derived
+    :rtype: dict of :class:`binf.pdf.priors.AbstractPrior`-derived
             objects
     """
     nb_params = nonbonded_prior_params
@@ -617,14 +615,14 @@ def make_nonbonded_prior(nb_params, bead_radii, n_structures):
     :type nonbonded_prior_params: dict
 
     :param bead_radii: list of bead radii
-    :type bead_radii: numpy.ndarray of floats; length: # beads
+    :type bead_radii: :class:`numpy.ndarray`
 
     :param n_structures: number of ensemble members
     :type n_structures: int
 
     :returns: the non-bonded prior object with parameters set as given
               in the settings
-    :rtype: :ref:`.nonbonded_prior.NonbondedPrior`
+    :rtype: :class:`.NonbondedPrior`
     """
     from .forcefields import ForceField
     from .forcefields import NBLForceField as ForceField
@@ -656,14 +654,14 @@ def make_sphere_prior(sphere_prior_params, bead_radii, n_structures):
     :type sphere_prior_params: dict
 
     :param bead_radii: list of bead radii
-    :type bead_radii: numpy.ndarray of floats; length: # beads
+    :type bead_radii: :class:`numpy.ndarray`
 
     :param n_structures: number of ensemble members
     :type n_structures: int
 
     :returns: the sphere prior object with parameters set as given
               in the settings
-    :rtype: :ref:`.sphere_prior.SpherePrior`
+    :rtype: :class:`.SpherePrior`
     """
     from .sphere_prior import SpherePrior
     radius = sphere_prior_params['radius']
@@ -720,10 +718,10 @@ def make_likelihood(forward_model_params, error_model, data_filtering_params,
     :type n_structures: int
 
     :param bead_radii: list of bead radii
-    :type bead_radii: numpy.ndarray of floats; length: # beads
+    :type bead_radii: :class:`numpy.ndarray`
 
     :returns: the ready-to-use likelihood object
-    :rtype: :ref:`.likelihoods.Likelihood`
+    :rtype: :class:`.Likelihood`
     """
 
     from .forward_models import EnsembleContactsFWM
@@ -749,10 +747,10 @@ def make_likelihood(forward_model_params, error_model, data_filtering_params,
 
 def setup_default_re_master(n_replicas, sim_path, comm):
     """
-    Sets up a Replica Exchange master object from the :ref:`rexfw` package
+    Sets up a Replica Exchange master object from the :class:`rexfw` package
 
     This object manages a Replica Exchange simulation, that is, it tells
-    :ref:`rexfw.replicas.Replica`s when to sample, when to exchange states,
+    :class:`rexfw.replicas.Replica`s when to sample, when to exchange states,
     when to dump states, do send statistics etc.
     It differs from the re
 
@@ -767,14 +765,14 @@ def setup_default_re_master(n_replicas, sim_path, comm):
                      will be written there
     :type sim_path: string
 
-    :param comm: a communicator object which is required by many :ref:`rexfw`
+    :param comm: a communicator object which is required by many :class:`rexfw`
                  objects to comunnicate with replicas and the master object.
                  Currently, only a MPI-based communicator is implemented.
-    :type comm: :ref:`rexfw.communicators.AbstractCommunicator`, most likely
-                :ref:`rexfw.communicators.mpi.MPICommunicator`
+    :type comm: :class:`rexfw.communicators.AbstractCommunicator`, most likely
+                :class:`rexfw.communicators.mpi.MPICommunicator`
 
     :returns: a fully set-up Replica Exchange master object
-    :rtype: :ref:`rexfw.remaster.ExchangeMaster`
+    :rtype: :class:`rexfw.remaster.ExchangeMaster`
     """    
 
     from rexfw.remasters import ExchangeMaster

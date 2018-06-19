@@ -26,7 +26,7 @@ class AbstractNonbondedPrior2(AbstractPrior):
 
         :param forcefield: a force field object describing the
                            physical interaction between beads
-        :type forcefield: subclass of :ref:`.AbstractForceField`
+        :type forcefield: :class:`.AbstractForceField`
 
         :param n_structures: number of ensemble members
         :type n_structures: int
@@ -53,10 +53,10 @@ class AbstractNonbondedPrior2(AbstractPrior):
         Evaluates the gradient of the force field
 
         :param structure: coordinates of structure ensemble
-        :type structure: numpy.ndarray of floats; length: # beads * 3
+        :type structure: :class:`numpy.ndarray`
 
         :returns: gradient vector
-        :rtype: numpy.ndarray of floats; length: # beads * 3
+        :rtype: :class:`numpy.ndarray`
         """
 
         return self.forcefield.gradient(structure)
@@ -66,7 +66,7 @@ class AbstractNonbondedPrior2(AbstractPrior):
         Evaluates the energy of the force field
 
         :param structure: coordinates of structure ensemble
-        :type structure: numpy.ndarray of floats; length: # beads * 3
+        :type structure: :class:`numpy.ndarray`
 
         :returns: force field energy
         :rtype: float
@@ -138,7 +138,7 @@ class BoltzmannNonbondedPrior2(AbstractNonbondedPrior2):
 
         :param forcefield: a force field object describing the
                            physical interaction between beads
-        :type forcefield: subclass of :ref:`.AbstractForceField`
+        :type forcefield: :class:`.AbstractForceField`
 
         :param n_structures: number of ensemble members
         :type n_structures: int
@@ -188,7 +188,7 @@ class TsallisNonbondedPrior(AbstractNonbondedPrior):
 
         :param forcefield: a force field object describing the
                            physical interaction between beads
-        :type forcefield: subclass of :ref:`.AbstractForceField`
+        :type forcefield: :class:`.AbstractForceField`
 
         :param n_structures: number of ensemble members
         :type n_structures: int

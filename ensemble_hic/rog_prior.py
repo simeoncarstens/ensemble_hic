@@ -49,7 +49,7 @@ class GyrationRadiusPrior(AbstractPrior):
         Evaluates log-probability for a single structure
 
         :param structure: coordinates of a single structure
-        :type structure: numpy.ndarray of float; length: # beads * 3
+        :type structure: :class:`numpy.ndarray`
 
         :returns: log-probability
         :rtype: float
@@ -66,10 +66,10 @@ class GyrationRadiusPrior(AbstractPrior):
         for a single structure
 
         :param structure: coordinates of a single structure
-        :type structure: numpy.ndarray of float; length: # beads * 3
+        :type structure: :class:`numpy.ndarray`
 
         :returns: gradient vector
-        :rtype: numpy.ndarray of float; length: # beads * 3
+        :rtype: :class:`numpy.ndarray`
         """
         X = structure.reshape(-1,3)
         r_gyr = radius_of_gyration(X)
