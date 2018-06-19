@@ -53,7 +53,7 @@ if rank == 0:
     from shutil import copy2
 
     ## Setup replica exchange
-    master = setup_continue_re_master(n_replicas, output_folder, cont_folder, comm)
+    master = setup_default_re_master(n_replicas, cont_folder, comm)
 
     ## run replica exchange
     offset = int(settings['replica']['offset'])

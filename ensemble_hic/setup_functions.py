@@ -378,7 +378,19 @@ def make_subsamplers(posterior, initial_state,
     
 
 def make_elongated_structures(bead_radii, n_structures):
+    """
+    Makes a set of fully elongated structures
 
+    :param bead_radii: bead radii for each bead
+    :type bead_radii: numpy.ndarray of floats; length: # beads
+
+    :param n_structures: number of ensemble members
+    :type n_structures: int
+    
+    :returns: a population of fully elongated structures
+    :rtype: numpy.ndarray of floats;
+            shape: (# ensemble members, # beads, 3)
+    """
     X = [bead_radii[0]]
     for i in range(len(bead_radii) -1):
         X.append(X[-1] + bead_radii[i+1] + bead_radii[i])
@@ -391,6 +403,20 @@ def make_elongated_structures(bead_radii, n_structures):
     return X    
 
 def make_random_structures(bead_radii, n_structures):
+    """
+    Makes a set of random structures with bead positions drawn
+    from a normal distribution
+
+    :param bead_radii: bead radii for each bead
+    :type bead_radii: numpy.ndarray of floats; length: # beads
+
+    :param n_structures: number of ensemble members
+    :type n_structures: int
+
+    :returns: a population of random structures
+    :rtype: numpy.ndarray of floats;
+            shape: (# ensemble members, # beads, 3)  
+    """
 
     d = bead_radii.mean() * len(bead_radii) ** 0.333
     X = np.random.normal(scale=d, size=(n_structures, len(bead_radii), 3))
@@ -398,7 +424,25 @@ def make_random_structures(bead_radii, n_structures):
     return X.ravel()
 
 def setup_initial_state(initial_state_params, posterior):
+    """
+    Sets up an initial state for MCMC sampling
 
+    Depending on the settings in initial_state_params, the
+    initial structures are either elongated and then slightly
+    perturbed (currently disabled), random or loaded from a file
+
+    :param initial_state_params: settings for initial state as
+                                 specified in a config file
+    :type initial_state_params: dict
+
+    :param posterior: posterior distribution from which the
+                      variables of the initial state are retreived
+    :type posterior: :ref:`binf.pdf.posteriors.Posterior`
+
+    :returns: an state containing initial values for all variables
+              of the posterior distribution
+    :rtype: :ref:`binf.samplers.ISDState`
+    """
     from isd2.samplers import ISDState
 
     p = posterior
@@ -428,7 +472,7 @@ def setup_initial_state(initial_state_params, posterior):
     init_state = ISDState({'structures': structures})
 
     if 'weights' in variables:
-        init_state.update_variables(weights=weights)
+        raise NotImplementedError("Weights sampling not yet supported")
     if 'norm' in variables:
         init_state.update_variables(norm=norm)
 
@@ -436,7 +480,20 @@ def setup_initial_state(initial_state_params, posterior):
     
 
 def make_conditional_posterior(posterior, settings):
+    """
+    Conditions the posterior on the fixed variables
 
+    :param posterior: full posterior distribution
+    :type posterior: :ref:`binf.pdf.posteriors.Posterior`
+
+    :param settings: simulation settings as specified in a
+                     config file
+    :type settings: dict of dicts
+
+    :returns: a copy of the input posterior distribution, but with
+              some variables set to values specified in settings
+    :rtype: :ref:`binf.pdf.posteriors.Posterior`
+    """
     variables = settings['general']['variables'].split(',')
     variables = [x.strip() for x in variables]
     p = posterior
@@ -455,7 +512,26 @@ def make_conditional_posterior(posterior, settings):
 
 def make_backbone_prior(bead_radii, backbone_prior_params, n_beads,
                         n_structures):
+    """
+    Makes the default backbone prior object.
 
+    :param bead_radii: list of bead radii
+    :type bead_radii: numpy.ndarray of floats; length: # beads
+
+    :param backbone_prior_params: settings for the backbone prior as
+                                  specified in a config file
+    :type backbone_prior_params: dict
+
+    :param n_beads: number of beads in a single structure
+    :type n_beads: int
+
+    :param n_structures: number of ensemble members
+    :type n_structures: int
+
+    :returns: the backbone prior object with parameters set as given
+              in the settings
+    :rtype: :ref:`.backbone_prior.BackbonePrior`
+    """
     from .backbone_prior import BackbonePrior
 
     if 'mol_ranges' in backbone_prior_params:
@@ -483,7 +559,33 @@ def make_backbone_prior(bead_radii, backbone_prior_params, n_beads,
 
 def make_priors(nonbonded_prior_params, backbone_prior_params,
                 sphere_prior_params, n_beads, n_structures):
+    """
+    Sets up all structural prior distributions
 
+    :param nonbonded_prior_params: settings for the non-bonded prior
+                                   as specified in a config file
+    :type nonbonded_prior_params: dict
+
+    :param backbone_prior_params: settings for the backbone prior
+                                  as specified in a config file
+    :type backbone_prior_params: dict
+
+    :param sphere_prior_params: settings for a possible sphere prior
+                                as specified in a config file
+    :type sphere_prior_params: dict
+
+    :param n_beads: number of beads in a single structure
+    :type n_beads: int
+
+    :param n_structures: number of ensemble members
+    :type n_structures: int
+
+    :returns: a dictionary with keys being the names of the
+              structural prior distributions and values
+              the prior objects themselves
+    :rtype: dict of :ref:`binf.pdf.priors.AbstractPrior`-derived
+            objects
+    """
     nb_params = nonbonded_prior_params
     
     try:
@@ -504,7 +606,26 @@ def make_priors(nonbonded_prior_params, backbone_prior_params,
     return priors
 
 def make_nonbonded_prior(nb_params, bead_radii, n_structures):
+    """
+    Makes the default non-bonded structural prior object.
 
+    This will either be a Boltzmann-like distribution or a
+    Tsallis ensemble (currently not really supported).
+
+    :param nonbonded_prior_params: settings for the non-bonded prior as
+                                   specified in a config file
+    :type nonbonded_prior_params: dict
+
+    :param bead_radii: list of bead radii
+    :type bead_radii: numpy.ndarray of floats; length: # beads
+
+    :param n_structures: number of ensemble members
+    :type n_structures: int
+
+    :returns: the non-bonded prior object with parameters set as given
+              in the settings
+    :rtype: :ref:`.nonbonded_prior.NonbondedPrior`
+    """
     from .forcefields import ForceField
     from .forcefields import NBLForceField as ForceField
 
@@ -523,35 +644,92 @@ def make_nonbonded_prior(nb_params, bead_radii, n_structures):
     return NBP
 
 def make_sphere_prior(sphere_prior_params, bead_radii, n_structures):
+    """
+    Makes a sphere structural prior object.
 
-        from .sphere_prior import SpherePrior
-        radius = sphere_prior_params['radius']
-        if radius == 'auto':
-            radius = 2 * bead_radii.mean() * len(bead_radii) ** (1 / 3.0)
-        else:
-            radius = float(radius)
-        SP = SpherePrior('sphere_prior',
-                         sphere_radius=radius,
-                         sphere_k=float(sphere_prior_params['force_constant']),
-                         n_structures=n_structures, bead_radii=bead_radii)
+    This is a Boltzmann-like distribution with a potential energy
+    harmonically restraining all beads to stay within a sphere
+    of a given radius.
 
-        return SP    
+    :param sphere_prior_params: settings for the sphere prior as
+                                specified in a config file
+    :type sphere_prior_params: dict
 
-def make_likelihood(forward_model_params, error_model, data_filtering_params,
-                    data_file, n_structures, bead_radii):
+    :param bead_radii: list of bead radii
+    :type bead_radii: numpy.ndarray of floats; length: # beads
 
-    from .forward_models import EnsembleContactsFWM
-    from .likelihoods import Likelihood
+    :param n_structures: number of ensemble members
+    :type n_structures: int
 
+    :returns: the sphere prior object with parameters set as given
+              in the settings
+    :rtype: :ref:`.sphere_prior.SpherePrior`
+    """
+    from .sphere_prior import SpherePrior
+    radius = sphere_prior_params['radius']
+    if radius == 'auto':
+        radius = 2 * bead_radii.mean() * len(bead_radii) ** (1 / 3.0)
+    else:
+        radius = float(radius)
+    SP = SpherePrior('sphere_prior',
+                     sphere_radius=radius,
+                     sphere_k=float(sphere_prior_params['force_constant']),
+                     n_structures=n_structures, bead_radii=bead_radii)
+
+    return SP    
+
+def parse_data(data_file, data_filtering_params):
+    
     disregard_lowest = data_filtering_params['disregard_lowest']
-    ignore_sequential_neighbors = int(data_filtering_params['ignore_sequential_neighbors'])
+    ignore_seq_nbs = int(data_filtering_params['ignore_sequential_neighbors'])
     include_zero_counts = data_filtering_params['include_zero_counts']
     data = np.loadtxt(data_file, dtype=int)
     if include_zero_counts == 'False':
         data = data[data[:,2] > 0]
     data = data[np.argsort(data[:,2])]
     data = data[int(disregard_lowest * len(data)):]
-    data = data[np.abs(data[:,0] - data[:,1]) > ignore_sequential_neighbors]
+    data = data[np.abs(data[:,0] - data[:,1]) > ignore_seq_nbs]
+
+    return data
+    
+def make_likelihood(forward_model_params, error_model, data_filtering_params,
+                    data_file, n_structures, bead_radii):
+    """
+    Sets up a likelihood object from settings parsed from a config
+    file
+
+    :param forward_model_params: settings for the forward model as
+                                 specified in a config file
+    :type forward_model_params: dict
+
+    :param error_model: a string telling which error model to use.
+                        This is gonna be either 'poisson', 'lognormal',
+                        or 'gaussian'. At the moment, only 'poisson'
+                        is supported, but code for others is provided.
+    :type error_model: string
+
+    :param data_filtering_params: settings for filtering data as
+                                  specified in a config file
+    :type data_filtering_params: dict
+
+    :param data_file: path to the text file containing the list of
+                      pairwise bead contact frequencies
+    :type data_file: string
+
+    :param n_structures: number of ensemble members
+    :type n_structures: int
+
+    :param bead_radii: list of bead radii
+    :type bead_radii: numpy.ndarray of floats; length: # beads
+
+    :returns: the ready-to-use likelihood object
+    :rtype: :ref:`.likelihoods.Likelihood`
+    """
+
+    from .forward_models import EnsembleContactsFWM
+    from .likelihoods import Likelihood
+
+    data = parse_data(data_file, data_filtering_params)
     cd_factor = float(forward_model_params['contact_distance_factor'])
     contact_distances = (bead_radii[data[:,0]] + bead_radii[data[:,1]]) * cd_factor
         
@@ -570,48 +748,34 @@ def make_likelihood(forward_model_params, error_model, data_filtering_params,
     return L
 
 def setup_default_re_master(n_replicas, sim_path, comm):
+    """
+    Sets up a Replica Exchange master object from the :ref:`rexfw` package
 
-    from rexfw.remasters import ExchangeMaster
-    from rexfw.statistics import Statistics, REStatistics
-    from rexfw.statistics.writers import StandardConsoleREStatisticsWriter, StandardFileMCMCStatisticsWriter, StandardFileREStatisticsWriter, StandardFileREWorksStatisticsWriter, StandardConsoleMCMCStatisticsWriter, StandardConsoleMCMCStatisticsWriter
-    from rexfw.convenience import create_default_RE_params
-    from rexfw.convenience.statistics import create_default_RE_averages, create_default_MCMC_averages, create_default_works, create_default_stepsizes, create_default_heats
+    This object manages a Replica Exchange simulation, that is, it tells
+    :ref:`rexfw.replicas.Replica`s when to sample, when to exchange states,
+    when to dump states, do send statistics etc.
+    It differs from the re
 
-    replica_names = ['replica{}'.format(i) for i in range(1, n_replicas + 1)]
-    params = create_default_RE_params(n_replicas)
+    :param n_replicas: number of replicas. Using MPI, for N replicas,
+                       you need N+1 processes (one process is required for
+                       the Replica Exchange master object)
+    :type n_replicas: int
 
-    local_pacc_avgs = create_default_MCMC_averages(replica_names, 'structures')
-    re_pacc_avgs = create_default_RE_averages(replica_names)
-    stepsizes = create_default_stepsizes(replica_names, 'structures')
-    works = create_default_works(replica_names)
-    heats = create_default_heats(replica_names)
-    stats_path = sim_path + 'statistics/'
-    stats_writers = [StandardConsoleMCMCStatisticsWriter(['structures'],
-                                                         ['acceptance rate',
-                                                          'stepsize']),
-                     StandardFileMCMCStatisticsWriter(stats_path + '/mcmc_stats.txt',
-                                                      ['structures',],
-                                                      ['acceptance rate', 'stepsize'])
-                    ]
-    stats = Statistics(elements=local_pacc_avgs + stepsizes, 
-                       stats_writer=stats_writers)
-    re_stats_writers = [StandardConsoleREStatisticsWriter(),
-                        StandardFileREStatisticsWriter(stats_path + 're_stats.txt',
-                                                       ['acceptance rate'])]
-    works_path = sim_path + 'works/'
-    works_writers = [StandardFileREWorksStatisticsWriter(works_path)]
-    re_stats = REStatistics(elements=re_pacc_avgs,
-                            work_elements=works, heat_elements=heats,
-                            stats_writer=re_stats_writers,
-                            works_writer=works_writers)
-    
-    master = ExchangeMaster('master0', replica_names, params, comm=comm, 
-                            sampling_statistics=stats, swap_statistics=re_stats)
+    :param sim_path: folder where all simulation output will be stored.
+                     You'll want this to be on the scratch space of your
+                     HPC systems, as all the samples (and statistic files)
+                     will be written there
+    :type sim_path: string
 
-    return master
+    :param comm: a communicator object which is required by many :ref:`rexfw`
+                 objects to comunnicate with replicas and the master object.
+                 Currently, only a MPI-based communicator is implemented.
+    :type comm: :ref:`rexfw.communicators.AbstractCommunicator`, most likely
+                :ref:`rexfw.communicators.mpi.MPICommunicator`
 
-
-def setup_continue_re_master(n_replicas, sim_path, cont_path, comm):
+    :returns: a fully set-up Replica Exchange master object
+    :rtype: :ref:`rexfw.remaster.ExchangeMaster`
+    """    
 
     from rexfw.remasters import ExchangeMaster
     from rexfw.statistics import Statistics, REStatistics
@@ -628,8 +792,8 @@ def setup_continue_re_master(n_replicas, sim_path, cont_path, comm):
 
     works = create_default_works(replica_names)
     heats = create_default_heats(replica_names)
-    stats_path = cont_path + 'statistics/'
-    works_path = cont_path + 'works/'
+    stats_path = sim_path + 'statistics/'
+    works_path = sim_path + 'works/'
 
     import os
     for p in (stats_path, works_path):
