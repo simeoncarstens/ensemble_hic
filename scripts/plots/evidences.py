@@ -19,8 +19,8 @@ from simlist import simulations
 #         )
 # which = ('eser2017_chr4',
 #         )
-# which = ('1pga_1shf_fwm_poisson_new_it3',
-#          )
+which = ('1pga_1shf_fwm_poisson_new_it3',
+         )
 
 # which = ('eser2017_whole_genome',
 #          )
@@ -31,7 +31,7 @@ from simlist import simulations
 #          'GM12878_new_smallercd_nosphere_fixed',
 #          )
 # which = ('hairpin_s_fwm_poisson_new',)
-which = ('nora2012',)
+#which = ('nora2012',)
 
 all_logZs = []
 for sim in which:
@@ -58,13 +58,8 @@ for sim in which:
 
 all_logZs = np.array(all_logZs)
 
-font = {'family' : 'normal',
-        'weight' : 'normal',
-        'size'   : 16}
-plt.rc('font', **font)
-
-if not True:
-    fig, (top_ax, bottom_ax) = plt.subplots(2, 1, sharex=True)
+if True:
+    
     if True:
         ## good values for K562 and GM12878
         ## have to move 1e4 axis label on top in Inkscape
@@ -82,7 +77,7 @@ if not True:
         ## good values for 1PGA / 1SHF
         top_yticks = (151400, 151800)
         top_yticklabels = ('1.514', '1.518')
-        top_ylims = (151300, 151800)
+        top_ylims = (151300, 151900)
         bottom_ylims = (135000, 136000)
         bottom_yticks = (135000, 136000)
         xticks = (1,2,3,4,5,10)
@@ -105,49 +100,68 @@ if not True:
     if align_y:
         all_logZs -= all_logZs.max(1)[:,None]
 
-    for i, sim in enumerate(which):
-        top_ax.plot(n_structures, all_logZs[i], ls='--', marker='o', label=labels[i])
-        bottom_ax.plot(n_structures, all_logZs[i], ls='--', marker='o', label=labels[i])
-
-    top_ax.set_ylim(*top_ylims)  # outliers only
-    bottom_ax.set_ylim(*bottom_ylims)  # most of the data
-
-    top_ax.spines['bottom'].set_visible(False)
-    top_ax.spines['top'].set_visible(False)
-    bottom_ax.spines['top'].set_visible(False)
-    top_ax.xaxis.set_visible(False)
-    top_ax.spines['right'].set_visible(False)
-    bottom_ax.spines['right'].set_visible(False)
-    top_ax.tick_params(labeltop='off')  # don't put tick labels at the top
-    bottom_ax.xaxis.tick_bottom()
-    top_ax.set_xticks(xticks)
-    bottom_ax.set_xticks(xticks)
-    top_ax.set_yticks(top_yticks)
-    bottom_ax.set_yticks(bottom_yticks)
-
-    ## plot cut axes symbol
     d = .015  # how big to make the diagonal lines in axes coordinates
-    # arguments to pass to plot, just so we don't keep repeating them
-    kwargs = dict(transform=top_ax.transAxes, color='k', clip_on=False)
-    top_ax.plot((-d, +d), (-d, +d), **kwargs)        # top-left diagonal
-    #top_ax.plot((1 - d, 1 + d), (-d, +d), **kwargs)  # top-right diagonal
-    kwargs.update(transform=bottom_ax.transAxes)  # switch to the bottom axes
-    bottom_ax.plot((-d, +d), (1 - d, 1 + d), **kwargs)  # bottom-left diagonal
-    #bottom_ax.plot((1 - d, 1 + d), (1 - d, 1 + d), **kwargs)  # bottom-right diagonal
 
-    fig.text(0.0, 0.5, 'log-evidence', va='center', rotation='vertical')
-    bottom_ax.set_xlabel('# of states')
-    top_ax.set_yticklabels(top_yticklabels)
-    from matplotlib.ticker import ScalarFormatter
-    # top_ax.yaxis.set_major_formatter(StrMethodFormatter('{x:.1E}'))
-    # bottom_ax.yaxis.set_major_formatter(StrMethodFormatter('{x:.1E}'))
-    #top_ax.yaxis.set_major_formatter(ScalarFormatter())
-    bottom_ax.yaxis.set_major_formatter(ScalarFormatter())
+    def make_top_ax(ax):
 
-    if legend:
-        top_ax.legend()
-    #top_ax.ticklabel_format(style='sci', axis='y', scilimits=(0,0))
-    bottom_ax.ticklabel_format(style='sci', axis='y', scilimits=(0,0))
+        for i, sim in enumerate(which):
+            ax.plot(n_structures, all_logZs[i], ls='--', lw=3, marker='o',
+                    markersize=10, label=labels[i])
+
+        ax.set_ylim(*top_ylims)  # outliers only
+        ax.spines['bottom'].set_visible(False)
+        ax.spines['top'].set_visible(False)
+        ax.xaxis.set_visible(False)
+        ax.spines['right'].set_visible(False)
+        ax.tick_params(labeltop='off')  # don't put tick labels at the top
+        ax.set_xticks(xticks)
+        ax.set_yticks(top_yticks)
+        kwargs = dict(transform=ax.transAxes, color='k', clip_on=False)
+        ax.plot((-d, +d), (-d, +d), **kwargs)        # top-left diagonal
+        ax.set_yticklabels(top_yticklabels)
+        
+    def make_bottom_ax(ax):
+
+        for i, sim in enumerate(which):
+            ax.plot(n_structures, all_logZs[i], ls='--', lw=3, marker='o',
+                    markersize=10, label=labels[i])
+
+        ax.set_ylim(*bottom_ylims)  # most of the data
+
+        ax.spines['top'].set_visible(False)
+        ax.spines['right'].set_visible(False)
+        ax.xaxis.tick_bottom()
+        ax.set_xticks(xticks)
+        ax.set_yticks(bottom_yticks)
+        kwargs = dict(transform=ax.transAxes, color='k', clip_on=False)
+        ax.plot((-d, +d), (1 - d, 1 + d), **kwargs)  # bottom-left diagonal
+        ax.set_xlabel('number of states')
+        #ax.yaxis.set_major_formatter(ScalarFormatter())
+        ax.ticklabel_format(style='sci', axis='y', scilimits=(0,0))
+
+    def make_bothaxes(top_ax, bottom_ax, fig):
+
+        make_top_ax(top_ax)
+        make_bottom_ax(bottom_ax)
+
+        btop = top_ax.get_position()
+        bbottom = bottom_ax.get_position()
+        
+        ylabel_pos = (top_ax.get_position().x0 - 0.12,
+                      (bbottom.y1 + btop.y0) / 2)
+        ylabel = fig.text(ylabel_pos[0], ylabel_pos[1], 'log-evidence', va='center',
+                          rotation='vertical')
+
+    def make_plot():
+
+        font = {'family' : 'normal',
+                'weight' : 'normal',
+                'size'   : 22}
+        plt.rc('font', **font)
+        fig, (top_ax, bottom_ax) = plt.subplots(2, 1, sharex=True)
+        make_bothaxes(top_ax, bottom_ax, fig)
+        fig.tight_layout()
+
 else:
     fig, ax = plt.subplots()
     ax.plot(n_structures, all_logZs[0], ls='--', marker='o', label='evidence')
@@ -161,7 +175,7 @@ else:
     ax.spines['right'].set_visible(False)
     ax.legend()
 
-fig.tight_layout()
-plt.show()
+    fig.tight_layout()
+    plt.show()
 
 

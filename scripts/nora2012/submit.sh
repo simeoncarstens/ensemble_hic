@@ -1,18 +1,18 @@
 #!/bin/bash
 
-n_replicas=281
-wall_time=10:00
-n_structures=1
+n_replicas=330
+wall_time=48:00
+n_structures=30
 variables=structures,norm
 norm=6843
 alpha=10
 data_set=bothdomains
-schedule=\\/scratch\\/scarste\\/ensemble_hic\\/bau2011\\/GM12878_new_smallercd_nosphere_40structures_sn_122replicas\\/analysis\\/te0.25_schedule.pickle
+schedule=\\/scratch\\/scarste\\/ensemble_hic\\/nora2012\\/bothdomains_it2_40structures_330replicas\\/schedule.pickle
 ensemble=boltzmann
 gauss_mean=0.7
 gauss_std=0.3
 rate=0.05
-suffix=
+suffix=_rep3
 n_samples=50000
 adaption_limit=100000000
 

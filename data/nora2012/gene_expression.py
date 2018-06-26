@@ -11,6 +11,9 @@ table = np.array([np.array(sheet.row_values(j))[list((3,4,8)) +
                                                 range(10, sheet.ncols)]
                   for j in range(3, sheet.nrows)])
 
+tmean = table[:,3].astype(float).mean()
+tstd = table[:,3].astype(float).std()
+
 region_start = 100378306
 region_end = 101298738
 
@@ -20,10 +23,10 @@ in_region = np.array(filter(lambda x: float(x[0]) >= region_start
 
 fig, ax = plt.subplots()
 space = range(len(in_region))
-ax.plot(space, in_region[:,3], ls='--', marker='x')
+ax.plot(space, (in_region[:,3].astype(float) - tmean) / tstd, ls='--', marker='x')
 ax.set_xticks(space)
 ax.set_xticklabels(in_region[:,2])
-ax.set_ylabel('log2 transcript level')
+ax.set_ylabel('z-normalized transcript level')
 ax.set_xlabel('gene')
 ax.axvline(5.5, c='r')
 

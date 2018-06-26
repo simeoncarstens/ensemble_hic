@@ -90,9 +90,18 @@ def write_cmatrix(cmatrix, filename):
             for j in range(i+1, len(cmatrix)):
                 opf.write('{}\t{}\t{}\n'.format(i, j, int(cmatrix[i,j])))
 
+# path = os.path.expanduser('~/projects/ensemble_hic/data/nora2012/')
+# rev_fragments1, for_fragments1, matrix1 = parse_5C_file(path + 'GSM873934_male-mESCs-E14-replicate-1.matrix.txt')
+# rev_fragments2, for_fragments2, matrix2 = parse_5C_file(path + 'GSM873935_male-mESCs-E14-replicate-2.matrix.txt')
+
+# path = os.path.expanduser('~/projects/ensemble_hic/data/nora2012/')
+# rev_fragments1, for_fragments1, matrix1 = parse_5C_file(path + 'GSM873927_female-mESCs-PGK12.1-replicate-1.matrix.txt')
+# rev_fragments2, for_fragments2, matrix2 = parse_5C_file(path + 'GSM873928_female-mESCs-PGK12.1-replicate-2.matrix.txt')
+
 path = os.path.expanduser('~/projects/ensemble_hic/data/nora2012/')
-rev_fragments1, for_fragments1, matrix1 = parse_5C_file(path + 'GSM873934_male-mESCs-E14-replicate-1.matrix.txt')
-rev_fragments2, for_fragments2, matrix2 = parse_5C_file(path + 'GSM873935_male-mESCs-E14-replicate-2.matrix.txt')
+rev_fragments1, for_fragments1, matrix1 = parse_5C_file(path + 'GSM873926_mESCs-female-PGK12.1-day2-Replicate1.txt')
+matrix2 = matrix1
+
 
 rev_fragments = rev_fragments1
 for_fragments = for_fragments1
@@ -110,7 +119,7 @@ if True:
     n_beads = len(bead_lims)
     rev_mapping, for_mapping = calculate_mappings(region_revs, region_fors, bead_lims)
     cmatrix = build_cmatrix(rev_mapping, for_mapping, region, n_beads)
-    write_cmatrix(cmatrix, path + 'bothdomains.txt')
+    write_cmatrix(cmatrix, path + 'female_day2_bothdomains.txt')
 
 if not True:
     ## Tsix TAD

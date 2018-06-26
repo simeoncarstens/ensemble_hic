@@ -34,7 +34,8 @@ params = {'n_samples': int(sys.argv[2]),
           'tol': 1e-10
           }
 
-n_samples = min(params['n_samples'], int(settings['replica']['n_samples']))
+# n_samples = min(params['n_samples'], int(settings['replica']['n_samples']))
+n_samples = params['n_samples']
 dump_interval = int(settings['replica']['samples_dump_interval'])
 
 output_folder = settings['general']['output_folder']

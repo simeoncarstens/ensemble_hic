@@ -1,5 +1,5 @@
 import os
-import numpy
+import numpy as np
 
 from ensemble_hic.analysis_functions import load_sr_samples
 from ensemble_hic.setup_functions import parse_config_file, make_posterior
@@ -7,7 +7,7 @@ from ensemble_hic.setup_functions import parse_config_file, make_posterior
 burnin = 33000
 
 what = 'hairpin_s'
-#what = 'proteins'
+what = 'proteins'
 
 if what == 'hairpin_s':
     sd = ((1,  28),
@@ -44,17 +44,19 @@ for n_structures, n_replicas in sd:
     gammas = np.array([sample.variables['norm'] for sample in samples])
     mean_gammas.append(gammas.mean())
 
-font = {'family' : 'normal',
-        'weight' : 'normal',
-        'size'   : 16}
-plt.rc('font', **font)
+def make_subplot(ax):
 
-fig, ax = plt.subplots()
-ax.plot(np.array(sd)[:,0], mean_gammas, ls='--', marker='o')
-ax.set_xticks(np.array(sd)[:,0])
-ax.set_xlabel('# of states')
-ax.set_ylabel(r'$<\gamma>$')
-ax.spines['top'].set_visible(False)
-ax.spines['right'].set_visible(False)
-fig.tight_layout()
-plt.show()
+    ax.plot(np.array(sd)[:,0], mean_gammas, ls='--', marker='o', markersize=10,
+            lw=3)
+    ax.set_xticks(np.array(sd)[:,0])
+    ax.set_xlabel('number of states')
+    ax.set_ylabel(r'$<\gamma>$')
+    ax.spines['top'].set_visible(False)
+    ax.spines['right'].set_visible(False)
+
+def make_plot(sd, mean_gammas):
+
+    fig, ax = plt.subplots()
+    make_subplot(ax)
+    fig.tight_layout()
+    plt.show()
