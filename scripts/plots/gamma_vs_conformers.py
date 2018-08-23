@@ -47,10 +47,10 @@ for n_structures, n_replicas in sd:
 def make_subplot(ax):
 
     ax.plot(np.array(sd)[:,0], mean_gammas, ls='--', marker='o', markersize=10,
-            lw=3)
+            lw=3, color='black')
     ax.set_xticks(np.array(sd)[:,0])
-    ax.set_xlabel('number of states')
-    ax.set_ylabel(r'$<\gamma>$')
+    ax.set_xlabel('number of states $n$')
+    ax.set_ylabel(r'$\langle\alpha\rangle$')
     ax.spines['top'].set_visible(False)
     ax.spines['right'].set_visible(False)
 

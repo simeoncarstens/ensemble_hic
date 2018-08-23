@@ -2,7 +2,7 @@
 
 n_replicas=330
 wall_time=48:00
-n_structures=30
+n_structures=100
 variables=structures,norm
 norm=6843
 alpha=10
@@ -12,7 +12,7 @@ ensemble=boltzmann
 gauss_mean=0.7
 gauss_std=0.3
 rate=0.05
-suffix=_rep3
+suffix=_noii3
 n_samples=50000
 adaption_limit=100000000
 

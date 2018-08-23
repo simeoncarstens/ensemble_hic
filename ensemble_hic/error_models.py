@@ -9,7 +9,13 @@ from isd2.model.errormodels import AbstractErrorModel
 class GaussianEM(AbstractErrorModel):
 
     def __init__(self, name, data):
-
+        """
+        Gaussian error model: deviations between idealized and experimental
+        data are penalized quadratically. The strength of the penalty
+        is set using the precision parameter, which can be regarded as
+        a force constant of a quadratic penalty function. It is a nuisance
+        parameter and should be estimated from the data.
+        """
         super(GaussianEM, self).__init__(name)
 		
         self.data = data
@@ -82,7 +88,13 @@ class PoissonEM(AbstractErrorModel):
 class LognormalEM(AbstractErrorModel):
 
     def __init__(self, name, data):
-
+        """
+        Log-normal error model: deviations between idealized and experimental
+        data are modeled using a log-normal distribution, assuming that the
+        logarithm of the experimental counts follows a normal distribution with
+        mean given by the idealized data and precision (inverse variance) treated
+        as a nuisance parameter. The latter should be estimated from the data
+        """
         super(LognormalEM, self).__init__(name)
 
         self._register_variable('mock_data', differentiable=True)

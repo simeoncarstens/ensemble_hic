@@ -5,8 +5,8 @@ import numpy as np
 from ensemble_hic.setup_functions import parse_config_file
 
 sys.argv = ['asdfasdf',
-            '/scratch/scarste/ensemble_hic/nora2012/bothdomains_it3_rep4_20structures_309replicas/config.cfg',
-            80001,
+            '/scratch/scarste/ensemble_hic/nora2012/bothdomains_noii3_fromfull_40structures_330replicas/config.cfg',
+            40001,
             1]
 
 config_file = sys.argv[1]
@@ -30,15 +30,20 @@ while True:
         offset += dump_interval
     else:
         break
+offset = 33000
 settings['replica'].update(offset=offset)
 
 if not os.path.exists(cont_folder):
     os.makedirs(cont_folder)
 
 ## assemble and write start states
-start_states = [np.load(fname.format(i, offset - dump_interval, offset))[-1].variables['structures']
+start_states = [np.load(fname.format(i, offset - dump_interval, offset))[-1]
                 for i in range(1, n_replicas + 1)]
-np.save(cont_folder + 'init_states.npy', np.array(start_states))
+start_structures = [x.variables['structures'] for x in start_states]
+start_norms = [x.variables['norm'] for x in start_states]
+np.save(cont_folder + 'init_states.npy', np.array(start_structures))
+np.save(cont_folder + 'init_norms.npy', np.array(start_norms))
+
 
 if n_cont == 1:
     mcmc_stats = np.loadtxt(output_folder + 'statistics/mcmc_stats.txt')

@@ -197,7 +197,7 @@ simulations = {'hairpin_s_fwm_poisson_new':
                               )
                 },
                'nora2012':
-               {'n_structures': (1, 5, 10, 20, 20, 20, 40, 40, 40),
+               {'n_structures': (1, 5, 10, 20, 20, 20, 30, 30, 30, 40, 40, 40, 100),
                 'common_path': '/scratch/scarste/ensemble_hic/nora2012/bothdomains_',
                 'output_dirs': ('it3_1structures_298replicas',
                                 'it3_5structures_218replicas',
@@ -205,10 +205,55 @@ simulations = {'hairpin_s_fwm_poisson_new':
                                 'it3_20structures_309replicas',
                                 'it3_rep3_20structures_309replicas',
                                 'it3_rep4_20structures_309replicas',
+                                'rep1_30structures_330replicas',
+                                'rep2_30structures_330replicas',
+                                'rep3_30structures_330replicas',
                                 'it2_40structures_330replicas',
                                 'it2_rep1_40structures_330replicas',
                                 'it2_rep2_40structures_330replicas',
+                                'rep3_100structures_330replicas',
                               )
-                }
+                },
+               'nora2012_female':
+               {'n_structures': (1, 5, 10, 20, 20, 20, 30, 30, 30, 40, 40, 40),
+                'common_path': '/scratch/scarste/ensemble_hic/nora2012/female_bothdomains_',
+                'output_dirs': ('1structures_217replicas',
+                                '5structures_217replicas',
+                                '10structures_217replicas',
+                                '20structures_217replicas',
+                                'rep2_20structures_217replicas',
+                                'rep3_20structures_217replicas',
+                                'rep1_30structures_252replicas',
+                                'rep2_30structures_252replicas',
+                                'rep3_30structures_252replicas',
+                                '40structures_252replicas',
+                                'rep2_40structures_252replicas',
+                                'rep3_40structures_252replicas',
+                                )
+                },
+               'nora2012_female_day2':
+               {'n_structures': (1, 5, 10, 20, 20, 20, 30, 30, 30, 40, 40, 40),
+                'common_path': '/scratch/scarste/ensemble_hic/nora2012/female_day2_bothdomains_',
+                'output_dirs': ('1structures_217replicas',
+                                '5structures_217replicas',
+                                '10structures_217replicas',
+                                '20structures_217replicas',
+                                'rep2_20structures_217replicas',
+                                'rep3_20structures_217replicas',
+                                'rep1_30structures_252replicas',
+                                'rep2_30structures_252replicas',
+                                'rep3_30structures_252replicas',
+                                '40structures_252replicas',
+                                'rep2_40structures_252replicas',
+                                'rep3_40structures_252replicas',
+                              )
+                },
+               'nora2012_noii3':
+               {'n_structures': (20, 40),
+                'common_path': '/scratch/scarste/ensemble_hic/nora2012/bothdomains_noii3_',
+                'output_dirs': ('20structures_330replicas',
+                                '40structures_330replicas',
+                              )
+                },
 
                }

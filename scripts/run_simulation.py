@@ -1,3 +1,7 @@
+"""
+Main script running a MPI-based replica exchange simulation
+using a config file
+"""
 import os
 import sys
 import numpy as np

@@ -2,6 +2,7 @@ import os, sys
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.ticker import StrMethodFormatter
+from scipy.special import gammaln
 
 from csb.numeric import log_sum_exp
 sys.path.append(os.path.expanduser('~/projects/ensemble_hic/scripts/misc/'))
@@ -31,8 +32,12 @@ which = ('1pga_1shf_fwm_poisson_new_it3',
 #          'GM12878_new_smallercd_nosphere_fixed',
 #          )
 # which = ('hairpin_s_fwm_poisson_new',)
-#which = ('nora2012',)
+which = ('nora2012',)
+# which = ('nora2012_female',)
+# which = ('nora2012_female_day2',)
+which = ('nora2012_noii3',)
 
+n_structures = simulations[which[0]]['n_structures']
 all_logZs = []
 for sim in which:
     current = simulations[sim]
@@ -42,15 +47,35 @@ for sim in which:
     logZs = []
     data_terms = []
     entropy_terms = []
+    nb_terms = []
     bla = []
     for x in output_dirs:
         dos = np.load(x + '/analysis/dos.pickle')
         logZs.append(log_sum_exp(-dos.E.sum(1) + dos.s) - \
                      log_sum_exp(-dos.E[:,1] + dos.s))
+        #print dos.log_Z(1)
+        # data_terms.append(log_sum_exp(-dos.E.sum(1) + dos.s))
+        n_replicas = int(x[-(3 * ('domain' in x) + 2 * ('1pga' in x)
+                             + len('replicas')):-len('replicas')])
+        if False:
+            data_terms.append(dos.E[:,0].reshape(n_replicas, -1)[-1].mean())
+            nb_terms.append(dos.E[:,1].reshape(n_replicas, -1)[-1].mean())
+            entropy_terms.append(log_sum_exp(-dos.E[:,1] + dos.s))
+        else:
+            from ensemble_hic.setup_functions import make_posterior, parse_config_file
+            from ensemble_hic.analysis_functions import load_sr_samples
+            p = np.load(x + '/analysis/wham_params.pickle')
+            c = parse_config_file(x + '/config.cfg')
+            s = load_sr_samples(x + '/samples/', n_replicas, p['n_samples'],
+                                int(c['replica']['samples_dump_interval']),
+                                p['burnin'])
+            p = make_posterior(parse_config_file(x + '/config.cfg'))
+            L = p.likelihoods['ensemble_contacts']
+            d = L.forward_model.data_points[:,2]
+            f = gammaln(d+1).sum()
+            logZs[-1] -= f + np.log(len(d))
+            data_terms.append(np.array(map(lambda x: -L.log_prob(**x.variables), s)).mean() - f)
         print logZs[-1]
-        print dos.log_Z(1)
-        data_terms.append(log_sum_exp(-dos.E.sum(1) + dos.s))
-        entropy_terms.append(log_sum_exp(-dos.E[:,1] + dos.s))
     data_terms = np.array(data_terms)    
     entropy_terms = np.array(entropy_terms)    
 
@@ -58,7 +83,7 @@ for sim in which:
 
 all_logZs = np.array(all_logZs)
 
-if True:
+if not True:
     
     if True:
         ## good values for K562 and GM12878
@@ -106,7 +131,7 @@ if True:
 
         for i, sim in enumerate(which):
             ax.plot(n_structures, all_logZs[i], ls='--', lw=3, marker='o',
-                    markersize=10, label=labels[i])
+                    markersize=10, label=labels[i], color='black')
 
         ax.set_ylim(*top_ylims)  # outliers only
         ax.spines['bottom'].set_visible(False)
@@ -116,7 +141,7 @@ if True:
         ax.tick_params(labeltop='off')  # don't put tick labels at the top
         ax.set_xticks(xticks)
         ax.set_yticks(top_yticks)
-        kwargs = dict(transform=ax.transAxes, color='k', clip_on=False)
+        kwargs = dict(transform=ax.transAxes, color='black', clip_on=False)
         ax.plot((-d, +d), (-d, +d), **kwargs)        # top-left diagonal
         ax.set_yticklabels(top_yticklabels)
         
@@ -124,7 +149,7 @@ if True:
 
         for i, sim in enumerate(which):
             ax.plot(n_structures, all_logZs[i], ls='--', lw=3, marker='o',
-                    markersize=10, label=labels[i])
+                    markersize=10, label=labels[i], color='black')
 
         ax.set_ylim(*bottom_ylims)  # most of the data
 
@@ -133,9 +158,9 @@ if True:
         ax.xaxis.tick_bottom()
         ax.set_xticks(xticks)
         ax.set_yticks(bottom_yticks)
-        kwargs = dict(transform=ax.transAxes, color='k', clip_on=False)
+        kwargs = dict(transform=ax.transAxes, color='black', clip_on=False)
         ax.plot((-d, +d), (1 - d, 1 + d), **kwargs)  # bottom-left diagonal
-        ax.set_xlabel('number of states')
+        ax.set_xlabel('number of states $n$')
         #ax.yaxis.set_major_formatter(ScalarFormatter())
         ax.ticklabel_format(style='sci', axis='y', scilimits=(0,0))
 
@@ -163,19 +188,58 @@ if True:
         fig.tight_layout()
 
 else:
-    fig, ax = plt.subplots()
-    ax.plot(n_structures, all_logZs[0], ls='--', marker='o', label='evidence')
-    ax.plot(n_structures, data_terms, ls='--', marker='o', label='likelihood\ncontribution')
-    ax.set_ylabel('log-evidence /\n-likelihood contribution')
-    ax.set_xlabel('# of states')
-    ax.set_yticks(np.array([32,34,36,38]) * 1e4)
-    ax.set_yticklabels(['{}e4'.format(int(tick) / int(1e4)) for tick in ax.get_yticks()])
-    ax.set_xticks(n_structures)
-    ax.spines['top'].set_visible(False)
-    ax.spines['right'].set_visible(False)
-    ax.legend()
+    def plot_evidences(ax):
+        def unique(array):
+            uniq, index = np.unique(array, return_index=True)
+            return uniq[index.argsort()]
+        
+        n_structures = simulations[which[0]]['n_structures']
+        
+        mean_logZs = np.array([all_logZs[0, np.array(n_structures) == i].mean()
+                               for i in n_structures])
+        mean_logZs = unique(mean_logZs)
+        mean_data_terms = np.array([data_terms[np.array(n_structures) == i].mean()
+                                    for i in n_structures])
+        mean_data_terms = unique(mean_data_terms)
+        n_structures = unique(n_structures)
+        ax.plot(n_structures, mean_logZs, ls='--', marker='o', label='evidence',
+                color='black')
+        ax2 = ax.twinx()
+        
+        ax2.plot(n_structures, mean_data_terms, ls='--', marker='s', label='data energy',
+                 color='gray')
+        ax.set_ylabel('log(evidence / # of states)', color='black')
+        ax2.set_ylabel(r'$-\langle$log $L \rangle$', color='gray')
+        ax.set_xlabel('number of states $n$')
+        ax2.set_xticks(())
+        if True:
+            ## male
+            ax.set_yticks(np.array([-10, -8, -6, -4, -2]) * 1e4)
+            ax2.set_yticks(np.array([-82,-80,-78,-76]) * 1e4)
+        if not True:
+            ## female day2
+            ax.set_yticks(np.array([34,35,36,37]) * 1e4)
+            ax2.set_yticks(np.array([-36,-37,-38]) * 1e4)
+        if not True:
+            ## female pre-diff
+            ax.set_yticks(np.array([27,29,31,33]) * 1e4)
+            ax2.set_yticks(np.array([-33,-31,-29]) * 1e4)
+        ax.set_yticklabels(['{}e4'.format(int(tick) / int(1e4))
+                            for tick in ax.get_yticks()])
+        ax2.set_yticklabels(['{}e4'.format(int(tick) / int(1e4))
+                             for tick in ax2.get_yticks()])
+        ax.set_xticks(n_structures)
+        ax.spines['top'].set_visible(False)
+        ax2.spines['top'].set_visible(False)
+        ax.spines['right'].set_visible(False)
+            
 
-    fig.tight_layout()
-    plt.show()
-
+    if False:
+        fig, ax = plt.subplots()
+        plot_evidences(ax)
+        fig.tight_layout()
+        plt.show()
+        if not not False:
+            fig.set_size_inches((5.8, 2.4))
+            fig.tight_layout()
 

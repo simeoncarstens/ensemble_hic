@@ -89,6 +89,7 @@ else:
     if not 'norm' in initial_state.variables:
         posterior['norm'].set(np.max(posterior.likelihoods['ensemble_contacts'].error_model.data) / float(settings['general']['n_structures']))
     initial_state.update_variables(structures=np.load(cont_folder + 'init_states.npy')[rank - 1])
+    initial_state.update_variables(norm=np.load(cont_folder + 'init_norms.npy')[rank - 1])
     settings['structures_hmc'].update(timestep=np.load(cont_folder + 'timesteps.npy')[rank - 1])
     subsamplers = make_subsamplers(posterior, initial_state.variables,
                                    settings['structures_hmc'],

@@ -1,6 +1,10 @@
 import numpy
 
 def kth_diag_indices(a, k):
+    """
+    From
+    https://stackoverflow.com/questions/10925671/numpy-k-th-diagonal-indices
+    """
     rows, cols = numpy.diag_indices_from(a)
     if k < 0:
         return rows[-k:], cols[:k]
