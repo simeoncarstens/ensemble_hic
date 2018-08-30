@@ -166,11 +166,11 @@ class VolumeExclusion(object):
         ## create force field and non-bonded list, assign
         ## the same atom type to all beads
 
-        from isd.prolsq import PROLSQ
-        from isd.NBList import NBList
+        from .isd_forcefield import PROLSQ
+        from .nblist import NBList
 
         n_beads    = self._universe.n_atoms
-        forcefield = PROLSQ()
+        forcefield = PROLSQ('PROLSQ')
         forcefield.n_types = n_beads
         nblist     = NBList(1.0 + 1e-3, 90, n_beads, n_beads)
         forcefield.nblist = nblist
@@ -197,7 +197,8 @@ class VolumeExclusion(object):
     def energy(self, coords, update=1):
 
         self._universe.X[:,:] = coords[:,:]
-        return self.forcefield.energy(self._universe, update)
+        # return self.forcefield.energy(self._universe, update)
+        return self.forcefield.energy(coords, update)
 
     def gradient(self, coords, update=1):
 
@@ -232,20 +233,52 @@ class NBLForceField(AbstractForceField):
         super(NBLForceField, self).__init__(bead_radii, force_constant)
 
         self.n_beads = len(bead_radii)
-        self._isdff = self._make_volume_exclusion()
+        self._isd_ff = self._make_isd_ff()
         self.set_connectivity()
         self.bead_radii = bead_radii
         self.force_constant = force_constant
 
-    def _make_volume_exclusion(self):
+    def _make_isd_ff(self):
+        
+        ## create force field and non-bonded list, assign
+        ## the same atom type to all beads
 
-        return VolumeExclusion(make_universe(n_beads=self.n_beads, L=100.0))
+        self._universe = make_universe(n_beads=self.n_beads, L=100.0)
+
+        from .isd_forcefield import PROLSQ
+        from .nblist import NBList
+
+        n_beads    = self._universe.n_atoms
+        forcefield = PROLSQ('PROLSQ')
+        forcefield.n_types = n_beads
+        nblist     = NBList(1.0 + 1e-3, 90, n_beads, n_beads)
+        forcefield.nblist = nblist
+
+        for i in range(n_beads):
+            self._universe.atoms[i].type = i
+        self._universe.set_types()
+        self._universe.set_connectivity()
+
+        ## set force field parameters
+        ## will be modified later
+        n_types = n_beads
+        d = np.ones((n_types, n_types),'d')
+        k = np.ones((n_types, n_types),'d')
+
+        forcefield.n_types = n_types
+        forcefield.types = np.arange(n_types)
+        forcefield.d = d
+        forcefield.k = k
+
+        self._universe.set_types()
+
+        return forcefield
 
     def set_connectivity(self):
 
-        temp = self._isdff._universe.connectivity
+        temp = self._universe.connectivity
         temp = np.ones(temp.shape) - np.eye(temp.shape[0])
-        self._isdff._universe.set_connectivity(temp)
+        self._universe.set_connectivity(temp)
 
     @property
     def bead_radii(self):
@@ -253,11 +286,11 @@ class NBLForceField(AbstractForceField):
     @bead_radii.setter
     def bead_radii(self, value):
         self._bead_radii = value
-        temp = self._isdff.forcefield.d
+        temp = self._isd_ff.d
         temp *= 0.0
         temp += np.add.outer(self._bead_radii, self._bead_radii)
-        self._isdff.forcefield.d = temp
-        self._isdff.forcefield.nblist.cellsize = temp.max() + 1e-3
+        self._isd_ff.d = temp
+        self._isd_ff.nblist.cellsize = temp.max() + 1e-3
 
     @property
     def force_constant(self):
@@ -265,18 +298,26 @@ class NBLForceField(AbstractForceField):
     @force_constant.setter
     def force_constant(self, value):
         self._force_constant = value
-        temp = self._isdff.forcefield.k
+        temp = self._isd_ff.k
         temp *= 0.0
         temp += self._force_constant
-        self._isdff.forcefield.k = temp
+        self._isd_ff.k = temp
 
     def energy(self, structure):
 
-        return self._isdff.energy(structure.reshape(-1,3).astype(np.double))
+        return self._isd_ff.energy(structure.reshape(-1,3).astype(np.double))
 
     def gradient(self, structure):
 
-        return self._isdff.gradient(structure.reshape(-1,3).astype(np.double)).ravel()
+        X = structure.reshape(-1,3).astype(np.double)
+        self._universe.X[:,:] = X
+        self._universe.gradient[:,:] = 0.
+
+        forces = np.zeros(X.shape)
+        self._isd_ff.update_list(X)
+        self._isd_ff.update_gradient(X, forces)
+
+        return forces.ravel()
 
 
 

@@ -1,3 +1,6 @@
+/*
+Copyright by Michael Habeck (2016)
+*/
 #ifndef NBLIST_H
 #define NBLIST_H
 

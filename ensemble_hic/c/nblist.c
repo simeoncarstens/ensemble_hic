@@ -1,6 +1,10 @@
+/*
+Copyright by Michael Habeck (2016)
+*/
 #define NO_IMPORT_ARRAY
 
 #include "ensemble_hic.h"
+#include "mathutils.h"
 
 static void set_neighbors(PyNBListObject *self) {
   /*

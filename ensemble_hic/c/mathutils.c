@@ -1,6 +1,6 @@
 #define NO_IMPORT_ARRAY
 
-#include "isdhic.h"
+#include "ensemble_hic.h"
 
 void vector_print(vector x) {
   int i;

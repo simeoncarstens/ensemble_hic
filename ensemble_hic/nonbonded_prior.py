@@ -175,7 +175,7 @@ class BoltzmannNonbondedPrior2(AbstractNonbondedPrior2):
 
 
 
-class TsallisNonbondedPrior(AbstractNonbondedPrior):
+class TsallisNonbondedPrior(AbstractNonbondedPrior2):
 
     def __init__(self, name, bead_radii, force_constant, n_structures, q):
         """

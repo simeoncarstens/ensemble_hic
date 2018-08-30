@@ -6,8 +6,8 @@ import numpy, sys, os
 
 from csb.statistics.pdf.parameterized import Parameter
 
-from isd2 import ArrayParameter
-from isd2.model.forwardmodels import AbstractForwardModel
+from binf import ArrayParameter
+from binf.model.forwardmodels import AbstractForwardModel
 
 from .forward_models_c import ensemble_contacts_evaluate
 	

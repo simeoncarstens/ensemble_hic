@@ -1,7 +1,7 @@
 #ifndef MATHUTILS_H
 #define MATHUTILS_H
 
-#include "isdhic.h"
+#include "ensemble_hic.h"
 
 typedef double vector_double[3];
 
