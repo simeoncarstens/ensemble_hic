@@ -19,10 +19,10 @@ simlist = ((1, 298, 50001, 30000,  '_it3', '', 1000),
            (30, 330, 43001, 30000, '', '_rep2', 1000),
            (30, 330, 43001, 30000, '', '_rep3', 1000),
            (40, 330, 33001, 20000, '_it2', '', 1000),
-           (40, 330, 33001, 20000, '_it2', '_rep1', 1000),
+           (40, 330, 33001, 25000, '_it2', '_rep1', 1000),
            (40, 330, 33001, 20000, '_it2', '_rep2', 1000))
 
-n_structures, n_replicas, n_samples, burnin, it, rep, di = simlist[-1]
+n_structures, n_replicas, n_samples, burnin, it, rep, di = simlist[-9]
 #n_structures, n_replicas, n_samples, burnin, it, rep, di = simlist[int(sys.argv[1])]
 n_beads = 308
 

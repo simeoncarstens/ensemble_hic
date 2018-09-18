@@ -22,11 +22,30 @@ simlist = ((1, 298, 50001, 30000,  '_it3', '', 1000),
            (40, 330, 33001, 20000, '_it2', '_rep1', 1000),
            (40, 330, 33001, 20000, '_it2', '_rep2', 1000))        
 
-n_structures, n_replicas, n_samples, burnin, it, rep, di = simlist[0]
+n_structures, n_replicas, n_samples, burnin, it, rep, di = simlist[-1]
 #n_structures, n_replicas, n_samples, burnin, it, rep, di = simlist[int(sys.argv[1])]
 n_beads = 308
 
 sim_path = '/scratch/scarste/ensemble_hic/nora2012/bothdomains{}{}_{}structures_{}replicas/'.format(it, rep, n_structures, n_replicas)
+
+n_replicas = 132
+n_structures = 40
+it = '_it3'
+sim_path = '/scratch/scarste/ensemble_hic/nora2012/15kbbins_bothdomains{}_{}structures_{}replicas/'.format(it, n_structures, n_replicas)
+n_samples = 60001
+
+n_replicas = 39
+n_structures = 10
+it = ''
+sim_path = '/scratch/scarste/ensemble_hic/nora2012/15kbbins_bothdomains{}_{}structures_{}replicas/'.format(it, n_structures, n_replicas)
+n_samples = 60001
+
+n_replicas = 116
+n_structures = 10
+it = '_it3'
+sim_path = '/scratch/scarste/ensemble_hic/nora2012/15kbbins_bothdomains{}_{}structures_{}replicas/'.format(it, n_structures, n_replicas)
+n_samples = 60001
+
 
 config_file = sim_path + 'config.cfg'
 settings = parse_config_file(config_file)
@@ -104,7 +123,7 @@ ax.legend(handles, labels, frameon=False, title='linear distance [beads]:')
 fig.set_size_inches(fig.get_size_inches() * 1.15)
 fig.tight_layout()
 
-if False:
+if not False:
     plt.show()
 else:
     path = os.path.expanduser('~/projects/ehic-paper/nmeth/supplementary_information/figures/nora_md_data_scatter/')

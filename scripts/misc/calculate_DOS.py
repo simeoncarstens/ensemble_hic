@@ -15,17 +15,20 @@ from ensemble_hic.analysis_functions import load_samples
 
 config_file = sys.argv[1]
 # config_file = '/scratch/scarste/ensemble_hic/nora2012/bothdomains_40structures/356replicas/config.cfg'
+# config_file = '/scratch/scarste/ensemble_hic/nora2012/15kbbins_bothdomains_it3_10structures_116replicas/config.cfg'
+# config_file = '/scratch/scarste/ensemble_hic/nora2012/15kbbins_bothdomains_it2_10structures_97replicas/config.cfg'
 
 settings = parse_config_file(config_file)
 n_replicas = int(settings['replica']['n_replicas'])
 target_replica = n_replicas
 
-# params = {'n_samples': 31500,
-#           'burnin': 20000,
-#           'samples_step': 50,
+# params = {'n_samples': 60000,
+#           'burnin': 40000,
+#           'samples_step': 15,
 #           'niter': int(1e6),
 #           'tol': 1e-10
 #           }
+# params = np.load(settings['general']['output_folder'] + 'analysis/wham_params.pickle')
 
 params = {'n_samples': int(sys.argv[2]),
 	  'burnin': int(sys.argv[3]),
@@ -34,8 +37,8 @@ params = {'n_samples': int(sys.argv[2]),
           'tol': 1e-10
           }
 
-# n_samples = min(params['n_samples'], int(settings['replica']['n_samples']))
-n_samples = params['n_samples']
+n_samples = min(params['n_samples'], int(settings['replica']['n_samples']))
+# n_samples = params['n_samples']
 dump_interval = int(settings['replica']['samples_dump_interval'])
 
 output_folder = settings['general']['output_folder']
@@ -77,7 +80,6 @@ for i in range(n_replicas):
                      for x in samples])
 energies = np.array(energies)
 energies_flat = energies.reshape(np.prod(energies.shape[:2]), 2)
-
 sched = np.array([schedule['lammda'], schedule['beta']])
 q = np.array([[(energy * replica_params).sum() for energy in energies_flat]
                  for replica_params in sched.T])

@@ -25,6 +25,7 @@ data = {'{}:{}'.format(x[0], x[1]): np.array([float(y) for y in x[2:] if len(y) 
         for x in table.T}
 
 bead_size = 3000
+#bead_size = 15000
 region_start = 100378306
 
 simlist = ((1, 298, 50001, 30000,  '_it3', '', 1000),
@@ -39,22 +40,31 @@ simlist = ((1, 298, 50001, 30000,  '_it3', '', 1000),
            (40, 330, 33001, 20000, '_it2', '', 1000),
            (40, 330, 33001, 20000, '_it2', '_rep1', 1000),
            (40, 330, 33001, 20000, '_it2', '_rep2', 1000),
-           (20, 330, 25001, 15000, '', '_noii3', 1000),
-           (40, 330, 16001, 8000, '', '_noii3', 1000))
+           # (20, 330, 25001, 15000, '', '_noii3', 1000),
+           # (40, 330, 16001, 8000, '', '_noii3', 1000)
+           )
 
-n_structures, n_replicas, n_samples, burnin, it, rep, di = simlist[-3]
+n_structures, n_replicas, n_samples, burnin, it, rep, di = simlist[-9]
 #n_structures, n_replicas, n_samples, burnin, it, rep, di = simlist[int(sys.argv[1])]
 n_beads = 308
+#n_beads = 62
 
 sim_path = '/scratch/scarste/ensemble_hic/nora2012/bothdomains{}{}_{}structures_{}replicas/'.format(it, rep, n_structures, n_replicas)
+
+# sim_path = '/scratch/scarste/ensemble_hic/nora2012/15kbbins_bothdomains_it2_40structures_111replicas/'
+# n_replicas = 39
+# di = 1000
+# n_samples = 133000
+# burnin = 70000
 
 samples = load_sr_samples(sim_path + 'samples/', n_replicas,
                           n_samples, di, burnin)
 X = np.array([s.variables['structures'].reshape(n_structures,-1,3) for s in samples])
+
 Xflat = X.reshape(-1, n_beads, 3) * 53
+# Xflat = X.reshape(-1, n_beads, 3) * (5 * 53 ** 3) ** 0.333
 
 if True:
-    from csb.bio.utils import radius_of_gyration
     Xflats_alber = []
     for i in (100, 1000, 10000):
         Xflat_temp = np.load('/scratch/scarste/ensemble_hic/alber/nora2012/clipped_nosphere_n{}/ensemble.npy'.format(i))
@@ -93,17 +103,11 @@ def plot_distance_hists(ax, i, l1, l2):
 def plot_alber_distance_hists(ax, i, l1, l2):
 
     from ensemble_hic.analysis_functions import calculate_KL_KDE_log
-    #from scipy.stats import wasserstein_distance
     from scipy.linalg import norm
     h = lambda p, q: norm(np.sqrt(p) - np.sqrt(q)) / np.sqrt(2)
     ds = np.linalg.norm(Xflat[:,get_bead(probes[l1])] -
                         Xflat[:,get_bead(probes[l2])],
                         axis=1),
-    # ax.hist(ds,
-    #         bins=n_bins, histtype='step', label='model',
-    #         normed=True, color='black', lw=1)
-    # print calculate_KL_KDE_log((ds, mapping[i-1])), '(us)'
-    #print h(ds, mapping[i-1]), '(us)'
     for j in range(len(Xflats_alber)):
         alber_ds = np.linalg.norm(Xflats_alber[j][:,get_bead(probes[l1])] -
                                   Xflats_alber[j][:,get_bead(probes[l2])],

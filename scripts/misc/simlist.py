@@ -197,7 +197,9 @@ simulations = {'hairpin_s_fwm_poisson_new':
                               )
                 },
                'nora2012':
-               {'n_structures': (1, 5, 10, 20, 20, 20, 30, 30, 30, 40, 40, 40, 100),
+               {'n_structures': (1, 5, 10, 20, 20, 20, 30, 30, 30, 40, 40, 40,
+                                 #100
+                                 ),
                 'common_path': '/scratch/scarste/ensemble_hic/nora2012/bothdomains_',
                 'output_dirs': ('it3_1structures_298replicas',
                                 'it3_5structures_218replicas',
@@ -211,7 +213,7 @@ simulations = {'hairpin_s_fwm_poisson_new':
                                 'it2_40structures_330replicas',
                                 'it2_rep1_40structures_330replicas',
                                 'it2_rep2_40structures_330replicas',
-                                'rep3_100structures_330replicas',
+                                #'rep3_100structures_330replicas',
                               )
                 },
                'nora2012_female':
@@ -255,5 +257,27 @@ simulations = {'hairpin_s_fwm_poisson_new':
                                 '40structures_330replicas',
                               )
                 },
-
+               'nora2012_15kbbins':
+               {'n_structures': (1, 5, 10, 20, 40, 100),
+                'common_path': '/scratch/scarste/ensemble_hic/nora2012/15kbbins_bothdomains_',
+                'output_dirs': ('1structures_159replicas',
+                                'it4_5structures_159replicas',
+                                'it4_10structures_150replicas',
+                                'it4_20structures_148replicas',
+                                #'30structures_172replicas',
+                                #'it2_40structures_111replicas',
+                                'it4_40structures_172replicas',
+                                'it3_100structures_186replicas',
+                              )
+                },
+               'nora2012_15kbbins_old':
+               {'n_structures': (5, 10, 20, 40, 100),
+                'common_path': '/scratch/scarste/ensemble_hic/nora2012/15kbbins_bothdomains_',
+                'output_dirs': ('5structures_39replicas',
+                                'it2_10structures_97replicas',
+                                'it2_20structures_97replicas',
+                                'it2_40structures_111replicas',
+                                '100structures_39replicas',
+                              )
+                },
                }
