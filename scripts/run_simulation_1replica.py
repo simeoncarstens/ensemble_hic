@@ -22,6 +22,7 @@ if True:
     ppath = os.path.expanduser('~/projects/ensemble_hic/')
     config_file = ppath + 'scripts/eser2017/tmpcfg_wholegenome.cfg'
     config_file = ppath + 'scripts/proteins/test.cfg'
+    config_file = ppath + 'scripts/proteins/mergetest.cfg'
     settings = parse_config_file(config_file)
     # settings['general']['data_file'] = ppath + 'data/rao2014/chr1.txt'
     # settings['nonbonded_prior']['bead_radii'] = ppath + 'data/rao2014/chr1_radii.txt'
@@ -30,7 +31,10 @@ if True:
 n_replicas = size - 1
 
 re_params = settings['replica']
-schedule = make_replica_schedule(re_params, n_replicas)
+if not re_params['schedule'] in ('linear', 'exponential'):
+    schedule = np.load(re_params['schedule'])
+else:
+    schedule = make_replica_schedule(re_params, n_replicas)
     
 from isd2.samplers.gibbs import GibbsSampler
 
