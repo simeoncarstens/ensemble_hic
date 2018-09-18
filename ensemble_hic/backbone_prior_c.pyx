@@ -1,7 +1,6 @@
 # cython: boundscheck=False
 # cython: wraparound=False
 # cython: cdivision=True
-
 import numpy
 cimport numpy
 cimport cython
@@ -13,7 +12,11 @@ def backbone_prior_gradient(double [:] structure,
                             double [:] lower_limits,
                             double [:] upper_limits,
                             double force_constant):
-
+    """
+    Cython implementation of the gradient of a potential
+    penalizing too low / high distances between consecutive
+    beads quadratically
+    """
     cdef Py_ssize_t i, j
     cdef int N = len(structure) / 3
     cdef double d, e

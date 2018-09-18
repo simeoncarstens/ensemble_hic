@@ -2,6 +2,31 @@ import numpy as np
 
 def load_samples(samples_folder, n_replicas, n_samples,
                  dump_interval, burnin, interval=1):
+    """Loads full results of a Replica Exchange
+    simulation.
+
+    :param samples_folder: directory in which samples are stored
+    :type samples_folder: str ending with a slash ("/")
+
+    :param n_replicas: number of replicas
+    :type n_replicas: int
+
+    :param n_samples: number of samples
+    :type n_samples: int
+
+    :param dump_interval: number of MCMC steps after which samples are written
+    :type dump_interval: int
+
+    :param burnin: number of MCMC samples discarded as burnin
+    :type burnin: int (multiple of dump_interval)
+
+    :param interval: return only every interval-th sample
+    :type interval: int
+
+    :returns: a two-dimensional array of MCMC samples with the first axis being
+              the replicas and the second axis the samples for a given replica
+    :rtype: :class:`numpy.ndarray`
+    """
 
     samples = []
     for i in xrange(1, n_replicas + 1):
@@ -12,6 +37,30 @@ def load_samples(samples_folder, n_replicas, n_samples,
 
 def load_sr_samples(samples_folder, replica_id, n_samples,
                     dump_interval, burnin, interval=1):
+    """Loads results for a single replica resulting from a Replica Exchange
+    simulation.
+
+    :param samples_folder: directory in which samples are stored
+    :type samples_folder: str ending with a slash ("/")
+
+    :param replica_id: number of replica of interest, 1-based indexing
+    :type replica_id: int
+
+    :param n_samples: number of samples
+    :type n_samples: int
+
+    :param dump_interval: number of MCMC steps after which samples are written
+    :type dump_interval: int
+
+    :param burnin: number of MCMC samples discarded as burnin
+    :type burnin: int (multiple of dump_interval)
+
+    :param interval: return only every interval-th sample
+    :type interval: int
+
+    :returns: an array of MCMC samples
+    :rtype: :class:`numpy.ndarray`
+    """
 
     samples = []
     for j in xrange((burnin / dump_interval) * dump_interval,
@@ -24,6 +73,21 @@ def load_sr_samples(samples_folder, replica_id, n_samples,
     return np.array(samples[start::interval])
 
 def write_ensemble(X, filename, mol_ranges=None, center=True):
+    """Writes a structure ensemble to a PDB file.
+
+    :param X: coordinates of a structure ensemble
+    :type X: :class:`numpy.ndarray`
+
+    :param filename: file name of output PDB file
+    :type filename: str
+
+    :param mol_ranges: if writing structures consisting of several molecules, this
+                       specifies start and end beads of the single molecules. Example:                       [0, 9, 19] for two molecules of 10 beads each
+    :type mol_ranges: :class:`numpy.ndarray`
+
+    :param center: if True, aligns the centers of mass of all structures
+    :type center: bool
+    """ 
 
     from csb.bio.structure import Atom, ProteinResidue, Chain, Structure, Ensemble
     from csb.bio.sequence import ProteinAlphabet
@@ -56,6 +120,20 @@ def write_ensemble(X, filename, mol_ranges=None, center=True):
     ensemble.to_pdb(filename)
 
 def write_VMD_script(ensemble_pdb_file, bead_radii, output_file):
+    """Writes a VMD script to show structures
+
+    This writes a VMD script loading a structure ensemble PDB file, setting
+    bead radii to given values and showing the structures as a chain of beads.
+
+    :param ensemble_pdb_file: path to PDB file
+    :type ensemble_pdb_file: str
+
+    :param bead_radii: bead radii
+    :type bead_radii: list-like of floats, length: # beads
+
+    :param output_file: output file name
+    :type output_file: str
+    """
 
     lines = ['color Display Background white',
              'menu main on',
@@ -83,6 +161,27 @@ def write_VMD_script(ensemble_pdb_file, bead_radii, output_file):
 
 def write_pymol_script(ensemble_pdb_file, bead_radii, output_file,
                        repr='spheres', grid=False):
+    """Writes a PyMol script to show structures
+
+    This writes a PyMol script loading a structure ensemble PDB file, setting
+    bead radii to given values and showing the structures as a chain of beads.
+    .. warning:: I'm not sure whether this works (I mostly use VMD)
+
+    :param ensemble_pdb_file: path to PDB file
+    :type ensemble_pdb_file: str
+
+    :param bead_radii: bead radii
+    :type bead_radii: :class:`numpy.ndarray`
+
+    :param output_file: output file name
+    :type output_file: str
+
+    :param repr: representation to use
+    :type repr: str, either 'spheres', 'cartoon', or 'ribbon'
+
+    :param grid: if True, show as grid
+    :type grid: bool
+    """
 
     epf = ensemble_pdb_file
     fname = epf[-epf[::-1].find('/'):epf.find('.pdb')]
@@ -108,6 +207,19 @@ def write_pymol_script(ensemble_pdb_file, bead_radii, output_file,
 
 
 def load_samples_from_cfg(config_file, burnin=35000):
+    """Loads results of a simulation using a config file
+
+    This returns posterior samples from a simulation given a config file.
+
+    :param config_file: path to config file
+    :type config_file: str
+
+    :param burnin: number of MCMC samples to be discarded as burnin
+    :type burnin: int
+
+    :returns: posterior samples
+    :rtype: :class:`numpy.ndarray`
+    """
 
     from .setup_functions import parse_config_file
 
@@ -125,7 +237,14 @@ def load_samples_from_cfg(config_file, burnin=35000):
     return samples
 
 def load_ensemble_from_pdb(filename):
+    """Loads a structure ensemble from a PDB file
 
+    :param filename: file name of PDB file
+    :type filename: str
+
+    :returns: atom coordinates of structure ensemble
+    :rtype: :class:`numpy.ndarray`
+    """
     if False:
         ## Insanely slow
         from csb.bio.io.wwpdb import StructureParser
@@ -133,10 +252,7 @@ def load_ensemble_from_pdb(filename):
 
         return np.array([m.get_coordinates(['CA']) for m in ensemble])
     else:
-        ## Parse structures from one single file
-        # if not os.path.exists(filename):
-        #     raise("File {} not found!".format(filename))
-
+        ## Hacky
         ip = open(filename)
         lines = ip.readlines()
         ip.close()

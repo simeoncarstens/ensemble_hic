@@ -28,7 +28,11 @@ def calculate_gradient(double [:,:,::1] structures,
                        double[::1] weights,
                        double [::1] cds, 
                        Py_ssize_t [:,::1] data_points):
-
+    """
+    A pure Cython implementation of the negative log-probability
+    gradient of a likelihood with the usual forward model and a Poisson
+    error model.
+    """
     cdef double d, value, f, g
     cdef Py_ssize_t i,j,l,u,k,v
     cdef Py_ssize_t n_datapoints = data_points.shape[0]
@@ -38,6 +42,9 @@ def calculate_gradient(double [:,:,::1] structures,
     cdef double [:,::1] distances = numpy.empty((n_structures, n_datapoints))
     cdef double [:,::1] sqrtdenoms = numpy.empty((n_structures, n_datapoints))
     cdef double [::1] md = numpy.zeros(n_datapoints)
+
+    ## By changing this, you could use other error models. This is basically
+    ## the derivative of the error model log-probability w.r.t the mock data
     em_derivative = poisson_derivative
     
     ensemble_contacts_evaluate_pureC(structures, weights, cds,

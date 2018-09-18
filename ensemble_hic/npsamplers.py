@@ -1,30 +1,52 @@
+"""
+Samplers for nuisance parameters
+"""
 import numpy as np
 
 from abc import ABCMeta, abstractmethod
 
 class AbstractGammaSampler(object):
-    '''
-    Assumes a uniform prior distribution
-    '''
+
     __metaclass__ = ABCMeta
     
     pdf = None
 
     def __init__(self, likelihood_name, variable_name):
-
+        """
+        Class implementing a sampler which draws from a
+        Gamma distribution
+        """
         self._likelihood_name = likelihood_name
         self._variable_name = variable_name
 
     @abstractmethod
     def _calculate_shape(self):
+        """
+        Calculates the shape of the Gamma distribution
+
+        :returns: shape of Gamma distribution
+        :rtype: float > 0
+        """
         pass
 
     @abstractmethod
     def _calculate_rate(self):
+        """
+        Calculates the rate of the Gamma distribution
+
+        :returns: rate of Gamma distribution
+        :rtype: float > 0
+        """
         pass
     
     def sample(self, state=42):
+        """
+        Draws a sample from the Gamma distribution specified
+        by a rate and a scale parameter
 
+        :returns: a sample
+        :rtype: float
+        """
         rate = self._calculate_rate()        
         shape = self._calculate_shape()
         sample = np.random.gamma(shape) / rate
@@ -38,22 +60,38 @@ class AbstractGammaSampler(object):
 
 
 class NormGammaSampler(AbstractGammaSampler):
-    """
-    Appropriate for Poisson error model
-    """
 
     def __init__(self):
-
+        """
+        Appropriate sampler for the scaling factor when using the usual
+        forward model and a Poisson error model and a Gamma prior for
+        the scaling factor
+        """
         super(NormGammaSampler, self).__init__('ensemble_contacts', 'norm')
 
     def _get_prior(self):
+        """
+        Retrieves the prior distribution object associated with the
+        scaling factor variable
 
+        :returns: prior distribution object
+        :rtype: :class:`.NormGammaPrior`
+        """
         prior = filter(lambda p: 'norm' in p.variables, self.pdf.priors.values())[0]
         
         return prior
 
     def _check_gamma_prior(self, prior):
+        """
+        Checks whether retrieved prior distribution is in fact a Gamma
+        distribution
 
+        :param prior: a prior distribution object
+        :type prior: :class:`binf.pdf.priors.AbstractPrior`
+
+        :returns: isn't this self-documenting??
+        :rtype: bool
+        """
         from .gamma_prior import GammaPrior
         
         return isinstance(prior, GammaPrior)

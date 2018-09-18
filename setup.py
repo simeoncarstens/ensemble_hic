@@ -28,6 +28,19 @@ DESCRIPTION     = __doc__
 LICENSE         = 'MIT'
 REQUIRES        = ['numpy', 'scipy', 'csb']
 
+module = Extension('ensemble_hic._ensemble_hic',
+                   define_macros = [('MAJOR_VERSION', '0'),
+                                    ('MINOR_VERSION', '1'),
+                                    ('PY_ARRAY_UNIQUE_SYMBOL','ENSEMBLEHIC')],
+                   include_dirs = [numpy.get_include(), './ensemble_hic/c'],
+                   extra_compile_args = ['-Wno-cpp'],
+                   sources = ['./ensemble_hic/c/_ensemblehicmodule.c',
+                              './ensemble_hic/c/mathutils.c',
+                              './ensemble_hic/c/nblist.c',
+                              './ensemble_hic/c/forcefield.c',
+                              './ensemble_hic/c/prolsq.c',
+                              ])
+
 os.environ['CFLAGS'] = '-Wno-cpp'
 setup(
     name=NAME,
@@ -40,8 +53,8 @@ setup(
     long_description=DESCRIPTION,
     license=LICENSE,
     requires=REQUIRES,
-    ext_modules=cythonize("ensemble_hic/*.pyx","ensemble_hic/*.pyd"), 
-    include_dirs = [numpy.get_include()],
+    ext_modules=[module] + cythonize("ensemble_hic/*.pyx","ensemble_hic/*.pyd"), 
+    include_dirs = [numpy.get_include(), 'ensemble_hic/c'],
     cmdclass={'build_ext': build_ext},
     classifiers=(
     'Development Status :: 5 - Production/Stable',

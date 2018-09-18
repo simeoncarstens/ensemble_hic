@@ -1,46 +1,115 @@
+"""
+Forcefields describing non-bonded interactions
+"""
 import numpy as np
 
 from abc import abstractmethod
 
 
 class AbstractForceField(object):
-
+    
     def __init__(self, bead_radii, force_constant):
+        """
+        A purely repulsive forcefield for non-bonded interactions with a potential
+        in which pairwise distances closer than the sum of two bead radii are penalized
+        quadratically.
 
+        :param bead_radii: list of bead radii
+        :type bead_radii: list-like
+
+        :param force_constant: force constant
+        :type force constant: float
+        """
         self._bead_radii = bead_radii
         self._bead_radii2 = bead_radii * bead_radii
         self._force_constant = force_constant
 
     @abstractmethod
     def energy(self, structure):
+        """
+        Evaluates the potentital energy of a structure
+
+        :param structure: coordinates of a structure
+        :type structure: :class:`numpy.ndarray`
+
+        :returns: potential energy of a structure
+        :rtype: float
+        """
         pass
 
     @abstractmethod
     def gradient(self, structure):
+        """
+        Evaluates the energy gradient for a structure
+
+        :param structure: coordinates of a structure
+        :type structure: :class:`numpy.ndarray`
+
+        :returns: gradient vector
+        :rtype: :class:`numpy.ndarray`
+        """
         pass
 
     @property
     def bead_radii(self):
+        """
+        Bead radii
+
+        :returns: list of bead radii
+        :rtype: list-like of floats; length: # beads
+        """
         return self._bead_radii
     @bead_radii.setter
     def bead_radii(self, value):
+        """
+        Sets bead radii
+
+        :param value: list of bead radii
+        :type value: :class:`numpy.ndarray`
+        """
         self._bead_radii = value
 
     @property
     def bead_radii2(self):
+        """
+        Squared bead radii
+
+        :returns: list of squared bead radii
+        :rtype: list-like
+        """
         return self._bead_radii2
     
     @property
     def force_constant(self):
+        """
+        Force constant
+
+        :returns: force constant
+        :rtype: float
+        """
         return self._force_constant
     @force_constant.setter
     def force_constant(self, value):
+        """
+        Sets force constant
+
+        :param value: new force constant
+        :type value: float
+        """
         self._force_constant = value
 
 class ForceField(AbstractForceField):
-
+    
     def energy(self, structure):
-        
+        """
+        Cython implementation of the potential energy
+
+        :param structure: coordinates of a structure
+        :type structure: :class:`numpy.ndarray`
+
+        :returns: potential energy of a structure
+        :rtype: float
+        """
         from ensemble_hic.forcefield_c import forcefield_energy
         
         E = forcefield_energy(structure, self.bead_radii,
@@ -50,7 +119,15 @@ class ForceField(AbstractForceField):
         return E
     
     def gradient(self, structure):
-        
+        """
+        Cython implementation of the energy gradient
+
+        :param structure: coordinates of a structure
+        :type structure: :class:`numpy.ndarray`
+
+        :returns: gradient vector
+        :rtype: :class:`numpy.ndarray`
+        """        
         from ensemble_hic.forcefield_c import forcefield_gradient
         
         grad = forcefield_gradient(structure, self.bead_radii,
@@ -74,7 +151,7 @@ def make_universe(n_beads, L=100):
 class VolumeExclusion(object):
 
     def __init__(self, universe, bead_types=None):
-
+        
         self._bead_types = bead_types
 
         self._universe = universe
@@ -89,11 +166,11 @@ class VolumeExclusion(object):
         ## create force field and non-bonded list, assign
         ## the same atom type to all beads
 
-        from isd.prolsq import PROLSQ
-        from isd.NBList import NBList
+        from .isd_forcefield import PROLSQ
+        from .nblist import NBList
 
         n_beads    = self._universe.n_atoms
-        forcefield = PROLSQ()
+        forcefield = PROLSQ('PROLSQ')
         forcefield.n_types = n_beads
         nblist     = NBList(1.0 + 1e-3, 90, n_beads, n_beads)
         forcefield.nblist = nblist
@@ -120,7 +197,8 @@ class VolumeExclusion(object):
     def energy(self, coords, update=1):
 
         self._universe.X[:,:] = coords[:,:]
-        return self.forcefield.energy(self._universe, update)
+        # return self.forcefield.energy(self._universe, update)
+        return self.forcefield.energy(coords, update)
 
     def gradient(self, coords, update=1):
 
@@ -134,26 +212,73 @@ class VolumeExclusion(object):
 
 
 class NBLForceField(AbstractForceField):
-
+    
     def __init__(self, bead_radii, force_constant):
+        """
+        A purely repulsive forcefield for non-bonded interactions with a potential
+        in which pairwise distances closer than the sum of two bead radii are penalized
+        quadratically. 
+
+        This implementation uses a non-bonded list written by Michael Habeck.
+        It makes evaluating the energy / gradient linear instead quadratic in the
+        number of beads.
+
+        :param bead_radii: list of bead radii
+        :type bead_radii: list-like
+
+        :param force_constant: force constant
+        :type force constant: float
+        """
 
         super(NBLForceField, self).__init__(bead_radii, force_constant)
 
         self.n_beads = len(bead_radii)
-        self._isdff = self._make_volume_exclusion()
+        self._isd_ff = self._make_isd_ff()
         self.set_connectivity()
         self.bead_radii = bead_radii
         self.force_constant = force_constant
 
-    def _make_volume_exclusion(self):
+    def _make_isd_ff(self):
+        
+        ## create force field and non-bonded list, assign
+        ## the same atom type to all beads
 
-        return VolumeExclusion(make_universe(n_beads=self.n_beads, L=100.0))
+        self._universe = make_universe(n_beads=self.n_beads, L=100.0)
+
+        from .isd_forcefield import PROLSQ
+        from .nblist import NBList
+
+        n_beads    = self._universe.n_atoms
+        forcefield = PROLSQ('PROLSQ')
+        forcefield.n_types = n_beads
+        nblist     = NBList(1.0 + 1e-3, 90, n_beads, n_beads)
+        forcefield.nblist = nblist
+
+        for i in range(n_beads):
+            self._universe.atoms[i].type = i
+        self._universe.set_types()
+        self._universe.set_connectivity()
+
+        ## set force field parameters
+        ## will be modified later
+        n_types = n_beads
+        d = np.ones((n_types, n_types),'d')
+        k = np.ones((n_types, n_types),'d')
+
+        forcefield.n_types = n_types
+        forcefield.types = np.arange(n_types)
+        forcefield.d = d
+        forcefield.k = k
+
+        self._universe.set_types()
+
+        return forcefield
 
     def set_connectivity(self):
 
-        temp = self._isdff._universe.connectivity
+        temp = self._universe.connectivity
         temp = np.ones(temp.shape) - np.eye(temp.shape[0])
-        self._isdff._universe.set_connectivity(temp)
+        self._universe.set_connectivity(temp)
 
     @property
     def bead_radii(self):
@@ -161,11 +286,11 @@ class NBLForceField(AbstractForceField):
     @bead_radii.setter
     def bead_radii(self, value):
         self._bead_radii = value
-        temp = self._isdff.forcefield.d
+        temp = self._isd_ff.d
         temp *= 0.0
         temp += np.add.outer(self._bead_radii, self._bead_radii)
-        self._isdff.forcefield.d = temp
-        self._isdff.forcefield.nblist.cellsize = temp.max() + 1e-3
+        self._isd_ff.d = temp
+        self._isd_ff.nblist.cellsize = temp.max() + 1e-3
 
     @property
     def force_constant(self):
@@ -173,18 +298,26 @@ class NBLForceField(AbstractForceField):
     @force_constant.setter
     def force_constant(self, value):
         self._force_constant = value
-        temp = self._isdff.forcefield.k
+        temp = self._isd_ff.k
         temp *= 0.0
         temp += self._force_constant
-        self._isdff.forcefield.k = temp
+        self._isd_ff.k = temp
 
     def energy(self, structure):
 
-        return self._isdff.energy(structure.reshape(-1,3).astype(np.double))
+        return self._isd_ff.energy(structure.reshape(-1,3).astype(np.double))
 
     def gradient(self, structure):
 
-        return self._isdff.gradient(structure.reshape(-1,3).astype(np.double)).ravel()
+        X = structure.reshape(-1,3).astype(np.double)
+        self._universe.X[:,:] = X
+        self._universe.gradient[:,:] = 0.
+
+        forces = np.zeros(X.shape)
+        self._isd_ff.update_list(X)
+        self._isd_ff.update_gradient(X, forces)
+
+        return forces.ravel()
 
 
 

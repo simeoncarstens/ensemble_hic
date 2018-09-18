@@ -12,7 +12,10 @@ cdef extern from "math.h":
 def sphere_prior_gradient(double [:,:] structure, double [:] center,
                           double radius, double k, Py_ssize_t [:] beads,
                           double [:] bead_radii, double [:] bead_radii2):
-
+    """
+    Cython implementation of the gradient of a harmonic potential
+    restraining beads to be located within a sphere
+    """
     cdef Py_ssize_t i, j
     cdef double d, f
     cdef double radius2 = radius * radius

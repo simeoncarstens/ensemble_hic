@@ -1,3 +1,7 @@
+"""
+Structural priors restraining structures to be located within a sphere
+to simulate, e.g., a nuclear wall
+"""
 import numpy
 
 from csb.statistics.pdf.parameterized import Parameter
@@ -11,7 +15,33 @@ class SpherePrior(AbstractPrior):
 
     def __init__(self, name, sphere_radius, sphere_k, n_structures,
                  bead_radii, sphere_center=None):
+        """
+        Structural Boltzmann-like prior distribution harmonically restraining
+        all beads to be located within a sphere of a given radius
 
+        :param name: a unique name for this object, usually 'sphere_prior'
+        :type name: string
+
+        :param sphere_radius: the radius of the sphere within which to
+                              restrain the beads
+        :type sphere_radius: float
+
+        :param sphere_k: force constant
+        :type sphere_k: float
+    
+        :param n_structures: number of ensemble members
+        :type n_structures: int
+
+        :param bead_radii: bead radii for each bead
+        :type bead_radii: :class:`numpy.ndarray`
+
+        :param sphere_center: coordinates of the sphere center,
+                              if none, (0, 0, 0) is assumed
+        :type sphere_center: :class:`numpy.ndarray`
+
+        :returns: set-up spherical prior distribution object
+        :rtype: :class:`.SpherePrior`    
+        """
         super(SpherePrior, self).__init__(name)
 
         self.n_structures = n_structures

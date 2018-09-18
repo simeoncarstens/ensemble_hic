@@ -1,3 +1,7 @@
+"""
+Prior distributions on the radii of gyration of ensemble members
+"""
+
 from __future__ import print_function
 import numpy
 
@@ -10,7 +14,22 @@ from isd2.pdf.priors import AbstractPrior
 class GyrationRadiusPrior(AbstractPrior):
     
     def __init__(self, name, rog, k_rog, n_structures):
+        """
+        Implements a prior distribution quadratically restraining 
+        the radii of gyration of ensemble members to a certain value.
 
+        :param name: a unique name for this object, e.g., 'rog_prior'
+        :type name: str
+
+        :param rog: target radius of gyration
+        :type rog: float
+
+        :param k_rog: force constant for harmonic potential
+        :type k_rog: float
+
+        :param n_structures: number of ensemble members
+        :type n_structures: int
+        """
         super(GyrationRadiusPrior, self).__init__(name)
 
         self.n_structures = n_structures
@@ -26,7 +45,15 @@ class GyrationRadiusPrior(AbstractPrior):
         self._set_original_variables()
 
     def _single_structure_log_prob(self, structure):
+        """
+        Evaluates log-probability for a single structure
 
+        :param structure: coordinates of a single structure
+        :type structure: :class:`numpy.ndarray`
+
+        :returns: log-probability
+        :rtype: float
+        """
         X = structure.reshape(-1,3)
         rg = radius_of_gyration(X)
 
@@ -34,7 +61,16 @@ class GyrationRadiusPrior(AbstractPrior):
 
 
     def _single_structure_gradient(self, structure):
+        """
+        Evaluates the negative log-probability gradient 
+        for a single structure
 
+        :param structure: coordinates of a single structure
+        :type structure: :class:`numpy.ndarray`
+
+        :returns: gradient vector
+        :rtype: :class:`numpy.ndarray`
+        """
         X = structure.reshape(-1,3)
         r_gyr = radius_of_gyration(X)
         k = self['k_rog'].value

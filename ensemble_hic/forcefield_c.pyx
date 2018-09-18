@@ -1,7 +1,6 @@
 # cython: boundscheck=False
 # cython: wraparound=False
 # cython: cdivision=True
-
 import numpy
 cimport numpy
 cimport cython
@@ -12,6 +11,11 @@ cdef extern from "math.h":
 def forcefield_energy(double [:,::1] s, double [:] radii, double [:] radii2,
                       double force_constant):
 
+    """
+    Cython implementation of a purely repulsive nonbonded potential
+    in which distances below the sum of bead radii are penalized 
+    quadratically
+    """
     cdef Py_ssize_t i, j, l, k
     cdef double res = 0.0
     cdef int N = len(s)
@@ -28,6 +32,12 @@ def forcefield_energy(double [:,::1] s, double [:] radii, double [:] radii2,
 
 def forcefield_gradient(double [:,::1] s, double [:] radii, double [:] radii2,
                         double force_constant):
+
+    """
+    Cython implementation of the gradient of a purely repulsive nonbonded 
+    potential in which distances below the sum of bead radii are penalized 
+    quadratically
+    """
 
     cdef Py_ssize_t i, j, l, k
     cdef double d, g, e
