@@ -80,7 +80,7 @@ else:
     from ensemble_hic.setup_functions import make_marginalized_posterior, make_posterior
     from ensemble_hic.setup_functions import setup_initial_state, setup_weights
     from ensemble_hic.setup_functions import make_elongated_structures
-    from isd2.samplers.hmc import ISD2HMCSampler
+    from isd2.samplers.hmc import BinfHMCSampler
 
     oldp = make_posterior(settings)
     posterior = make_marginalized_posterior(settings)
@@ -91,8 +91,8 @@ else:
     n_structures = oldp.priors['nonbonded_prior'].n_structures
     structures = make_elongated_structures(bead_radii, n_structures)
     structures += np.random.normal(scale=0.5, size=structures.shape)
-    from isd2.samplers import ISDState
-    initial_state = ISDState({'structures': structures})
+    from isd2.samplers import BinfState
+    initial_state = BinfState({'structures': structures})
     structures_hmc_params = settings['structures_hmc']
     
     structures_tl = int(structures_hmc_params['trajectory_length'])
@@ -102,7 +102,7 @@ else:
     if not structures_adaption:
         raise NotImplementedError('At the moment, timestep cannot be switched off!')
     from csb.statistics.samplers import State
-    structures_sampler = ISD2HMCSampler(posterior,
+    structures_sampler = BinfHMCSampler(posterior,
                                         initial_state.variables['structures'],
                                         structures_timestep, structures_tl,
                                         variable_name='structures')

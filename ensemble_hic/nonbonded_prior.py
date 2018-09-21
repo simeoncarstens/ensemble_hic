@@ -8,8 +8,8 @@ from abc import abstractmethod
 from csb.statistics.pdf.parameterized import Parameter
 from csb.numeric import log as csb_log
 
-from isd2.pdf.priors import AbstractPrior
-from isd2 import ArrayParameter
+from binf.pdf.priors import AbstractPrior
+from binf import ArrayParameter
 
 
 class AbstractNonbondedPrior2(AbstractPrior):

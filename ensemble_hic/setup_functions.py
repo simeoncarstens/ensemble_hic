@@ -75,7 +75,7 @@ def make_posterior(settings):
     :returns: a posterior object
     :rtype: :class:`binf.pdf.posteriors.Posterior`
     """
-    from isd2.pdf.posteriors import Posterior
+    from binf.pdf.posteriors import Posterior
 
     settings = update_ensemble_setting(settings)
     n_beads = int(settings['general']['n_beads'])
@@ -134,7 +134,7 @@ def make_norm_prior(norm_prior_settings, likelihood, n_structures):
 
 def make_marginalized_posterior(settings):
 
-    from isd2.pdf.posteriors import Posterior
+    from binf.pdf.posteriors import Posterior
 
     settings = update_ensemble_setting(settings)
     n_beads = int(settings['general']['n_beads'])
@@ -158,7 +158,7 @@ def make_marginalized_posterior(settings):
                                  settings['general']['data_file'],
                                  n_structures, bead_radii)
 
-    from isd2.pdf import AbstractISDPDF
+    from binf.pdf import AbstractISDPDF
     from .marginalized_posterior_c import calculate_gradient
     alpha = priors['norm_prior']['shape'].value
     beta = priors['norm_prior']['rate'].value
@@ -324,7 +324,7 @@ def make_subsamplers(posterior, initial_state,
     :type posterior: :class:`binf.pdf.posteriors.Posterior
 
     :param initial_state: intial state
-    :type initial_state: :class:`binf.samplers.ISDState`
+    :type initial_state: :class:`binf.samplers.BinfState`
 
     :param structures_hmc_params: settings for the structures HMC
                                   sampler as specified in a config file
@@ -339,7 +339,7 @@ def make_subsamplers(posterior, initial_state,
               a Gibbs sampler eventually will iterate
     :rtype: dict
     """
-    from isd2.samplers.hmc import HMCSampler
+    from binf.samplers.hmc import HMCSampler
 
     p = posterior
     variables = initial_state.keys()
@@ -439,9 +439,9 @@ def setup_initial_state(initial_state_params, posterior):
 
     :returns: an state containing initial values for all variables
               of the posterior distribution
-    :rtype: :class:`binf.samplers.ISDState`
+    :rtype: :class:`binf.samplers.BinfState`
     """
-    from isd2.samplers import ISDState
+    from binf.samplers import BinfState
 
     p = posterior
     n_structures = p.likelihoods['ensemble_contacts'].forward_model.n_structures
@@ -467,7 +467,7 @@ def setup_initial_state(initial_state_params, posterior):
             raise ValueError('Couldn\'t load initial structures '
                              'from file {}!'.format(structures))
 
-    init_state = ISDState({'structures': structures})
+    init_state = BinfState({'structures': structures})
 
     if 'weights' in variables:
         raise NotImplementedError("Weights sampling not yet supported")

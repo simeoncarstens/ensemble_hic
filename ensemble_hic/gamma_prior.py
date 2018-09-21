@@ -6,7 +6,7 @@ from abc import ABCMeta, abstractmethod
 import numpy as np
 import scipy
 
-from isd2.pdf.priors import AbstractPrior
+from binf.pdf.priors import AbstractPrior
 
 
 class GammaPrior(AbstractPrior):

@@ -5,12 +5,12 @@ Likelihoods modeling the process of generating contact frequency
 import numpy as np
 
 from csb.statistics.pdf.parameterized import Parameter
-from isd2.pdf.likelihoods import Likelihood as ISD2Likelihood
+from binf.pdf.likelihoods import Likelihood as BinfLikelihood
 
 from .error_models import PoissonEM
 from .likelihoods_c import calculate_gradient
 
-class Likelihood(ISD2Likelihood):
+class Likelihood(BinfLikelihood):
 
     def __init__(self, name, fwm, em, lammda):
         """

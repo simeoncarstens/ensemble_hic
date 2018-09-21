@@ -8,8 +8,8 @@ import numpy
 from csb.bio.utils import radius_of_gyration
 from csb.statistics.pdf.parameterized import Parameter
 
-from isd2 import ArrayParameter
-from isd2.pdf.priors import AbstractPrior
+from binf import ArrayParameter
+from binf.pdf.priors import AbstractPrior
 
 class GyrationRadiusPrior(AbstractPrior):
     

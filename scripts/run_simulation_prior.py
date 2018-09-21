@@ -92,8 +92,8 @@ else:
 
     initial_state = setup_initial_state(settings['initial_state'], posterior)
     from ensemble_hic.setup_functions import make_priors
-    from isd2.samplers import ISDState
-    initial_state = ISDState(variables={'structures': initial_state.variables['structures']})
+    from isd2.samplers import BinfState
+    initial_state = BinfState(variables={'structures': initial_state.variables['structures']})
     priors = make_priors(settings['nonbonded_prior'],
 			 settings['backbone_prior'],
 			 settings['sphere_prior'],

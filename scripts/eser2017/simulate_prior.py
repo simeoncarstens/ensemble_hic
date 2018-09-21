@@ -65,7 +65,7 @@ else:
     from rexfw.slaves import Slave
     from rexfw.proposers import REProposer
 
-    from isd2.samplers import ISDState
+    from isd2.samplers import BinfState
     from isd2.samplers.gibbs import GibbsSampler
     from isd2.pdf.posteriors import Posterior
 
@@ -84,7 +84,7 @@ else:
                                'sphere_prior': SP,
                                'nonbonded_prior': NBP})
 
-    initial_state = ISDState({'structures': np.random.uniform(-np.sum(bead_radii),
+    initial_state = BinfState({'structures': np.random.uniform(-np.sum(bead_radii),
                                                               np.sum(bead_radii),
                                                               n_beads * 3)})
 

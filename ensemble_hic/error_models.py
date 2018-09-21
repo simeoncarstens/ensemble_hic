@@ -7,8 +7,8 @@ import numpy
 
 from csb.statistics.pdf.parameterized import Parameter
 
-from isd2 import ArrayParameter
-from isd2.model.errormodels import AbstractErrorModel
+from binf import ArrayParameter
+from binf.model.errormodels import AbstractErrorModel
 
 
 class GaussianEM(AbstractErrorModel):
