@@ -1,0 +1,33 @@
+HEADER    .                                       24-Sep-18                     
+COMPND   1 MOL_ID: 0;                                                           
+COMPND   2 MOLECULE: ;                                                          
+COMPND   3 CHAIN: A;                                                            
+SEQRES   1 A   23  ALA ALA ALA ALA ALA ALA ALA ALA ALA ALA ALA ALA ALA          
+SEQRES   2 A   23  ALA ALA ALA ALA ALA ALA ALA ALA ALA ALA                      
+MODEL        1                                                                  
+ATOM      1   CA ALA A   0     -20.870  -4.000   0.000  0.00  0.00           C  
+ATOM      2   CA ALA A   1     -16.870  -4.000   0.000  0.00  0.00           C  
+ATOM      3   CA ALA A   2     -12.870  -4.000   0.000  0.00  0.00           C  
+ATOM      4   CA ALA A   3      -8.870  -4.000   0.000  0.00  0.00           C  
+ATOM      5   CA ALA A   4      -4.870  -4.000   0.000  0.00  0.00           C  
+ATOM      6   CA ALA A   5      -0.870  -4.000   0.000  0.00  0.00           C  
+ATOM      7   CA ALA A   6       3.130  -4.000   0.000  0.00  0.00           C  
+ATOM      8   CA ALA A   7       7.130  -4.000   0.000  0.00  0.00           C  
+ATOM      9   CA ALA A   8      11.130  -4.000   0.000  0.00  0.00           C  
+ATOM     10   CA ALA A   9      15.130  -4.000   0.000  0.00  0.00           C  
+ATOM     11   CA ALA A  10      19.130  -4.000   0.000  0.00  0.00           C  
+ATOM     12   CA ALA A  11      19.130   0.000   0.000  0.00  0.00           C  
+ATOM     13   CA ALA A  12      19.130   4.000   0.000  0.00  0.00           C  
+ATOM     14   CA ALA A  13      15.130   4.000   0.000  0.00  0.00           C  
+ATOM     15   CA ALA A  14      11.130   4.000   0.000  0.00  0.00           C  
+ATOM     16   CA ALA A  15       7.130   4.000   0.000  0.00  0.00           C  
+ATOM     17   CA ALA A  16       3.130   4.000   0.000  0.00  0.00           C  
+ATOM     18   CA ALA A  17      -0.870   4.000   0.000  0.00  0.00           C  
+ATOM     19   CA ALA A  18      -4.870   4.000   0.000  0.00  0.00           C  
+ATOM     20   CA ALA A  19      -8.870   4.000   0.000  0.00  0.00           C  
+ATOM     21   CA ALA A  20     -12.870   4.000   0.000  0.00  0.00           C  
+ATOM     22   CA ALA A  21     -16.870   4.000   0.000  0.00  0.00           C  
+ATOM     23   CA ALA A  22     -20.870   4.000   0.000  0.00  0.00           C  
+TER                                                                             
+ENDMDL                                                                          
+END                                                                             
