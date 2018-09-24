@@ -2,7 +2,7 @@
 Makes mock ensemble contact data for a 2D snake (spiral) and a 2D hairpin
 '''
 import os
-import numpy
+import numpy as np
 
 import matplotlib.pyplot as plt
 
@@ -12,9 +12,10 @@ from csb.statistics.pdf import MultivariateGaussian
 from ensemble_hic import kth_diag_indices
 from ensemble_hic.analysis_functions import write_ensemble
 
-numpy.random.seed(42)
+np.random.seed(42)
 
-write_data = False
+write_data = not False
+snake_side_length = 3
 
 def zero_diagonals(a, n):
     b = a.copy()
@@ -29,36 +30,38 @@ data_dir = os.path.expanduser('~/projects/ensemble_hic/data/')
 ensemble_size = 100
 contact_distance = 8.0
 
-top = numpy.vstack((numpy.arange(7), numpy.zeros(7), numpy.zeros(7)))
-right = numpy.array([6, 1, 0])
-left = numpy.array([0, 3, 0])
+top = np.vstack((np.arange(snake_side_length), 
+                 np.zeros(snake_side_length),
+                 np.zeros(snake_side_length)))
+right = np.array([snake_side_length - 1, 1, 0])
+left = np.array([0, 3, 0])
 
-init1 = numpy.hstack((top, right[:,None],
-                      top[:,::-1] + numpy.array([0,2,0])[:,None],
-                      left[:,None], top + numpy.array([0,4,0])[:,None])).T
-init2 = numpy.zeros((11,3))
-init2[:,0] = numpy.arange(11)
-init2 = numpy.vstack((init2, [10, 1, 0],
-                      init2[::-1,:] + numpy.array([0,2,0])[None,:]))
+init1 = np.hstack((top, right[:,None],
+                   top[:,::-1] + np.array([0,2,0])[:,None],
+                   left[:,None], top + np.array([0,4,0])[:,None])).T
+init2 = np.zeros(((snake_side_length * 3 + 1) / 2,3))
+init2[:,0] = np.arange((snake_side_length * 3 + 1) / 2)
+init2 = np.vstack((init2, [(snake_side_length * 3 + 1) / 2 - 1, 1, 0],
+                   init2[::-1,:] + np.array([0,2,0])[None,:]))
 
 init1 *= 4
 init2 *= 4
 
-write_ensemble(init1[None,:], data_dir + 'hairpin_s/snake.pdb')
-write_ensemble(init2[None,:], data_dir + 'hairpin_s/hairpin.pdb')
+write_ensemble(init1[None,:], data_dir + 'hairpin_s/snake_ssl{}.pdb'.format(snake_side_length))
+write_ensemble(init2[None,:], data_dir + 'hairpin_s/hairpin_ssl{}.pdb'.format(snake_side_length))
 
 n_beads = len(init1)
 
 from ensemble_hic.forward_models import EnsembleContactsFWM
 
-suffix = '_fwm_poisson'
-data_points = array([[i, j, 0] for i in range(n_beads)
-                     for j in xrange(i+1, n_beads)])
+suffix = '_fwm_poisson_ssl{}'.format(snake_side_length)
+data_points = np.array([[i, j, 0] for i in range(n_beads)
+                        for j in xrange(i+1, n_beads)])
 fwm = EnsembleContactsFWM('asdfasdf', 2,
                           np.ones(len(data_points)) * contact_distance,
                           data_points)
 md = fwm(norm=1.0, smooth_steepness=10,
-                structures=concatenate((init1,init2)).ravel(), weights=np.ones(2))
+                structures=np.concatenate((init1,init2)).ravel(), weights=np.ones(2))
 temp = np.random.poisson(ensemble_size * md)
 summed_frequencies = np.zeros((n_beads, n_beads))
 summed_frequencies[data_points[:,0], data_points[:,1]] = temp
