@@ -1,0 +1,20 @@
+HEADER    .                                       24-Sep-18                     
+COMPND   1 MOL_ID: 0;                                                           
+COMPND   2 MOLECULE: ;                                                          
+COMPND   3 CHAIN: A;                                                            
+SEQRES   1 A   11  ALA ALA ALA ALA ALA ALA ALA ALA ALA ALA ALA                  
+MODEL        1                                                                  
+ATOM      1   CA ALA A   0      -8.727  -4.000   0.000  0.00  0.00           C  
+ATOM      2   CA ALA A   1      -4.727  -4.000   0.000  0.00  0.00           C  
+ATOM      3   CA ALA A   2      -0.727  -4.000   0.000  0.00  0.00           C  
+ATOM      4   CA ALA A   3       3.273  -4.000   0.000  0.00  0.00           C  
+ATOM      5   CA ALA A   4       7.273  -4.000   0.000  0.00  0.00           C  
+ATOM      6   CA ALA A   5       7.273   0.000   0.000  0.00  0.00           C  
+ATOM      7   CA ALA A   6       7.273   4.000   0.000  0.00  0.00           C  
+ATOM      8   CA ALA A   7       3.273   4.000   0.000  0.00  0.00           C  
+ATOM      9   CA ALA A   8      -0.727   4.000   0.000  0.00  0.00           C  
+ATOM     10   CA ALA A   9      -4.727   4.000   0.000  0.00  0.00           C  
+ATOM     11   CA ALA A  10      -8.727   4.000   0.000  0.00  0.00           C  
+TER                                                                             
+ENDMDL                                                                          
+END                                                                             

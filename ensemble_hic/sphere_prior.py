@@ -6,8 +6,8 @@ import numpy
 
 from csb.statistics.pdf.parameterized import Parameter
 
-from isd2 import ArrayParameter
-from isd2.pdf.priors import AbstractPrior
+from binf import ArrayParameter
+from binf.pdf.priors import AbstractPrior
 
 from .sphere_prior_c import sphere_prior_gradient
 

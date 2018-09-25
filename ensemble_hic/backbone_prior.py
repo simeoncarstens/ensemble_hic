@@ -7,7 +7,7 @@ import numpy as np, os, sys
 
 from csb.statistics.pdf.parameterized import Parameter
 
-from isd2.pdf.priors import AbstractPrior
+from binf.pdf.priors import AbstractPrior
 
 from ensemble_hic.backbone_prior_c import backbone_prior_gradient
 
@@ -43,7 +43,7 @@ class BackbonePrior(AbstractPrior):
          :param mol_ranges: specifies start and end beads of the single molecules. For                            example: [0, 9, 19] for two molecules of 10 beads each
         :type mol_ranges: :class:`numpy.ndarray` 
         """
-        from isd2 import ArrayParameter
+        from binf import ArrayParameter
         from csb.statistics.pdf.parameterized import Parameter
 
         super(BackbonePrior, self).__init__(name)
