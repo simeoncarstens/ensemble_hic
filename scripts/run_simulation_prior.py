@@ -101,6 +101,9 @@ else:
 			 int(settings['general']['n_structures']))
     from isd2.pdf.posteriors import Posterior
     posterior = Posterior({},priors)
+    for replica_parameter in schedule:
+	    if replica_parameter in posterior.parameters:
+		    posterior[replica_parameter].set(schedule[replica_parameter][rank - 1])
     subsamplers = make_subsamplers(posterior, initial_state.variables,
                                    settings['structures_hmc'],
                                    settings['weights_hmc'])

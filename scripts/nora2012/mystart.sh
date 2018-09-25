@@ -20,5 +20,5 @@ export OMPI_MCA_btl_openib_ib_timeout=28
 config_file=~/projects/ensemble_hic/scripts/nora2012/config_PH
 
 date
-mpirun.lsf python -u ~/projects/ensemble_hic/scripts/run_simulation.py $config_file
+mpirun.lsf python -u ~/projects/ensemble_hic/scripts/run_simulation_prior.py $config_file
 date

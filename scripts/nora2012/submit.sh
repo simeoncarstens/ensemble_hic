@@ -1,19 +1,20 @@
 #!/bin/bash
 
-n_replicas=330
-wall_time=48:00
-n_structures=100
+n_replicas=59
+wall_time=8:00
+n_structures=1
 variables=structures,norm
 norm=6843
 alpha=10
 data_set=bothdomains
 schedule=\\/scratch\\/scarste\\/ensemble_hic\\/nora2012\\/bothdomains_it2_40structures_330replicas\\/schedule.pickle
+schedule=exponential
 ensemble=boltzmann
 gauss_mean=0.7
 gauss_std=0.3
 rate=0.05
-suffix=_noii3
-n_samples=50000
+suffix=_prior
+n_samples=80000
 adaption_limit=100000000
 
 data_file=${data_set}
