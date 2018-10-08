@@ -116,8 +116,8 @@ if True:
     def plot_TADcm_hist(ax):
         ds = np.array([np.linalg.norm(t1flat[i].mean(0) - t2flat[i].mean(0))
                        for i in range(len(Xflat))])
-        ax.hist(ds, bins=50, color='gray')
-        ax.set_xlim(0, 600)
+        ax.hist(ds, bins=50, color='gray', histtype='stepfilled')
+        ax.set_xlim(0, 400)
         ax.set_xlabel('TAD center of mass distances [nm]')
         ax.axvline(np.mean(map(rog, Xflat)), ls='--', c='black')
         for spine in ('top', 'left', 'right'):
