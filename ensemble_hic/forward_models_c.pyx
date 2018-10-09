@@ -12,7 +12,7 @@ cdef extern from "math.h" nogil:
     double sqrt(double)
         
 def ensemble_contacts_evaluate(double [:,:,::1] structures,
-                               double [::1] weights,
+                               double norm,
                                double [::1] contact_distances, 
                                double alpha,
                                Py_ssize_t [:,::1] data_points):
@@ -25,7 +25,7 @@ def ensemble_contacts_evaluate(double [:,:,::1] structures,
                                                   data_points.shape[0]))
     cdef double [::1] res = numpy.zeros(data_points.shape[0])
 
-    ensemble_contacts_evaluate_pureC(structures, weights, contact_distances,
+    ensemble_contacts_evaluate_pureC(structures, norm, contact_distances,
                                      alpha, data_points,
                                      distances, sqrtdenoms, res)
     

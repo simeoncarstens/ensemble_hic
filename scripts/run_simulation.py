@@ -81,10 +81,10 @@ else:
     from isd2.samplers.gibbs import GibbsSampler
     
     from ensemble_hic.setup_functions import make_posterior, make_subsamplers
-    from ensemble_hic.setup_functions import setup_initial_state, setup_weights
+    from ensemble_hic.setup_functions import setup_initial_state
     from ensemble_hic.replica import CompatibleReplica
 
-    settings['initial_state']['weights'] = setup_weights(settings)    
+    #settings['initial_state']['weights'] = setup_weights(settings)    
     posterior = make_posterior(settings)
     for replica_parameter in schedule:
         posterior[replica_parameter].set(schedule[replica_parameter][rank - 1])
@@ -93,8 +93,7 @@ else:
     if not 'norm' in initial_state.variables:
         posterior['norm'].set(np.max(posterior.likelihoods['ensemble_contacts'].error_model.data) / float(settings['general']['n_structures']))
     subsamplers = make_subsamplers(posterior, initial_state.variables,
-                                   settings['structures_hmc'],
-                                   settings['weights_hmc'])
+                                   settings['structures_hmc'])
 
     sampler = GibbsSampler(pdf=posterior, state=initial_state,
                            subsamplers=subsamplers)    

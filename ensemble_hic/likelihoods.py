@@ -38,49 +38,49 @@ class Likelihood(BinfLikelihood):
         self._register('lammda')
         self['lammda'] = Parameter(lammda, 'lammda')
         
-    def gradient(self, **variables):
+    # def gradient(self, **variables):
 
-        self._complete_variables(variables)
-        weights = self._get_weights(**variables)
-        variables.update(weights=weights)
-        result = self._evaluate_gradient(**variables)
+    #     self._complete_variables(variables)
+    #     weights = self._get_weights(**variables)
+    #     variables.update(weights=weights)
+    #     result = self._evaluate_gradient(**variables)
 
-        return result
+    #     return result
 
-    def log_prob(self, **variables):
+    # def log_prob(self, **variables):
 
-        self._complete_variables(variables)
-        weights = self._get_weights(**variables)
-        variables.update(weights=weights)
-        result = self._evaluate_log_prob(**variables)
+    #     self._complete_variables(variables)
+    #     weights = self._get_weights(**variables)
+    #     variables.update(weights=weights)
+    #     result = self._evaluate_log_prob(**variables)
 
-        return self['lammda'].value * result
+    #     return self['lammda'].value * result
     
-    def _get_weights(self, **variables):
+    # def _get_weights(self, **variables):
 
-        if 'weights' in self.variables and not 'norm' in self.variables:
-            weights = variables['weights']
-        elif 'norm' in self.variables and not 'weights' in self.variables:
-            weights = np.ones(self.forward_model.n_structures) * variables['norm']
-        elif 'weights' in self.variables and 'norm' in self.variables:
-            raise('Can\'t have both norm and weights as variables!')
-        elif not 'weights' in self.variables and not 'norm' in self.variables:
-            weights = np.ones(self.forward_model.n_structures) * self['norm'].value
-        else:
-            raise('Something is wrong: can\'t decide how to set weights')
+    #     if 'weights' in self.variables and not 'norm' in self.variables:
+    #         weights = variables['weights']
+    #     elif 'norm' in self.variables and not 'weights' in self.variables:
+    #         weights = np.ones(self.forward_model.n_structures) * variables['norm']
+    #     elif 'weights' in self.variables and 'norm' in self.variables:
+    #         raise('Can\'t have both norm and weights as variables!')
+    #     elif not 'weights' in self.variables and not 'norm' in self.variables:
+    #         weights = np.ones(self.forward_model.n_structures) * self['norm'].value
+    #     else:
+    #         raise('Something is wrong: can\'t decide how to set weights')
 
-        return weights
+    #     return weights
 
     def _evaluate_gradient(self, **variables):
         
         structures = variables['structures'].reshape(self.forward_model.n_structures, -1, 3)
         smooth_steepness = variables['smooth_steepness']
-        weights = variables['weights']
+        norm = variables['norm']
 
         fwm = self.forward_model
 
         result = calculate_gradient(structures, smooth_steepness, 
-                                    weights,
+                                    norm,
                                     fwm['contact_distances'].value,
                                     fwm.data_points)
         

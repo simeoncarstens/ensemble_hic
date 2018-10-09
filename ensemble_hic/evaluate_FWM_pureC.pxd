@@ -9,7 +9,7 @@ cdef extern from "math.h" nogil:
     double sqrt(double)
 
 cdef inline int ensemble_contacts_evaluate_pureC(double [:,:,::1] structures,
-                                                 double [::1] weights,	
+                                                 double norm,	
                                                  double [::1] contact_distances, 
                                                  double alpha,
                                                  Py_ssize_t [:,::1] data_points,
@@ -36,6 +36,6 @@ cdef inline int ensemble_contacts_evaluate_pureC(double [:,:,::1] structures,
             distances[k,m] = sqrt(d)
             sqrtdenoms[k,m] = sqrt(1.0 + alpha * alpha * (contact_distances[m] - distances[k,m]) * (contact_distances[m] - distances[k,m]))
             
-            res[m] += (alpha * (contact_distances[m] - distances[k,m]) / sqrtdenoms[k,m] + 1.0) * 0.5 * weights[k]
+            res[m] += (alpha * (contact_distances[m] - distances[k,m]) / sqrtdenoms[k,m] + 1.0) * 0.5 * norm
 
     return 1

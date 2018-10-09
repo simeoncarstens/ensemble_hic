@@ -25,7 +25,7 @@ cdef double poisson_derivative(double md, double data):
 
 def calculate_gradient(double [:,:,::1] structures,
                        double alpha,
-                       double[::1] weights,
+                       double norm,
                        double [::1] cds, 
                        Py_ssize_t [:,::1] data_points):
     """
@@ -47,7 +47,7 @@ def calculate_gradient(double [:,:,::1] structures,
     ## the derivative of the error model log-probability w.r.t the mock data
     em_derivative = poisson_derivative
     
-    ensemble_contacts_evaluate_pureC(structures, weights, cds,
+    ensemble_contacts_evaluate_pureC(structures, norm, cds,
                                      alpha, data_points,
                                      distances, sqrtdenoms, md)
     
@@ -57,7 +57,7 @@ def calculate_gradient(double [:,:,::1] structures,
         for k in range(n_structures):
             d = distances[k,u]
             g = 1.0 + alpha * alpha * (cds[u] - d) * (cds[u] - d)
-            f = 0.5 * em_derivative(md[u], data_points[u,2]) * weights[k] * alpha / (g * sqrtdenoms[k,u] * d)
+            f = 0.5 * em_derivative(md[u], data_points[u,2]) * norm * alpha / (g * sqrtdenoms[k,u] * d)
 
             for l in range(3):
                 value = (structures[k,j,l] - structures[k,i,l]) * f

@@ -132,105 +132,6 @@ def make_norm_prior(norm_prior_settings, likelihood, n_structures):
 
     return NormGammaPrior(shape, rate)
 
-def make_marginalized_posterior(settings):
-
-    from binf.pdf.posteriors import Posterior
-
-    settings = update_ensemble_setting(settings)
-    n_beads = int(settings['general']['n_beads'])
-    n_structures = int(settings['general']['n_structures'])
-    priors = make_priors(settings['nonbonded_prior'],
-                         settings['backbone_prior'],
-                         settings['sphere_prior'],
-                         n_beads, n_structures)
-    from .gamma_prior import NormGammaPrior
-    if 'norm_prior' in settings:
-        shape = float(settings['norm_prior']['shape'])
-        rate = float(settings['norm_prior']['rate'])
-    else:
-        shape = 0.1
-        rate = 0.1
-    priors.update(norm_prior=NormGammaPrior(shape,rate))
-    bead_radii = priors['nonbonded_prior'].bead_radii
-    likelihood = make_likelihood(settings['forward_model'],
-                                 settings['general']['error_model'],
-                                 settings['data_filtering'],
-                                 settings['general']['data_file'],
-                                 n_structures, bead_radii)
-
-    from binf.pdf import AbstractISDPDF
-    from .marginalized_posterior_c import calculate_gradient
-    alpha = priors['norm_prior']['shape'].value
-    beta = priors['norm_prior']['rate'].value
-
-    class MyPdf(AbstractISDPDF):
-
-        def __init__(self, likelihood, priors, lammda=1.0, beta=1.0):
-
-            from csb.statistics.pdf.parameterized import Parameter
-            super(MyPdf, self).__init__()
-
-            self.L = likelihood
-            self.Ps = priors
-            self._register('lammda')
-            self['lammda'] = Parameter(lammda, 'lammda')
-            self._register('beta')
-            self['beta'] = Parameter(beta, 'lammda')
-            self._register_variable('structures', differentiable=True)
-
-        def _evaluate_log_prob(self, structures):
-            d = self.L.error_model.data
-            md = self.L.forward_model(structures=structures, norm=1.0,
-                                          weights=np.ones(n_structures))
-            
-            return self['lammda'].value * (np.sum(d * np.log(md)) - (d.sum() + alpha) * np.log(md.sum() + beta)) + self['beta'].value * self.Ps['nonbonded_prior'].log_prob(structures=structures) + self.Ps['backbone_prior'].log_prob(structures=structures)
-
-        def _evaluate_gradient(self, structures):
-            L = self.L
-            b = self['beta'].value
-            return calculate_gradient(structures.reshape(n_structures, n_beads, 3),
-                                      L['smooth_steepness'].value,
-                                      L.forward_model['contact_distances'].value,
-                                      L.forward_model.data_points,
-                                      alpha, beta) * self['lammda'].value \
-                    + self.Ps['nonbonded_prior'].gradient(structures=structures) * b\
-                    + self.Ps['backbone_prior'].gradient(structures=structures)
-
-        def clone(self):
-            copy = self.__class__(self.L,
-                                  self.Ps,
-                                  self['lammda'].value,
-                                  self['beta'].value)
-            
-            copy.fix_variables(**{p: self[p].value for p in self.parameters
-                                  if not p in copy.parameters})
-
-            return copy
-            
-    return MyPdf(likelihood, priors, 1.0, 1.0)
-    
-
-def setup_weights(settings):
-    """
-    Sets up the vector of initial weights
-
-    :param settings: simulation settings as specified in a
-                     config file
-    :type settings: dict of dicts
-
-    :returns: a weights vector
-    :rtype: :class:`numpy.ndarray`
-    """
-    weights_string = settings['initial_state']['weights']
-    n_structures = int(settings['general']['n_structures'])
-    try:
-        weights = float(weights_string)
-        weights = np.ones(n_structures) * weights
-    except:
-        weights = np.loadtxt(weights_string, dtype=float)
-
-    return weights
-
 def expspace(min, max, a, N):
     """
     Helper function which creates an array of exponentially spaced values
@@ -316,7 +217,7 @@ def make_replica_schedule(replica_params, n_replicas):
     return schedule
 
 def make_subsamplers(posterior, initial_state,
-                     structures_hmc_params, weights_hmc_params):
+                     structures_hmc_params):
     """
     Makes a dictionary of (possibly MCMC) samplers for all variables
 
@@ -330,10 +231,6 @@ def make_subsamplers(posterior, initial_state,
                                   sampler as specified in a config file
     :type structures_hmc_params: dict
 
-    :param weights_hmc_params: settings for the weights HMC
-                               sampler as specified in a config file
-    :type weights_hmc_params: dict
-
     :returns: a dictionary with the keys being the variables and
               the values the corresponding samplers over which
               a Gibbs sampler eventually will iterate
@@ -346,9 +243,6 @@ def make_subsamplers(posterior, initial_state,
     structures_tl = int(structures_hmc_params['trajectory_length'])
     structures_timestep = float(structures_hmc_params['timestep'])
     s_adaption_limit = int(structures_hmc_params['adaption_limit'])
-    weights_tl = int(weights_hmc_params['trajectory_length'])
-    weights_timestep = float(weights_hmc_params['timestep'])
-    w_adaption_limit = int(weights_hmc_params['adaption_limit'])
 
     xpdf = p.conditional_factory(**{var: value for (var, value)
                                     in initial_state.iteritems()
@@ -371,8 +265,6 @@ def make_subsamplers(posterior, initial_state,
         else:
             raise NotImplementedError('Norm sampling only implemented' +
                                       'for Poisson error model!')
-    if 'weights' in variables:
-        raise NotImplementedError('Weights sampling not implemented yet')
 
     return subsamplers
     
@@ -469,8 +361,6 @@ def setup_initial_state(initial_state_params, posterior):
 
     init_state = BinfState({'structures': structures})
 
-    if 'weights' in variables:
-        raise NotImplementedError("Weights sampling not yet supported")
     if 'norm' in variables:
         init_state.update_variables(norm=norm)
 
@@ -496,16 +386,10 @@ def make_conditional_posterior(posterior, settings):
     variables = [x.strip() for x in variables]
     p = posterior
 
-    if 'norm' in variables and 'weights' in variables:
-        raise NotImplementedError('Can\'t estimate both norm and weights!')
-    elif 'norm' in variables:
-        n_structures = p.likelihoods['ensemble_contacts'].forward_model.n_structures
-        return p.conditional_factory(weights=np.ones(n_structures))
-    elif 'weights' in variables:
-        return p.conditional_factory(norm=1.0)
+    if not 'norm' in variables:
+        return p.conditional_factory(norm=settings['initial_state']['norm'])
     else:
-        return p.conditional_factory(norm=settings['initial_state']['norm'],
-                                     weights=settings['initial_state']['weights'])
+        return p
     
 
 def make_backbone_prior(bead_radii, backbone_prior_params, n_beads,
@@ -624,7 +508,6 @@ def make_nonbonded_prior(nb_params, bead_radii, n_structures):
               in the settings
     :rtype: :class:`.NonbondedPrior`
     """
-    from .forcefields import ForceField
     from .forcefields import NBLForceField as ForceField
 
     forcefield = ForceField(bead_radii, float(nb_params['force_constant']))
