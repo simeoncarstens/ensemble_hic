@@ -65,7 +65,7 @@ class NormGammaPrior(GammaPrior):
 
     def clone(self):
 
-        copy = self.__class__(self['rate'].value, self['shape'].value)
+        copy = self.__class__(self['shape'].value, self['rate'].value)
 
         copy.set_fixed_variables_from_pdf(self)
 
