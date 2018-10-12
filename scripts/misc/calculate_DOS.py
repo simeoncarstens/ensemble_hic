@@ -10,7 +10,7 @@ from csbplus.statmech.wham import WHAM
 from csbplus.statmech.dos import DOS
     
 from ensemble_hic.setup_functions import parse_config_file, make_posterior
-from ensemble_hic.setup_functions import setup_weights
+#from ensemble_hic.setup_functions import setup_weights
 from ensemble_hic.analysis_functions import load_samples
 
 config_file = sys.argv[1]
@@ -48,7 +48,7 @@ n_beads = int(settings['general']['n_beads'])
 n_structures = int(settings['general']['n_structures'])
 schedule = np.load(output_folder + 'schedule.pickle')
 
-settings['initial_state']['weights'] = setup_weights(settings)
+#settings['initial_state']['weights'] = setup_weights(settings)
 posterior = make_posterior(settings)
 if False:
     from ensemble_hic.setup_functions import make_marginalized_posterior

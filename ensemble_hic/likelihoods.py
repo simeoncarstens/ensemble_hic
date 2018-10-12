@@ -38,38 +38,12 @@ class Likelihood(BinfLikelihood):
         self._register('lammda')
         self['lammda'] = Parameter(lammda, 'lammda')
         
-    # def gradient(self, **variables):
+    def log_prob(self, **variables):
 
-    #     self._complete_variables(variables)
-    #     weights = self._get_weights(**variables)
-    #     variables.update(weights=weights)
-    #     result = self._evaluate_gradient(**variables)
+        self._complete_variables(variables)
+        result = self._evaluate_log_prob(**variables)
 
-    #     return result
-
-    # def log_prob(self, **variables):
-
-    #     self._complete_variables(variables)
-    #     weights = self._get_weights(**variables)
-    #     variables.update(weights=weights)
-    #     result = self._evaluate_log_prob(**variables)
-
-    #     return self['lammda'].value * result
-    
-    # def _get_weights(self, **variables):
-
-    #     if 'weights' in self.variables and not 'norm' in self.variables:
-    #         weights = variables['weights']
-    #     elif 'norm' in self.variables and not 'weights' in self.variables:
-    #         weights = np.ones(self.forward_model.n_structures) * variables['norm']
-    #     elif 'weights' in self.variables and 'norm' in self.variables:
-    #         raise('Can\'t have both norm and weights as variables!')
-    #     elif not 'weights' in self.variables and not 'norm' in self.variables:
-    #         weights = np.ones(self.forward_model.n_structures) * self['norm'].value
-    #     else:
-    #         raise('Something is wrong: can\'t decide how to set weights')
-
-    #     return weights
+        return self['lammda'].value * result
 
     def _evaluate_gradient(self, **variables):
         
