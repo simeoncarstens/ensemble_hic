@@ -207,6 +207,7 @@ simulations = {'hairpin_s_fwm_poisson_new':
                                 'it3_20structures_309replicas',
                                 'it3_rep3_20structures_309replicas',
                                 'it3_rep4_20structures_309replicas',
+                                #'fixed_it3_20structures_309replicas',
                                 'rep1_30structures_330replicas',
                                 'rep2_30structures_330replicas',
                                 'rep3_30structures_330replicas',
@@ -270,14 +271,17 @@ simulations = {'hairpin_s_fwm_poisson_new':
                                 'it3_100structures_186replicas',
                               )
                 },
-               'nora2012_15kbbins_old':
-               {'n_structures': (5, 10, 20, 40, 100),
-                'common_path': '/scratch/scarste/ensemble_hic/nora2012/15kbbins_bothdomains_',
-                'output_dirs': ('5structures_39replicas',
-                                'it2_10structures_97replicas',
-                                'it2_20structures_97replicas',
-                                'it2_40structures_111replicas',
-                                '100structures_39replicas',
+               'nora2012_15kbbins_fixed':
+               {'n_structures': (1, 5, 10, 20, 40, 100),
+                'common_path': '/scratch/scarste/ensemble_hic/nora2012/15kbbins_bothdomains_fixed_',
+                'output_dirs': ('it4_1structures_82replicas',
+                                'it4_5structures_159replicas',
+                                'it4_10structures_150replicas',
+                                'it4_20structures_148replicas',
+                                '30structures_172replicas',
+                                'it4_40structures_172replicas',
+                                'it3_100structures_186replicas',
                               )
                 },
+
                }

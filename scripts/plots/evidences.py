@@ -32,7 +32,7 @@ from simlist import simulations
 #          'GM12878_new_smallercd_nosphere_fixed',
 #          )
 # which = ('hairpin_s_fwm_poisson_new',)
-# which = ('nora2012',)
+which = ('nora2012',)
 # which = ('nora2012_female',)
 # which = ('nora2012_female_day2',)
 # which = ('nora2012_noii3',)
