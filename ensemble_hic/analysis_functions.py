@@ -331,3 +331,131 @@ def calculate_KL_KDE_log((posterior_distances, prior_distances)):
     vals = (quad(ce, -np.inf, np.inf)[0], quad(hh, -np.inf, np.inf)[0])
 
     return vals[0] - vals[1]
+
+def calculate_DOS(config_file, n_samples, subsamples_fraction, burnin,
+                  n_iter=100000, tol=1e-10, save_output=True, output_suffix=''):
+    """Calculates the density of states (DOS) using non-parametric
+    histogram reweighting (WHAM).
+
+    :param config_file: Configuration file
+    :type config_file: str
+
+    :param n_samples: number of samples the simulation ran
+    :type n_samples: int
+
+    :param subsamples_fraction: faction of samples (after burnin) to be analyzed
+                         set this to, e.g., 10 to use one tenth of
+                         n_samples to decrease compution time
+    :type subsamples_fraction: int
+
+    :param burnin: number of samples to be thrown away as part
+                   of the burn-in period
+    :type burnin: int
+
+    :param n_iter: number of WHAM iterations
+    :type n_iter: int
+
+    :param tol: threshold up to which the negative log-likelihood being minimized
+                in WHAM can change before iteration stops
+    :type tol: float
+
+    :param save_output: save resulting DOS object, parameters used during
+                        calculation and indices of randomly chosen samples
+                        in simulation output folder
+    :type save_output: True
+
+    :returns: DOS object
+    :rtype: DOS
+    """
+    
+    from ensemble_hic.wham import PyWHAM as WHAM, DOS
+
+    from ensemble_hic.setup_functions import parse_config_file, make_posterior
+    from ensemble_hic.analysis_functions import load_sr_samples
+
+    settings = parse_config_file(config_file)
+    n_replicas = int(settings['replica']['n_replicas'])
+    target_replica = n_replicas
+
+    params = {'n_samples': n_samples,
+              'burnin': burnin,
+              'subsamples_fraction': subsamples_fraction,
+              'niter': n_iter,
+              'tol': tol
+              }
+
+    n_samples = min(params['n_samples'], int(settings['replica']['n_samples']))
+    dump_interval = int(settings['replica']['samples_dump_interval'])
+
+    output_folder = settings['general']['output_folder']
+    if output_folder[-1] != '/':
+        output_folder += '/'
+    n_beads = int(settings['general']['n_beads'])
+    n_structures = int(settings['general']['n_structures'])
+    schedule = np.load(output_folder + 'schedule.pickle')
+
+    posterior = make_posterior(settings)
+    p = posterior
+    variables = p.variables
+
+    energies = []
+    L = p.likelihoods['ensemble_contacts']
+    data = L.forward_model.data_points
+    P = p.priors['nonbonded_prior']
+    sels = []
+    for i in range(n_replicas):
+        samples = load_sr_samples(output_folder + 'samples/', i+1, n_samples+1,
+                                  dump_interval, burnin=params['burnin'])
+        sel = np.random.choice(len(samples),
+                               int(len(samples) / float(subsamples_fraction)),
+                               replace=False)
+        samples = samples[sel]
+        sels.append(sel)
+        energies.append([[-L.log_prob(**x.variables) if 'lammda' in schedule else 0,
+                          -P.log_prob(structures=x.variables['structures'])
+                          if 'beta' in schedule else 0]
+                         for x in samples])
+        print "Calculated energies for {}/{} replicas...".format(i, n_replicas)
+        
+    energies = np.array(energies)
+    energies_flat = energies.reshape(np.prod(energies.shape[:2]), 2)
+    sched = np.array([schedule['lammda'], schedule['beta']])
+    q = np.array([[(energy * replica_params).sum() for energy in energies_flat]
+                     for replica_params in sched.T])
+    wham = WHAM(len(energies_flat), n_replicas)
+    wham.N[:] = len(energies_flat)/n_replicas
+    wham.run(q, niter=params['niter'], tol=params['tol'], verbose=100)
+
+    dos = DOS(energies_flat, wham.s, sort_energies=False)
+
+    if save_output:
+        import os
+        import sys
+        from cPickle import dump
+
+        ana_path = output_folder + 'analysis/'
+        if not os.path.exists(ana_path):
+            os.makedirs(ana_path)
+        with open(ana_path + 'dos{}.pickle'.format(output_suffix), 'w') as opf:
+            dump(dos, opf)
+        with open(ana_path + 'wham_params{}.pickle'.format(output_suffix), 'w') as opf:
+            dump(params, opf)
+        with open(ana_path + 'wham_sels{}.pickle'.format(output_suffix), 'w') as opf:
+            dump(np.array(sels), opf)
+
+    return dos
+
+def calculate_evidence(dos):
+    """Calculates the evidence from a DOS object
+
+    :param dos: DOS object (output from calculate_DOS)
+    :type dos: DOS
+    :returns: log-evidence (without additive constants stemming from likelihood
+              normalization)
+    :rtype: float
+    """
+    
+    from csb.numeric import log_sum_exp
+
+    return log_sum_exp(-dos.E.sum(1) + dos.s) - \
+           log_sum_exp(-dos.E[:,1] + dos.s)
