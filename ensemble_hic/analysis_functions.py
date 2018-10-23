@@ -368,8 +368,7 @@ def calculate_DOS(config_file, n_samples, subsamples_fraction, burnin,
     :rtype: DOS
     """
     
-    from csbplus.statmech.wham import WHAM
-    from csbplus.statmech.dos import DOS
+    from ensemble_hic.wham import PyWHAM as WHAM, DOS
 
     from ensemble_hic.setup_functions import parse_config_file, make_posterior
     from ensemble_hic.analysis_functions import load_sr_samples
@@ -459,4 +458,4 @@ def calculate_evidence(dos):
     from csb.numeric import log_sum_exp
 
     return log_sum_exp(-dos.E.sum(1) + dos.s) - \
-           log_sum_exp(-dos.E[:,1] + dos.s))
+           log_sum_exp(-dos.E[:,1] + dos.s)
