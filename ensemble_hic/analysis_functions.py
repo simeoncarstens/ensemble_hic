@@ -362,7 +362,10 @@ def calculate_DOS(config_file, n_samples, subsamples_fraction, burnin,
     :param save_output: save resulting DOS object, parameters used during
                         calculation and indices of randomly chosen samples
                         in simulation output folder
-    :type save_output: True                
+    :type save_output: True
+
+    :returns: DOS object
+    :rtype: DOS
     """
     
     from csbplus.statmech.wham import WHAM
@@ -442,3 +445,18 @@ def calculate_DOS(config_file, n_samples, subsamples_fraction, burnin,
             dump(np.array(sels), opf)
 
     return dos
+
+def calculate_evidence(dos):
+    """Calculates the evidence from a DOS object
+
+    :param dos: DOS object (output from calculate_DOS)
+    :type dos: DOS
+    :returns: log-evidence (without additive constants stemming from likelihood
+              normalization)
+    :rtype: float
+    """
+    
+    from csb.numeric import log_sum_exp
+
+    return log_sum_exp(-dos.E.sum(1) + dos.s) - \
+           log_sum_exp(-dos.E[:,1] + dos.s))
