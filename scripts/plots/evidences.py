@@ -22,6 +22,8 @@ from simlist import simulations
 #         )
 # which = ('1pga_1shf_fwm_poisson_new_it3',
 #          )
+which = ('1pga_1shf_fwm_poisson_new_fixed_it3',
+         )
 
 # which = ('eser2017_whole_genome',
 #          )
@@ -32,11 +34,11 @@ from simlist import simulations
 #          'GM12878_new_smallercd_nosphere_fixed',
 #          )
 # which = ('hairpin_s_fwm_poisson_new',)
-which = ('nora2012',)
+# which = ('nora2012',)
 # which = ('nora2012_female',)
 # which = ('nora2012_female_day2',)
 # which = ('nora2012_noii3',)
-which = ('nora2012_15kbbins',)
+# which = ('nora2012_15kbbins',)
 # which = ('nora2012_15kbbins_old',)
 
 
@@ -89,7 +91,7 @@ for sim in which:
 
 all_logZs = np.array(all_logZs)
 
-if not True:
+if True:
     
     if True:
         ## good values for K562 and GM12878
@@ -117,9 +119,9 @@ if not True:
         bottom_ylims = (135000, 136000)
         bottom_yticks = (135000, 136000)
 
-        bottom_ylims = (-18000, -17900)
-        bottom_yticks = (-18000, -17900)
-        bottom_yticklabels = ('-1.79', '-1.80')
+        bottom_ylims = (-17900, -17800)
+        bottom_yticks = (-17900, -17800)
+        bottom_yticklabels = ('-17.9', '-17.8')
         
         xticks = (1,2,3,4,5,10)
         labels = 'dummy'

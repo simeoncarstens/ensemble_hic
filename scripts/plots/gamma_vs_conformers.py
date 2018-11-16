@@ -28,7 +28,7 @@ if what == 'proteins':
           (5, 74),
           (10, 98))
 
-    base = '/scratch/scarste/ensemble_hic/proteins/1pga_1shf_fwm_poisson_new_'
+    base = '/scratch/scarste/ensemble_hic/proteins/1pga_1shf_fwm_poisson_new_fixed_'
     base += 'it3_{}structures_sn_{}replicas/'
 
 mean_gammas = []

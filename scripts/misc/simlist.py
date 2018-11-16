@@ -31,6 +31,17 @@ simulations = {'hairpin_s_fwm_poisson_new':
                               '10structures_sn_98replicas',               
                               )
                 },
+               '1pga_1shf_fwm_poisson_new_fixed_it3':
+               {'n_structures': (1, 2, 3, 4, 5, 10),
+                'common_path': '/scratch/scarste/ensemble_hic/proteins/1pga_1shf_fwm_poisson_new_fixed_it3_',
+                'output_dirs': ('1structures_sn_58replicas',
+                              '2structures_sn_54replicas',
+                              '3structures_sn_66replicas',
+                              '4structures_sn_70replicas',
+                              '5structures_sn_74replicas',
+                              '10structures_sn_98replicas',               
+                              )
+                },
                'K562_new_smallercd':
                {'n_structures': {1, 2, 3, 4, 5, 7, 10, 20, 50},
                 'common_path': '/scratch/scarste/ensemble_hic/bau2011/K562_new_smallercd_',
