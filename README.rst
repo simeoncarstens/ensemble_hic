@@ -10,7 +10,7 @@ The code comprises classes implementing a likelihood for population-averaged con
 
 Setting up
 ---------------
-The ensemble_hic package has several dependencies:
+The ensemble_hic package has several dependencies::
 
   - Python 2.7
   - numpy (`download <https://pypi.python.org/pypi/numpy>`_)
