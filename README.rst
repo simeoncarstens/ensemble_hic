@@ -10,14 +10,14 @@ The code comprises classes implementing a likelihood for population-averaged con
 
 Setting up
 ---------------
-The ensemble_hic package has several dependencies::
+The ensemble_hic package has several dependencies:
 
-  - Python 2.7
-  - numpy (`download <https://pypi.python.org/pypi/numpy>`_)
-  - the Computational Structural Biology Toolbox (CSB, `download <https://github.com/csb-toolbox/CSB>`_)
-  - my binf (`download <http://bitbucket.org/simeon_carstens/binf>`_) package
-  - my rexfw (`download <http://bitbucket.org/simeon_carstens/rexfw>`_) package
-  - an OpenMPI implementation
+- Python 2.7
+- numpy (`download <https://pypi.python.org/pypi/numpy>`_)
+- the Computational Structural Biology Toolbox (CSB, `download <https://github.com/csb-toolbox/CSB>`_)
+- my binf (`download <http://bitbucket.org/simeon_carstens/binf>`_) package
+- my rexfw (`download <http://bitbucket.org/simeon_carstens/rexfw>`_) package
+- an OpenMPI implementation
 
 That's it, I believe.
       
