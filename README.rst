@@ -4,7 +4,7 @@ Bayesian inference of chromatin structure ensembles from population Hi-C data
 
 What is this about?
 -------------------
-This Python package implements a Bayesian approach to infer explicit chromatin structure ensembles from population-averaged Hi-C data (Carstens et al., submitted to biorxiv). It is based on the Inferential Structure Determination (ISD, `Rieping et al., Science 2005) <http://science.sciencemag.org/content/309/5732/303>`_) approach and extends our previous work, in which we used ISD to infer chromosome structures from single-cell data (`Carstens et al., PLOS Comput. Biol. 2016 <http://journals.plos.org/ploscompbiol/article?id=10.1371/journal.pcbi.1005292>`_).
+This Python package implements a Bayesian approach to infer explicit chromatin structure ensembles from population-averaged Hi-C data (`Carstens et al., bioRxiv 493676 <https://www.biorxiv.org/content/early/2018/12/12/493676>`_). It is based on the Inferential Structure Determination (ISD, `Rieping et al., Science 2005) <http://science.sciencemag.org/content/309/5732/303>`_) approach and extends our previous work, in which we used ISD to infer chromosome structures from single-cell data (`Carstens et al., PLOS Comput. Biol. 2016 <http://journals.plos.org/ploscompbiol/article?id=10.1371/journal.pcbi.1005292>`_).
 
 The code comprises classes implementing a likelihood for population-averaged contact data, prior distributions for chromatin bead coordinates and nuisance parameters, scripts to run simulations, example config files, unit tests, documentation and various utility functions and classes.
 
@@ -52,7 +52,7 @@ Reference
 ---------
 If you discuss / use / extend this software, please cite our preprint (or, at some later point, the peer-reviewed paper), as follows:
 
-``Carstens, S., Nilges, M., Habeck, M. Bayesian inference of chromatin structure ensembles from population Hi-C data. bioRxiv, tba``
+``Carstens, S., Nilges, M., Habeck, M. Bayesian inference of chromatin structure ensembles from population Hi-C data. bioRxiv 493676; doi: https://doi.org/10.1101/493676``
 
 License
 -------
