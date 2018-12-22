@@ -2,8 +2,8 @@
 Bayesian inference of chromatin structure ensembles from population Hi-C data
 =============================================================================
 
-What is this about?
--------------------
+What is this package about?
+---------------------------
 This Python package implements a Bayesian approach to infer explicit chromatin structure ensembles from population-averaged Hi-C data (`Carstens et al., bioRxiv 493676 <https://www.biorxiv.org/content/early/2018/12/12/493676>`_). It is based on the Inferential Structure Determination (ISD, `Rieping et al., Science 2005) <http://science.sciencemag.org/content/309/5732/303>`_) approach and extends our previous work, in which we used ISD to infer chromosome structures from single-cell data (`Carstens et al., PLOS Comput. Biol. 2016 <http://journals.plos.org/ploscompbiol/article?id=10.1371/journal.pcbi.1005292>`_).
 
 The code comprises classes implementing a likelihood for population-averaged contact data, prior distributions for chromatin bead coordinates and nuisance parameters, scripts to run simulations, example config files, unit tests, documentation and various utility functions and classes.
@@ -14,6 +14,7 @@ The ensemble_hic package has several dependencies:
 
 - Python 2.7
 - numpy (`download <https://pypi.python.org/pypi/numpy>`_)
+- mpi4py (`download <https://pypi.org/project/mpi4py/>`_)
 - the Computational Structural Biology Toolbox (CSB, `download <https://github.com/csb-toolbox/CSB>`_)
 - my binf (`download <http://bitbucket.org/simeon_carstens/binf>`_) package
 - my rexfw (`download <http://bitbucket.org/simeon_carstens/rexfw>`_) package
@@ -34,11 +35,10 @@ For most classes, there are unit tests to make sure things work as they're suppo
     $ cd tests
     $ python run_test.py
     
-The API is fully documented. I tried to pay attention to some coding practices, so hopefully it is not too bad to read / use / adapt. There are also config files for the simulations we performed in out preprint. They can be found in ``config_files``. In them, paths to the input data file, the replica schedule and the simulation output folder have to be set. Then, you can launch a simulation with::
+The API is fully documented. I tried to pay attention to some coding practices, so hopefully it is not too bad to read / use / adapt. There are also config files for the simulations we performed for our preprint. They can be found in ``config_files``. In them, paths to the input data file (in a sparse matrix format, three colums: bead i, bead j, count (or frequency) between beads i and j), the replica schedule and the simulation output folder have to be set. Then, you can launch a simulation with::
 
 $ cd scripts/
 $ mpirun -n 100 python run_simulation /path/to/config_file.cfg
-$ python example_script.py
 
 The ``-n`` argument (here, 100) specifies the number of processes, which equals to ``# replicas + 1``. You can find the number of replicas in the config files. You most certainly want to run the simulations on a HPC system, as the simulations all require at least around 50 processes.
 
