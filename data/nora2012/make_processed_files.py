@@ -157,7 +157,7 @@ for_fragments = for_fragments1
 matrix = (matrix1 + matrix2) / 2.0
 
 ## set bead size in base pairs
-bead_size = 15000
+bead_size = 3000
 
 if not True:
     ## both TADs

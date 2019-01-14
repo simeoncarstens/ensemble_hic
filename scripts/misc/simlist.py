@@ -277,8 +277,6 @@ simulations = {'hairpin_s_fwm_poisson_new':
                                 'it4_5structures_159replicas',
                                 'it4_10structures_150replicas',
                                 'it4_20structures_148replicas',
-                                #'30structures_172replicas',
-                                #'it2_40structures_111replicas',
                                 'it4_40structures_172replicas',
                                 'it3_100structures_186replicas',
                               )
@@ -290,7 +288,6 @@ simulations = {'hairpin_s_fwm_poisson_new':
                                 'it4_5structures_159replicas',
                                 'it4_10structures_150replicas',
                                 'it4_20structures_148replicas',
-                                '30structures_172replicas',
                                 'it4_40structures_172replicas',
                                 'it3_100structures_186replicas',
                               )

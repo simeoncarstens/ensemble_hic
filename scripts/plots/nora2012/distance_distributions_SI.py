@@ -28,14 +28,14 @@ region_start = 100378306
 
 cpath = '/scratch/scarste/ensemble_hic/'
 
-path = cpath + 'nora2012/bothdomains_it3_20structures_309replicas/samples/'
+path = cpath + 'nora2012/bothdomains_fixed_it3_rep3_20structures_309replicas/samples/'
 X_highres = np.array([x.variables['structures'].reshape(-1,308,3)
                       for x in load_sr_samples(path, 309, 50001, 1000, 30000)])
 X_highres = X_highres.reshape(-1,308,3) * 53
 
-path = cpath + 'nora2012/15kbbins_bothdomains_it3_20structures_114replicas/samples/'
+path = cpath + 'nora2012/15kbbins_bothdomains_fixed_it4_20structures_148replicas/samples/'
 X_lowres = np.array([x.variables['structures'].reshape(-1, 62, 3)
-                      for x in load_sr_samples(path, 114, 84001, 1000, 64000)])
+                      for x in load_sr_samples(path, 114, 90001, 1000, 74000)])
 X_lowres = X_lowres.reshape(-1, 62, 3) * (5 * 53 ** 3) ** 0.33333
 
 path = cpath + 'nora2012/bothdomains_prior_1structures_59replicas/samples/'

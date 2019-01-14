@@ -12,9 +12,9 @@ from ensemble_hic.analysis_functions import load_sr_samples
 simlist = ((1, 298, 50001, 30000,  '_it3', '', 1000),
            (5, 218, 50001, 30000,  '_it3', '', 1000),
            (10, 297, 50001, 30000, '', '', 500),
-           (20, 309, 50001, 30000, '_it3', '', 1000),
-           (20, 309, 50001, 30000, '_it3', '_rep3', 1000),
-           (20, 309, 50001, 30000, '_it3', '_rep4', 1000),
+           (20, 309, 50001, 30000, '_fixed_it3', '_rep1', 1000),
+           (20, 309, 50001, 30000, '_fixed_it3', '_rep2', 1000),
+           (20, 309, 50001, 30000, '_fixed_it3', '_rep3', 1000),
            (30, 330, 32001, 20000, '', '_rep1', 1000),
            (30, 330, 43001, 30000, '', '_rep2', 1000),
            (30, 330, 43001, 30000, '', '_rep3', 1000),
@@ -22,7 +22,7 @@ simlist = ((1, 298, 50001, 30000,  '_it3', '', 1000),
            (40, 330, 33001, 25000, '_it2', '_rep1', 1000),
            (40, 330, 33001, 20000, '_it2', '_rep2', 1000))
 
-n_structures, n_replicas, n_samples, burnin, it, rep, di = simlist[-9]
+n_structures, n_replicas, n_samples, burnin, it, rep, di = simlist[5]
 #n_structures, n_replicas, n_samples, burnin, it, rep, di = simlist[int(sys.argv[1])]
 n_beads = 308
 

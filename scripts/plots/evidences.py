@@ -22,8 +22,8 @@ from simlist import simulations
 #         )
 # which = ('1pga_1shf_fwm_poisson_new_it3',
 #          )
-which = ('1pga_1shf_fwm_poisson_new_fixed_it3',
-         )
+# which = ('1pga_1shf_fwm_poisson_new_fixed_it3',
+#          )
 
 # which = ('eser2017_whole_genome',
 #          )
@@ -38,6 +38,7 @@ which = ('1pga_1shf_fwm_poisson_new_fixed_it3',
 # which = ('nora2012_female',)
 # which = ('nora2012_female_day2',)
 # which = ('nora2012_noii3',)
+which = ('nora2012_15kbbins_fixed',)
 # which = ('nora2012_15kbbins',)
 # which = ('nora2012_15kbbins_old',)
 
@@ -73,9 +74,8 @@ for sim in which:
             s = load_sr_samples(x + '/samples/', n_replicas, p['n_samples']+1,
                                 int(c['replica']['samples_dump_interval']),
                                 p['burnin'])
-            if not '1pga' in x:
-                sels = np.load(x + '/analysis/wham_sels.pickle')
-                s = s[sels[-1]]
+            sels = np.load(x + '/analysis/wham_sels.pickle')
+            s = s[sels[-1]]
             p = make_posterior(parse_config_file(x + '/config.cfg'))
             L = p.likelihoods['ensemble_contacts']
             d = L.forward_model.data_points[:,2]
@@ -91,7 +91,7 @@ for sim in which:
 
 all_logZs = np.array(all_logZs)
 
-if True:
+if not True:
     
     if True:
         ## good values for K562 and GM12878
@@ -263,6 +263,16 @@ else:
                             axis='y')
         ax2.ticklabel_format(style='sci', scilimits=(0,0),
                             axis='y')
+        ## make inset
+        from mpl_toolkits.axes_grid1.inset_locator import inset_axes
+        inset_ax = inset_axes(ax, width='40%', height='25%', loc=10)
+        inset_ax.plot((10, 20, 40, 100), mean_logZs[2:6], ls='--', marker='o',
+                      label='evidence', color='black')
+        inset_ax.set_xticks((10, 20, 40, 100))
+        inset_ax.spines['top'].set_visible(False)
+        inset_ax.spines['right'].set_visible(False)
+        inset_ax.set_ylim((-8000, -7300))
+        inset_ax.set_xlim((11, 105))
             
 
     if False:
