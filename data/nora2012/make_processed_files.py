@@ -169,7 +169,15 @@ if not True:
     n_beads = len(bead_lims)
     rev_mapping, for_mapping = calculate_mappings(region_revs, region_fors, bead_lims)
     cmatrix = build_cmatrix(rev_mapping, for_mapping, region, n_beads)
-    write_cmatrix(cmatrix, path + '15kbbins_bothdomains.txt')
+    if True:
+        ## filter out inter-TAD contacts for 3kb resolution
+        for i in xrange(len(cmatrix)):
+            for j in xrange(len(cmatrix)):
+                if (i < 108 and j >= 108) or (j < 108 and i >= 108):
+                    cmatrix[i,j] = 0.0
+        write_cmatrix(cmatrix, path + 'bothdomains_nointer.txt')
+    else:
+        write_cmatrix(cmatrix, path + '{}kbbins_bothdomains.txt'.format(bead_size / 1000))
 
 if not True:
     ## Tsix TAD
