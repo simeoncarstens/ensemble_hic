@@ -29,7 +29,6 @@ class testEnsembleContactsFWM(unittest.TestCase):
 
         md = self.fwm(structures=structures.ravel(),
                       smooth_steepness=gamma,
-                      weights=np.ones(self.n_structures),
                       norm=norm)
 
         ## md[0] should be 2.0 because the sigmoidal function "s" used is
