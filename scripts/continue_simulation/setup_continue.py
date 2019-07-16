@@ -5,8 +5,8 @@ import numpy as np
 from ensemble_hic.setup_functions import parse_config_file
 
 sys.argv = ['asdfasdf',
-            '/scratch/scarste/ensemble_hic/nora2012/bothdomains_noii3_fromfull_40structures_330replicas/config.cfg',
-            40001,
+            '/scratch/scarste/ensemble_hic/nora2012/female_bothdomains_fixed_rep1_it4_20structures_241replicas/config.cfg',
+            50001,
             1]
 
 config_file = sys.argv[1]
@@ -30,7 +30,6 @@ while True:
         offset += dump_interval
     else:
         break
-offset = 33000
 settings['replica'].update(offset=offset)
 
 if not os.path.exists(cont_folder):

@@ -228,9 +228,9 @@ else:
         
         ax2.plot(n_structures, mean_data_terms, ls='--', marker='s',
                  label='data energy', color='gray')
-        ax.set_ylabel('log(evidence) / # data points', color='black')
-        ax2.set_ylabel(r'$-\langle$log $L \rangle$', color='gray')
-        ax.set_xlabel('number of states $n$')
+        ax.set_ylabel('log(evidence) / # data points', color='black', fontsize=14)
+        ax2.set_ylabel(r'$-\langle$log $L \rangle$', color='gray', fontsize=14)
+        ax.set_xlabel('number of states $n$', fontsize=14)
         ax2.set_xticks(())
         if not True:
             ## male

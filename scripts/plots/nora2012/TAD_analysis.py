@@ -9,36 +9,20 @@ from csb.bio.utils import rmsd, radius_of_gyration as rog
 
 from ensemble_hic.analysis_functions import load_sr_samples
 
-simlist = ((1, 298, 50001, 30000,  '_it3', '', 1000),
-           (5, 218, 50001, 30000,  '_it3', '', 1000),
-           (10, 297, 50001, 30000, '', '', 500),
-           (20, 309, 50001, 30000, '_fixed_it3', '_rep1', 1000),
-           (20, 309, 50001, 30000, '_fixed_it3', '_rep2', 1000),
-           (20, 309, 50001, 30000, '_fixed_it3', '_rep3', 1000),
-           (30, 330, 32001, 20000, '', '_rep1', 1000),
-           (30, 330, 43001, 30000, '', '_rep2', 1000),
-           (30, 330, 43001, 30000, '', '_rep3', 1000),
-           (40, 330, 33001, 20000, '_it2', '', 1000),
-           (40, 330, 33001, 25000, '_it2', '_rep1', 1000),
-           (40, 330, 33001, 20000, '_it2', '_rep2', 1000))
-
-n_structures, n_replicas, n_samples, burnin, it, rep, di = simlist[5]
-#n_structures, n_replicas, n_samples, burnin, it, rep, di = simlist[int(sys.argv[1])]
 n_beads = 308
 
-sim_path = '/scratch/scarste/ensemble_hic/nora2012/bothdomains{}{}_{}structures_{}replicas/'.format(it, rep, n_structures, n_replicas)
-
-s = load_sr_samples(sim_path + 'samples/', n_replicas, n_samples, di, burnin)
-X = np.array([x.variables['structures'].reshape(n_structures, 308, 3)
+sim_path = '/scratch/scarste/ensemble_hic/nora2012/bothdomains_fixed_it3_rep3_20structures_309replicas/'
+s = load_sr_samples(sim_path + 'samples/', 309, 50001, 1000, 30000)
+X = np.array([x.variables['structures'].reshape(20, 308, 3)
               for x in s]) * 53
-Xflat = X.reshape(-1,308,3)
+
+sim_path = '/scratch/scarste/ensemble_hic/nora2012/bothdomains_nointer_it3_rep3_20structures_309replicas/'
+s = load_sr_samples(sim_path + 'samples/', 309, 50001, 1000, 30000)
+X_nointer = np.array([x.variables['structures'].reshape(20, 308, 3)
+                      for x in s]) * 53
 
 pos_start = 100378306
 
-t1 = X[:,:,:107]
-t2 = X[:,:,107:]
-t1flat = t1.reshape(-1, 107,3)
-t2flat = t2.reshape(-1, 201,3)
 
 if False:
     ## gyration radius histograms
@@ -113,17 +97,131 @@ if False:
     axes[1,1].set_xticks(())
 
 if True:
-    def plot_TADcm_hist(ax):
+    def plot_TADcm_hist(ax, X, label, color):
+        Xflat = X.reshape(-1,308,3)
+        t1 = X[:,:,:107]
+        t2 = X[:,:,107:]
+        t1flat = t1.reshape(-1, 107,3)
+        t2flat = t2.reshape(-1, 201,3)
         ds = np.array([np.linalg.norm(t1flat[i].mean(0) - t2flat[i].mean(0))
                        for i in range(len(Xflat))])
-        ax.hist(ds, bins=50, color='gray', histtype='stepfilled')
-        ax.set_xlim(0, 400)
+        ax.hist(ds, bins=50, color=color, histtype='stepfilled', alpha=0.6,
+                label=label)
+        ax.set_xlim(0, 850)
         ax.set_xlabel('TAD center of mass distances [nm]')
-        ax.axvline(np.mean(map(rog, Xflat)), ls='--', c='black')
+        ax.axvline(np.mean(map(rog, Xflat)), ls='--', c=color)
         for spine in ('top', 'left', 'right'):
             ax.spines[spine].set_visible(False)
         ax.set_yticks(())
 
+    def plot_TADiness(ax, X, label, color):
+        Xflat = X.reshape(-1,308,3)
+        t1 = X[:,:,:107]
+        t2 = X[:,:,107:]
+        t1flat = t1.reshape(-1, 107,3)
+        t2flat = t2.reshape(-1, 201,3)
+
+        def find_engulfing_sphere_radius(t):
+            cm = t.mean(0)
+            d_to_cm = np.linalg.norm(t-cm, axis=1)
+            return max(d_to_cm)
+
+        print find_engulfing_sphere_radius(t1)
+
+t1 = X[:,:,:107]
+t2 = X[:,:,107:]
+t1flat = t1.reshape(-1, 107,3)
+t2flat = t2.reshape(-1, 201,3)
+
+def find_engulfing_sphere_radius(x):
+    if True:
+        cm = x.mean(0)
+        d_to_cm = np.linalg.norm(x - cm, axis=0)
+        return max(d_to_cm) / float(len(x) ** 3)
+    if False:
+        from csb.bio.utils import radius_of_gyration
+        return radius_of_gyration(x) / float(len(x) ** 3)
+
+if False:
+    print find_engulfing_sphere_radius(t1flat[0])
+    a = lambda x: np.array(map(lambda i: find_engulfing_sphere_radius(x[:i]), range(1,len(x))))
+    bla = np.array(map(a, X_nointer.reshape(-1,308,3)[-1000:]))
+
+if True:
+    from ensemble_hic.setup_functions import make_posterior, parse_config_file
+    settings = parse_config_file(sim_path + 'config.cfg')
+    settings['general']['n_structures'] = '1'
+    p = make_posterior(settings)
+    fwm = p.likelihoods['ensemble_contacts'].forward_model
+    contacts = fwm.data_points[:,:2]
+
+    def find_TADs(x):
+        md = fwm(structures=x[None,:], norm=1.0)
+        m = np.zeros((308,308))
+        m[contacts[:,0], contacts[:,1]] = md
+        m[contacts[:,1], contacts[:,0]] = md
+        ncts = []
+        scores = [m[:i,:i].sum() + m[i:,i:].sum() - 0.0001*(i ** 2 + (308 - i) ** 2)
+                  for i in range(308)]
+        return np.argmax(scores)
+
+    
+    from csb.bio.utils import distance_matrix
+    cgen_ss = lambda d, a, cutoff, offset: np.triu((a*(cutoff-d)/np.sqrt(1+a*a*(d-cutoff)*(d-cutoff))+1)*0.5, offset)
+
+    def find_TADs(x, cutoff=1.5, offset=(3,10)[1]):
+        d = distance_matrix(x)
+        a = p['smooth_steepness'].value
+        c = cgen_ss(d, a, cutoff, offset)
+        j = np.arange(len(x))
+        counts = np.array([c[:i,:i].sum() + c[i:,i:].sum() for i in j])
+        areas  = j**2 + (len(x) - j)**2
+        
+        return np.argmax(counts.astype('d') / areas)
+
+    def find_TADs_pop(X, cutoff=1.5, offset=(3,10)[1]):
+        d = np.array([squareform(pdist(x)) for x in X])
+        a = p['smooth_steepness'].value
+        c = np.sum(map(lambda sd: cgen_ss(sd, a, cutoff, offset), d), axis=0) / len(d)
+        j = np.arange(len(X[0]))
+        counts = np.array([c[:i,:i].sum() + c[i:,i:].sum() for i in j])
+        areas  = j**2 + (len(X[0]) - j)**2
+        
+        return np.argmax(counts.astype('d') / areas)
+
+    cutoff = 2.0
+    offset = 10
+
+    random = lambda n: np.random.choice(np.arange(len(X)), n)
+    scores = np.array(map(lambda x: find_TADs(x, cutoff, offset),
+                          X.reshape(-1,308,3)[random(1000)] / 53.0))
+    scores_nointer = np.array(map(lambda x: find_TADs(x, cutoff, offset),
+                                  X_nointer.reshape(-1,308,3)[random(1000)] / 53.0))
+    scores_pop = np.array(map(lambda x: find_TADs_pop(x, cutoff, offset),
+                              X[random(1000)] / 53.0))
+    scores_nointer_pop = np.array(map(lambda x: find_TADs_pop(x, cutoff, offset),
+                                      X_nointer[random(1000)] / 53.0))
+
+    fig, (ax1, ax2) = plt.subplots(2,1)
+    hargs = dict(alpha=0.6, histtype='stepfilled', normed=True,
+                 bins=np.arange(0,307,2))
+
+    ax1.hist(scores, label='full data', **hargs)
+    ax1.hist(scores_nointer, label='w/o inter\ncontacts', **hargs)
+    ax1.set_xlim(0,308)
+    ax1.set_title('single structures')
+    ax1.legend()
+
+    ax2.hist(scores_pop, label='full data', **hargs)
+    ax2.hist(scores_nointer_pop, label='w/o inter\ncontacts', **hargs)
+    ax2.set_xlim(0,308)
+    ax2.set_title('structure populations')
+    ax2.legend()
+
+    fig.tight_layout()
+    plt.show()
+    
+    
 if False:
     itcs = np.array([(squareform(pdist(x))[:107,107:] < 1.3 * 53 * 6).sum()
                      for x in Xflat])
@@ -137,13 +235,15 @@ if False:
 
 if False:
     fig, axes = plt.subplots(2,2)
-
+    
     fig.tight_layout()
     plt.show()
 
 if not True:
     fig, ax = plt.subplots()
-    plot_TADcm_hist(ax)
+    plot_TADcm_hist(ax, X, 'full data', 'gray')
+    plot_TADcm_hist(ax, X_nointer, 'no inter-TAD\ncontacts', 'lightgray')
+    ax.legend()
 
     path = os.path.expanduser('~/projects/ehic-paper/nmeth/supplementary_information/figures/nora_TADcmdistance_histograms/')
     fig.savefig(path + '{}structures{}.svg'.format(n_structures, rep))

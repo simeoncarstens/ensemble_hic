@@ -236,6 +236,50 @@ def load_samples_from_cfg(config_file, burnin=35000):
 
     return samples
 
+def load_samples_from_cfg_auto(config_file, burnin=35000):
+    """Loads results of a simulation using a config file
+
+    This returns posterior samples from a simulation given a config file
+    and automatically determines the number of actually drawn samples,
+    i.e., it ignores to the n_samples setting in the config file.
+
+    :param config_file: path to config file
+    :type config_file: str
+
+    :param burnin: number of MCMC samples to be discarded as burnin
+    :type burnin: int
+
+    :returns: posterior samples
+    :rtype: :class:`numpy.ndarray`
+    """
+
+    import os
+    from .setup_functions import parse_config_file
+
+    cfg = parse_config_file(config_file)
+    output_folder = cfg['general']['output_folder']
+    n_structures = int(cfg['general']['n_structures'])
+    n_replicas = int(cfg['replica']['n_replicas'])
+    dump_interval = int(cfg['replica']['samples_dump_interval'])
+    
+    n_drawn_samples = 0
+    fname =   output_folder + 'samples/samples_replica' \
+            + str(n_replicas) + '_{}-{}.pickle'
+    while True:
+        if os.path.exists(fname.format(n_drawn_samples,
+                                       n_drawn_samples + dump_interval)):
+            n_drawn_samples += dump_interval
+        else:
+            break
+    
+    samples = load_sr_samples(output_folder + 'samples/',
+                              n_replicas,
+                              n_drawn_samples + 1,
+                              dump_interval,
+                              burnin)
+
+    return samples
+
 def load_ensemble_from_pdb(filename):
     """Loads a structure ensemble from a PDB file
 
