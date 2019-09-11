@@ -218,10 +218,12 @@ else:
         mean_logZs = np.array([all_logZs[0, np.array(n_structures) == i].mean()
                                for i in n_structures])
         mean_logZs = unique(mean_logZs)
+        mean_logZs = all_logZs[0,:]
         mean_data_terms = np.array([data_terms[np.array(n_structures) == i].mean()
                                     for i in n_structures])
         mean_data_terms = unique(mean_data_terms)
-        n_structures = unique(n_structures)
+        mean_data_terms = data_terms
+        #n_structures = unique(n_structures)
         ax.plot(n_structures, mean_logZs, ls='--', marker='o', label='evidence',
                 color='black')
         ax2 = ax.twinx()
@@ -266,13 +268,13 @@ else:
         ## make inset
         from mpl_toolkits.axes_grid1.inset_locator import inset_axes
         inset_ax = inset_axes(ax, width='40%', height='25%', loc=10)
-        inset_ax.plot((10, 20, 40, 100), mean_logZs[2:6], ls='--', marker='o',
+        inset_ax.plot((10, 15, 20, 25, 30, 35, 35, 40, 100), mean_logZs[2:], ls='--', marker='o',
                       label='evidence', color='black')
-        inset_ax.set_xticks((10, 20, 40, 100))
+        inset_ax.set_xticks((10, 20, 30, 40))
         inset_ax.spines['top'].set_visible(False)
         inset_ax.spines['right'].set_visible(False)
-        inset_ax.set_ylim((-8000, -7300))
-        inset_ax.set_xlim((11, 105))
+        inset_ax.set_ylim((-7600, -7300))
+        inset_ax.set_xlim((11, 42))
             
 
     if False:
