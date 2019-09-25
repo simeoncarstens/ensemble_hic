@@ -48,7 +48,7 @@ if output_folder[-1] != '/':
 
 if rank == 0:
 
-    from ensemble_hic.setup_functions import setup_continue_re_master
+    from ensemble_hic.setup_functions import setup_default_re_master
     from rexfw.convenience import create_directories
     from shutil import copy2
 
@@ -77,10 +77,9 @@ else:
     from isd2.samplers.gibbs import GibbsSampler
     
     from ensemble_hic.setup_functions import make_posterior, make_subsamplers
-    from ensemble_hic.setup_functions import setup_initial_state, setup_weights
+    from ensemble_hic.setup_functions import setup_initial_state
     from ensemble_hic.replica import CompatibleReplica
 
-    settings['initial_state']['weights'] = setup_weights(settings)    
     posterior = make_posterior(settings)
     for replica_parameter in schedule:
         posterior[replica_parameter].set(schedule[replica_parameter][rank - 1])
@@ -92,8 +91,7 @@ else:
     initial_state.update_variables(norm=np.load(cont_folder + 'init_norms.npy')[rank - 1])
     settings['structures_hmc'].update(timestep=np.load(cont_folder + 'timesteps.npy')[rank - 1])
     subsamplers = make_subsamplers(posterior, initial_state.variables,
-                                   settings['structures_hmc'],
-                                   settings['weights_hmc'])
+                                   settings['structures_hmc'])
 
     sampler = GibbsSampler(pdf=posterior, state=initial_state,
                            subsamplers=subsamplers)    

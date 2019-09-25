@@ -4,10 +4,10 @@ import numpy as np
 
 from ensemble_hic.setup_functions import parse_config_file
 
-sys.argv = ['asdfasdf',
-            '/scratch/scarste/ensemble_hic/nora2012/female_bothdomains_fixed_rep1_it4_20structures_241replicas/config.cfg',
-            50001,
-            1]
+# sys.argv = ['asdfasdf',
+#             '/scratch/scarste/ensemble_hic/nora2012/female_bothdomains_fixed_rep1_it4_20structures_241replicas/config.cfg',
+#             50001,
+#             1]
 
 config_file = sys.argv[1]
 n_samples = int(sys.argv[2])
@@ -65,3 +65,11 @@ with open(cont_folder + 'cont_config.cfg', 'w') as opf:
         for k, v in params.iteritems():
             opf.write('{} = {}\n'.format(k, v))
         opf.write('\n')
+
+import datetime
+datestr = datetime.datetime.now().strftime("%Y%m%d%H%M%S")
+os.system('cp mystart_continue.sh tmp/{}.sh'.format(datestr))
+os.system("sed -i 's/config_PH/{}/g' tmp/{}.sh".format(cont_folder.replace('/', '\\/') + 'cont_config.cfg',
+                                                  datestr))
+os.system("sed -i 's/n_replicas_PH/{}/g' tmp/{}.sh".format(int(settings['replica']['n_replicas']) + 1,
+                                                  datestr))
