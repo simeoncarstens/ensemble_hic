@@ -16,7 +16,6 @@ def plot_overlap(ax):
     kwargs = dict(histtype='stepfilled', alpha=0.6, normed=True, bins=n_bins)
     ax.hist(overlaps_fulldata, label='full data', **kwargs)
     ax.hist(overlaps_nointer, label='no inter\ncontacts', **kwargs)
-    # ax.hist(overlaps_prior, label='no data', **kwargs)
     ax.hist(overlaps_prior_rg, label='no data', **kwargs)
     for spine in ['left', 'top', 'right']:
         ax.spines[spine].set_visible(False)
