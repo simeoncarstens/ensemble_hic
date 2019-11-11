@@ -8,9 +8,10 @@ from csb.bio.utils import rmsd, radius_of_gyration as rog
 
 from ensemble_hic.analysis_functions import load_sr_samples
 
+n_structures = 20
+
 before = dict(n_samples = 50001,
               data = 'female_',
-              # rep = 'fixed_rep1_',
               rep = 'fixed_rep1_it4_',
               )
 
@@ -39,7 +40,6 @@ def plot_rg_hist(X, ax):
     ax.axvline(rogs_t2.mean(), ls='--', color=t2_color, lw=2)
     
     ax.set_xlim((150, 350))
-    # ax.legend(frameon=False)
     ax.set_xlabel(r'radius of gyration $r_g$ [nm]')
     ax.set_yticks(())
     ax.spines['top'].set_visible(False)
@@ -66,13 +66,6 @@ def plot_density(X, ax):
     ax.spines['left'].set_visible(True)
     ax.fill_between(xses, density_means + density_stds,
                     density_means - density_stds, color='lightgray')
-
-
-
-# n_structures = 40
-# n_replicas = 252
-
-n_structures = 20
 
 
 

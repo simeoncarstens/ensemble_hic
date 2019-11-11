@@ -11,33 +11,12 @@ from ensemble_hic.analysis_functions import load_sr_samples
 
 n_beads = 308
 
-if not False:
-    sim_path = '/scratch/scarste/ensemble_hic/nora2012/bothdomains_fixed_it3_rep3_20structures_309replicas/'
-    s = load_sr_samples(sim_path + 'samples/', 309, 50001, 1000, 0000)
-    X = np.array([x.variables['structures'].reshape(20, 308, 3)
-                  for x in s]) * 53
+sim_path = '/scratch/scarste/ensemble_hic/nora2012/bothdomains_fixed_it3_rep3_20structures_309replicas/'
+s = load_sr_samples(sim_path + 'samples/', 309, 50001, 1000, 0000)
+X = np.array([x.variables['structures'].reshape(20, 308, 3)
+              for x in s]) * 53
 
-    # sim_path = '/scratch/scarste/ensemble_hic/nora2012/bothdomains_nointer_it3_rep3_20structures_309replicas/'
-    # s = load_sr_samples(sim_path + 'samples/', 309, 50001, 1000, 00000)
-    # X_nointer = np.array([x.variables['structures'].reshape(20, 308, 3)
-    #                       for x in s]) * 53
-
-
-    rogs = np.array([map(rog, x) for x in X])
-    # rogs_nointer = np.array([map(rog, x) for x in X_nointer])
-
-def plot_rg_hists(ax):
-    kwargs = dict(normed=True, histtype='stepfilled', alpha=.8)
-    ax.hist(rogs[1500:].ravel(), bins=50, label='flattened\nhyperensemble',
-            color='gray', **kwargs)
-    ax.hist(rogs[1500:].mean(1), bins=20, label='ensemble\naverage',
-            color='lightgray', **kwargs)
-    ax.set_xlabel('radius of gyration r$_g$ [nm]')
-    ax.yaxis.set_visible(False)
-    for spine in ('top', 'left', 'right'):
-        ax.spines[spine].set_visible(False)
-    ax.legend(frameon=False)
-    ax.set_xlim(220,285)
+rogs = np.array([map(rog, x) for x in X])
 
 def plot_avg_rg_trace(ax):
 

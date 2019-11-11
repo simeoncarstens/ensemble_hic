@@ -16,11 +16,6 @@ s = load_sr_samples(sim_path + 'samples/', 309, 50001, 1000, 30000)
 X = np.array([x.variables['structures'].reshape(20, 308, 3)
               for x in s]) * 53
 
-# sim_path = '/scratch/scarste/ensemble_hic/nora2012/bothdomains_nointer_it3_rep3_20structures_309replicas/'
-# s = load_sr_samples(sim_path + 'samples/', 309, 50001, 1000, 30000)
-# X_nointer = np.array([x.variables['structures'].reshape(20, 308, 3)
-#                       for x in s]) * 53
-
 t1 = X[:,:,:107]
 t2 = X[:,:,107:]
 t1flat = t1.reshape(-1, 107,3)
@@ -85,67 +80,3 @@ def plot_TAD_boundary_hists(ax):
         ax.spines[spine].set_visible(False)
     ax.legend(frameon=False)
     ax.set_yscale('log')
-
-    from ensemble_hic.setup_functions import make_posterior, parse_config_file
-    settings = parse_config_file(sim_path + 'config.cfg')
-    settings['general']['n_structures'] = '1'
-    p = make_posterior(settings)
-    fwm = p.likelihoods['ensemble_contacts'].forward_model
-    data = fwm.data_points
-    xmin = X.reshape(-1, 308, 3)[rinds[np.argmin(scores)]]
-    xmax = X.reshape(-1, 308, 3)[rinds[np.argmax(scores)]]
-    np.save('./xmin.npy', xmin)
-    np.save('./xmax.npy', xmax)
-
-    fig2, (ax2, ax3) = plt.subplots(1,2)
-
-    if not True:
-        def bla(x):
-            s = lambda d: 0.5*(10.0 * d/np.sqrt(1.0 + 10 * 10 * d * d) + 1.0)
-            from csb.bio.utils import distance_matrix
-            ds = distance_matrix(x)
-            br = p.priors['nonbonded_prior'].forcefield.bead_radii
-            mus = s(np.add.outer(br, br) * 1.25 * 53 - ds)
-            mus2 = np.zeros((308,308))
-            mus2[data[:,0], data[:,1]] = mus[data[:,0], data[:,1]]
-            mus2[data[:,1], data[:,0]] = mus[data[:,1], data[:,0]]
-            return ds#mus2
-
-        m2 = bla(xmin)
-        m3 = bla(xmax)
-
-        ax2.axvline(71, ls='--', c='r')
-        ax2.axhline(71, ls='--', c='r')
-        ax3.axvline(203, ls='--', c='r')
-        ax3.axhline(203, ls='--', c='r')
-
-        ax2.matshow(m2)
-        ax3.matshow(m3)
-
-    else:
-        md_min = fwm(structures=xmin.ravel(), norm=1.0)
-        md_max = fwm(structures=xmax.ravel(), norm=1.0)
-    
-        m2 = np.zeros((308,308))
-        m3 = np.zeros((308,308))
-        m2[data[:,0], data[:,1]] = md_min
-        m2[data[:,1], data[:,0]] = md_min
-        m3[data[:,1], data[:,0]] = md_max
-        m3[data[:,0], data[:,1]] = md_max
-        inds = np.arange(308)
-        nonzero_inds = np.array([i for i in inds if m2[i,:].sum() > 0])
-        m2 = np.log(m2[nonzero_inds,:][:,nonzero_inds] + 1e-3)
-        m3 = np.log(m3[nonzero_inds,:][:,nonzero_inds] + 1e-3)
-        
-        ax2.matshow(m2)
-        ax3.matshow(m3)
-
-        for acks in (ax2, ax3):
-            
-            step = 15
-            ticks = np.arange(0, len(nonzero_inds))[::step]
-            labels = map(str, nonzero_inds)[::step]
-            acks.set_xticks(ticks)
-            acks.set_xticklabels(labels)
-            acks.set_yticks(ticks)
-            acks.set_yticklabels(labels)
