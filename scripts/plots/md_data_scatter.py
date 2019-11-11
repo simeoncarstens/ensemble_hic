@@ -23,49 +23,19 @@ simlist = ((1, 298, 50001, 30000,  '_it3', '', 1000),
            (40, 330, 33001, 20000, '_it2', '_rep2', 1000))        
 
 n_structures, n_replicas, n_samples, burnin, it, rep, di = simlist[5]
-#n_structures, n_replicas, n_samples, burnin, it, rep, di = simlist[int(sys.argv[1])]
 n_beads = 308
 
 sim_path = '/scratch/scarste/ensemble_hic/nora2012/bothdomains{}{}_{}structures_{}replicas/'.format(it, rep, n_structures, n_replicas)
 
 
 config_file = sim_path + 'config.cfg'
-# config_file = sys.argv[1]
 settings = parse_config_file(config_file)
-# samples = load_sr_samples(sim_path + 'samples/', n_replicas, n_samples, di,
-#                           n_samples-1000)
 samples = load_samples_from_cfg_auto(config_file, 30000)
 p = make_posterior(settings)
 fwm = p.likelihoods['ensemble_contacts'].forward_model
 energies = np.array(map(lambda x: -p.log_prob(**x.variables), samples))
 map_sample = samples[np.argmin(energies)]
 n_structures = fwm.n_structures
-
-if False:
-    d = fwm.data_points
-    md = fwm(**map_sample.variables)
-
-    sys.path.append(os.path.expanduser('~/projects/hic/py/hicisd2/'))
-    from mantel import *
-    
-    m_d = np.zeros((308, 308))
-    m_d[d[:,0], d[:,1]] = d[:,2]
-    m_d[d[:,1], d[:,0]] = d[:,2]
-
-    m_md = np.zeros((308, 308))
-    m_md[d[:,0], d[:,1]] = md
-    m_md[d[:,1], d[:,0]] = md
-
-    m_d[m_d == 0.0] = m_d[m_d > 0.0].mean()
-    m_md[m_md == 0.0] = m_md[m_md > 0.0].mean()
-
-    n = 1000
-    corr = np.corrcoef(m_d.ravel(), m_md.ravel())[0,1]
-    random_corrs = np.array([np.corrcoef(m_d.ravel(),
-                                         diagonal_permute(m_md).ravel())[0,1]
-                             for _ in range(n)])
-    p = np.sum(random_corrs > corr) / float(n)
-
 
 def plot_md_d_scatter(ax):
     ax.set_aspect('equal')
@@ -97,22 +67,5 @@ def plot_md_d_scatter(ax):
     handles = (handles[1], handles[2], handles[0])
     labels = (labels[1], labels[2], labels[0])
     ax.legend(handles, labels, frameon=False, title='linear distance [beads]:')
-# fig.set_size_inches(fig.get_size_inches() * 1.15)
-# fig.tight_layout()
-
-if False:
-    font = {'family' : 'normal',
-            'weight' : 'normal',
-            'size'   : 16}
-    plt.rc('font', **font)
-    fig, ax = plt.subplots()
-    plot_md_d_scatter(ax)
-    plt.show()
-
-if False:
-    path = os.path.expanduser('~/projects/ehic-paper/nmeth/supplementary_information/figures/nora_md_data_scatter/')
-    path = os.path.expanduser('~/test/')
-    fig.savefig(path + '15kbbins_{}structures{}.svg'.format(n_structures, rep))
-    fig.savefig(path + '15kbbins_{}structures{}.pdf'.format(n_structures, rep))
 
     
