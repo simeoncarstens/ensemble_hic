@@ -11,10 +11,7 @@ n_beads = 308
 
 def plot_md_d_scatter(ax, plot_data_file):
 
-    all_but_sel_x, all_but_sel_y, sels_x, sels_y, maks = np.load(plot_data_file)
-    
-    settings = samplescfg["settings"]
-    samples = samplescfg["samples"]
+    all_but_sels_x, all_but_sels_y, sels_x, sels_y, maks = np.load(plot_data_file)
     
     ax.set_aspect('equal')
     markers = ('*', 's', 'o')
@@ -44,6 +41,9 @@ def plot_md_d_scatter(ax, plot_data_file):
 if __name__ == "__main__":
 
     import sys
+    from cPickle import dump
+    from ensemble_hic.setup_functions import parse_config_file, make_posterior
+    from ensemble_hic.analysis_functions import load_sr_samples
 
     cfg_file = sys.argv[1]
     out_file = sys.argv[2]
@@ -68,3 +68,6 @@ if __name__ == "__main__":
     sels_x = [fwm.data_points[sel,2] for sel in sels]
     sels_y = [fwm(**map_sample.variables)[sel] for sel in sels]
     maks = np.concatenate((fwm.data_points[:,2], fwm(**map_sample.variables))).max()
+
+    with open(out_file, "w") as opf:
+        dump((all_but_sel_x, all_but_sel_y, sels_x, sels_y, maks), opf)
