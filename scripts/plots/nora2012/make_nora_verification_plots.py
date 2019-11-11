@@ -21,7 +21,3 @@ after_ax = plt.subplot2grid(fig_shape, (3, 3), rowspan=2, colspan=3,
 plot_after_hist(after_ax)
 
 plt.gcf().tight_layout()
-# plt.gcf().set_size_inches((12.24, 6.01))
-# plt.gcf().subplots_adjust(left=0.12, bottom=0.13,
-#                           right=0.96, top=0.96,
-#                           wspace=0.75, hspace=.95)
