@@ -13,11 +13,11 @@ fish_axes = [plt.subplot2grid(fig_shape, (i / 3, (i % 3) * 2), colspan=2)
 from distance_distributions import plot_all_hists
 plot_all_hists(fish_axes, "plot_data/distance_distributions.pickle")
 
-from differentiation import plot_before_hist, plot_after_hist
+from differentiation import plot_rg_hist
 before_ax = plt.subplot2grid(fig_shape, (3, 0), rowspan=2, colspan=3)
-plot_before_hist(before_ax)
+plot_rg_hist(before_ax, "plot_data/before.pickle")
 after_ax = plt.subplot2grid(fig_shape, (3, 3), rowspan=2, colspan=3,
                             sharex=before_ax)
-plot_after_hist(after_ax)
+plot_rg_hist(after_ax, "plot_data/after.pickle")
 
 plt.gcf().tight_layout()
