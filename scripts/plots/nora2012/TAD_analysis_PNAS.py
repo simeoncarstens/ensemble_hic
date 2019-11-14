@@ -2,29 +2,40 @@ import os
 import sys
 import numpy as np
 import matplotlib.pyplot as plt
-
 from scipy.spatial.distance import pdist, squareform
-
 from csb.bio.utils import rmsd, radius_of_gyration as rog, distance_matrix
-
 from ensemble_hic.analysis_functions import load_sr_samples
+from ensemble_hic.TAD_analysis_PNAS_c import find_TADs, find_TADs_pop
 
-n_beads = 308
 
-sim_path = '/scratch/scarste/ensemble_hic/nora2012/bothdomains_fixed_it3_rep3_20structures_309replicas/'
-s = load_sr_samples(sim_path + 'samples/', 309, 50001, 1000, 30000)
-X = np.array([x.variables['structures'].reshape(20, 308, 3)
-              for x in s]) * 53
+fwm = lambda x: 0.5 * (x / np.sqrt(1 + x * x) + 1)
+cgen_ss = lambda d, a, cutoff, offset: np.triu((fwm(a * (cutoff - d))), offset)
+random = lambda n: np.random.choice(np.arange(len(X)), n)
 
-t1 = X[:,:,:107]
-t2 = X[:,:,107:]
-t1flat = t1.reshape(-1, 107,3)
-t2flat = t2.reshape(-1, 201,3)
 
-cgen_ss = lambda d, a, cutoff, offset: np.triu((a*(cutoff-d)/np.sqrt(1+a*a*(d-cutoff)*(d-cutoff))+1)*0.5, offset)
+def calculate_TAD_boundaries(X):
 
-def find_TADs(x, cutoff=1.5, offset=(3,10)[1]):
+    np.random.seed(32)
+    
+    cutoff = 2.0
     a = 10.0
+    offset = 6
+
+    if False:
+        scores_pop = np.array(map(lambda x: find_TADs_pop_py(x, a, cutoff, offset),
+                                  X / 53.0))
+        scores = np.array(map(lambda x: find_TADs_py(x, a, cutoff, offset),
+                              X.reshape(-1,308,3) / 53.0))
+
+    else:
+        # Cython implementation, only a little faster unfortunately
+        scores_pop = find_TADs_pop(X / 53.0, a, cutoff, offset)
+        scores = find_TADs(X.reshape(-1, 308, 3) / 53.0, a, cutoff, offset)
+
+    return scores_pop, scores
+    
+
+def find_TADs_py(x, a, cutoff, offset):
     d = distance_matrix(x)
     c = cgen_ss(d, a, cutoff, offset)
     j = np.arange(len(x))
@@ -33,8 +44,7 @@ def find_TADs(x, cutoff=1.5, offset=(3,10)[1]):
 
     return np.argmax(counts.astype('d') / areas)
 
-def find_TADs_pop(X, cutoff=1.5, offset=(3,10)[1]):
-    a = 10.0
+def find_TADs_pop_py(X, a, cutoff, offset):
     d = np.array([squareform(pdist(x)) for x in X])
     c = np.sum(map(lambda sd: cgen_ss(sd, a, cutoff, offset), d), axis=0) / len(d)
     j = np.arange(len(X[0]))
@@ -43,29 +53,10 @@ def find_TADs_pop(X, cutoff=1.5, offset=(3,10)[1]):
 
     return np.argmax(counts.astype('d') / areas)
 
-def plot_TAD_boundary_hists(ax):
-    
-    cutoff = 2.0
-    offset = 6
-    n_samples = 1000
+def plot_TAD_boundary_hists(ax, data_file):
 
-    np.random.seed(32)
-    random = lambda n: np.random.choice(np.arange(len(X)), n)
-    if False:
-        scores_pop = np.array(map(lambda x: find_TADs_pop(x, cutoff, offset),
-                                  X[random(n_samples)] / 53.0))
-        np.save(os.path.expanduser('~/test/scores_pop.npy'), scores_pop)
-    else:
-        scores_pop = np.load(os.path.expanduser('~/test/scores_pop.npy'))
-    if False:
-        rinds = random(n_samples * 10)
-        scores = np.array(map(lambda x: find_TADs(x, cutoff, offset),
-                              X.reshape(-1,308,3)[rinds] / 53.0))
-        np.save(os.path.expanduser('~/test/scores.npy'), scores)
-        np.save(os.path.expanduser('~/test/rinds.npy'), rinds)
-    else:
-        scores = np.load(os.path.expanduser('~/test/scores.npy'))
-        rinds = np.load(os.path.expanduser('~/test/rinds.npy'))
+    scores_pop, scores = np.load(data_file)
+
     hargs = dict(alpha=0.5, histtype='stepfilled', normed=True)
     ax.hist(scores, label='single structures', color='gray',
                  bins=np.arange(0,308,2), **hargs)
@@ -80,3 +71,29 @@ def plot_TAD_boundary_hists(ax):
         ax.spines[spine].set_visible(False)
     ax.legend(frameon=False)
     ax.set_yscale('log')
+
+
+if __name__ == "__main__":
+
+    import sys
+    from cPickle import dump
+    from ensemble_hic.setup_functions import parse_config_file
+
+    cfg_file = sys.argv[1]
+    output_file = sys.argv[2]
+
+    settings = parse_config_file(cfg_file)
+    n_replicas = int(settings['replica']['n_replicas'])
+    n_structures = int(settings['general']['n_structures'])
+
+    scale_factor = 53
+    
+    samples = load_sr_samples(settings['general']['output_folder'] + 'samples/',
+                              n_replicas, 50001, 1000, 30000)
+    X = np.array([x.variables['structures'].reshape(n_structures, 308, 3)
+                  for x in samples]) * scale_factor
+
+    boundaries = calculate_TAD_boundaries(X)
+
+    with open(output_file, "w") as opf:
+        dump(boundaries, opf)
