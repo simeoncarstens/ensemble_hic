@@ -16,4 +16,4 @@ samples = load_sr_samples(output_folder + 'samples/',
                           int(settings['replica']['n_replicas']),
                           max_samples, 1000, burnin) 
 with open(sys.argv[2], "w") as opf:
-    dump(dict(settings=settings, samples=samples), opf)
+    dump(samples, opf)
