@@ -5,7 +5,6 @@ import matplotlib.pyplot as plt
 from scipy.spatial.distance import pdist, squareform
 from csb.bio.utils import rmsd, radius_of_gyration as rog, distance_matrix
 from ensemble_hic.analysis_functions import load_sr_samples
-from ensemble_hic.TAD_analysis_PNAS_c import find_TADs, find_TADs_pop
 
 
 fwm = lambda x: 0.5 * (x / np.sqrt(1 + x * x) + 1)
@@ -29,6 +28,8 @@ def calculate_TAD_boundaries(X):
 
     else:
         # Cython implementation, only a little faster unfortunately
+        from ensemble_hic.TAD_analysis_PNAS_c import find_TADs, find_TADs_pop
+
         scores_pop = find_TADs_pop(X / 53.0, a, cutoff, offset)
         scores = find_TADs(X.reshape(-1, 308, 3) / 53.0, a, cutoff, offset)
 

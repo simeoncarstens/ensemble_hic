@@ -21,7 +21,7 @@ def plot_avg_rg_trace(ax, data_file):
     scatter_skip = 30 * 5 / skip * 2
     space = np.arange(1, 50001, 20)[::skip]
     ax.plot(space, rogs[1::skip].mean(axis=1), c='black')
-    ax.scatter(space[::scatter_skip].repeat(20).reshape(-1,20),
+    ax.scatter(space[::scatter_skip].repeat(30).reshape(-1,30),
                rogs[1::skip][::scatter_skip],
                alpha=0.2,s=20, color='black')
     

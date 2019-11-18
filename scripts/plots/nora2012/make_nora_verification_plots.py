@@ -21,3 +21,5 @@ after_ax = plt.subplot2grid(fig_shape, (3, 3), rowspan=2, colspan=3,
 plot_rg_hist(after_ax, "plot_data/after.pickle")
 
 plt.gcf().tight_layout()
+
+plt.show()

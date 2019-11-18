@@ -65,14 +65,14 @@ if __name__ == "__main__":
 
     scale_factor = 53
 
-    for cfg_file, out_file in zip((before_cfg_file, before_out_file),
-                                  (after_cfg_file, after_out_file)):
+    for cfg_file, out_file in zip((before_cfg_file, after_cfg_file),
+                                  (before_out_file, after_out_file)):
 
         settings = parse_config_file(cfg_file)
         n_replicas = int(settings['replica']['n_replicas'])
         n_structures = int(settings['general']['n_structures'])
         samples = load_sr_samples(settings['general']['output_folder'] + 'samples/',
-                              n_replicas, 50001, 1000, 30000)
+                              n_replicas, 45001, 1000, 25000)
         X = np.array([x.variables['structures'].reshape(n_structures, 308, 3)
                       for x in samples]) * scale_factor
         rgs = calculate_rgs(X)

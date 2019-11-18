@@ -1,4 +1,5 @@
 import os
+import sys
 import numpy as np
 import matplotlib.pyplot as plt
 sys.path.append(os.path.expanduser('~/projects/ensemble_hic/scripts/plots/nora2012/'))
@@ -12,7 +13,7 @@ from TAD_analysis_PNAS import plot_TAD_boundary_hists
 plot_TAD_boundary_hists(ax2, "plot_data/TAD_boundaries.pickle")
 
 from plot_intermingling_densities import plot_overlap
-plot_overlap(ax3)
+plot_overlap(ax3, "plot_data/overlaps.pickle")
 
 fig.tight_layout()
 plt.show()
