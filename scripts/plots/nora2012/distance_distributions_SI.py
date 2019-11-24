@@ -2,8 +2,7 @@ import os
 import sys
 import numpy as np
 import matplotlib.pyplot as plt
-
-from ensemble_hic.analysis_functions import load_sr_samples
+from matplotlib.lines import Line2D
 
 probes = (
     ('pEN1',  100423573, 100433412, 'Linx'),
@@ -26,34 +25,23 @@ data = {'{}:{}'.format(x[0], x[1]): np.array([float(y) for y in x[2:] if len(y) 
 
 region_start = 100378306
 
-cpath = '/scratch/scarste/ensemble_hic/'
-
-path = cpath + 'nora2012/bothdomains_fixed_it3_rep3_20structures_309replicas/samples/'
-X_highres = np.array([x.variables['structures'].reshape(-1,308,3)
-                      for x in load_sr_samples(path, 309, 50001, 1000, 30000)])
+X_highres = np.load("plot_data/samples_full.pickle", allow_pickle=True)
+X_highres = np.array([x.variables['structures'] for x in X_highres])
 X_highres = X_highres.reshape(-1,308,3) * 53
 
-path = cpath + 'nora2012/15kbbins_bothdomains_fixed_it4_20structures_148replicas/samples/'
-X_lowres = np.array([x.variables['structures'].reshape(-1, 62, 3)
-                      for x in load_sr_samples(path, 114, 90001, 1000, 74000)])
+X_lowres = np.load("plot_data/samples_lowres.pickle", allow_pickle=True)
+X_lowres = np.array([x.variables['structures'] for x in X_lowres])
 X_lowres = X_lowres.reshape(-1, 62, 3) * (5 * 53 ** 3) ** 0.33333
 
-path = cpath + 'nora2012/bothdomains_prior_1structures_59replicas/samples/'
+X_null = np.load("plot_data/samples_prior.pickle", allow_pickle=True)
 X_null = np.array([x.variables['structures'].reshape(-1, 308, 3)
-                      for x in load_sr_samples(path, 59, 80001, 1000, 50000)])
+                      for x in X_null])
 X_null = X_null.reshape(-1, 308, 3) * 53
 
 Xs_alber = []
-# for i in (100, 1000, 10000):
-#     X_temp = np.load(cpath +
-#                      'alber/nora2012/clipped_nosphere_n{}/ensemble.npy'.format(i))
-#     seq_ds = np.array([np.linalg.norm(X_temp[:,i+1] - X_temp[:,i], axis=1)
-#                        for i in range(307)])
-#     Xs_alber.append(X_temp * 53.0 / seq_ds.mean())
 
 for i in (100, 1000, 10000):
-    X_temp = np.load(cpath +
-                     'alber/nora2012/clipped_nosphere_n{}_correctsize/ensemble.npy'.format(i))
+    X_temp = np.load('plot_data/alber_ensemble_n{}.npy'.format(i))
     Xs_alber.append(X_temp)
 
 get_bead = lambda p, bead_size: int((np.mean(p[1:3]) - region_start) / bead_size)
