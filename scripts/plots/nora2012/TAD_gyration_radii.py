@@ -9,10 +9,13 @@ from ensemble_hic.analysis_functions import load_sr_samples
 
 n_beads = 308
 
-sim_path = '/scratch/scarste/ensemble_hic/nora2012/bothdomains_fixed_it3_rep3_20structures_309replicas/'
-s = load_sr_samples(sim_path + 'samples/', 309, 50001, 1000, 30000)
-X = np.array([x.variables['structures'].reshape(20, 308, 3)
-              for x in s]) * 53
+X = np.load('plot_data/samples_full.pickle', allow_pickle=True)
+X = np.array([x.variables['structures'].reshape(30, 308, 3) for x in X]) * 53
+
+# sim_path = '/scratch/scarste/ensemble_hic/nora2012/bothdomains_fixed_it3_rep3_20structures_309replicas/'
+# s = load_sr_samples(sim_path + 'samples/', 309, 50001, 1000, 30000)
+# X = np.array([x.variables['structures'].reshape(20, 308, 3)
+#               for x in s]) * 53
 
 # sim_path = '/scratch/scarste/ensemble_hic/nora2012/bothdomains_nointer_it3_rep3_20structures_309replicas/'
 # s = load_sr_samples(sim_path + 'samples/', 309, 50001, 1000, 30000)
@@ -40,7 +43,7 @@ def plot_rg_heatmap(ax):
     
 def plot_histograms(ax):
 
-    hargs = dict(bins=np.linspace(150, 350, 50), histtype='stepfilled',
+    hargs = dict(bins=np.linspace(150, 400, 50), histtype='stepfilled',
                  normed=True, alpha=0.6)
     ax.hist(rgs_tsix, label='Tsix', color='red', **hargs)
     ax.hist(rgs_xist, label='Xist', color='blue', **hargs)
