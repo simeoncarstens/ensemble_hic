@@ -21,7 +21,7 @@ def calculate_rgs(X):
 
 def plot_rg_hist(ax, data_file):
 
-    rogs_tad1, rogs_tad2 = np.load(data_file)
+    rogs_tad1, rogs_tad2 = np.load(data_file, allow_pickle=True)
 
     tad1_color = 'red'
     tad2_color = 'blue'

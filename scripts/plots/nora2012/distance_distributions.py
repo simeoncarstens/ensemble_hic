@@ -78,7 +78,7 @@ def plot_distance_hists(ax, isd_distances, fish_distances, l1, l2):
         
 def plot_all_hists(axes, plot_data_file):
 
-    isd_distances, fish_distances = np.load(plot_data_file)
+    isd_distances, fish_distances = np.load(plot_data_file, allow_pickle=True)
     
     for i, (l1, l2) in enumerate(combinations):
         plot_distance_hists(axes[i], isd_distances[i], fish_distances[i], l1, l2)

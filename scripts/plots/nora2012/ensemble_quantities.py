@@ -15,7 +15,7 @@ def calculate_rgs(X):
 
 def plot_avg_rg_trace(ax, data_file):
 
-    rogs = np.load(data_file)
+    rogs = np.load(data_file, allow_pickle=True)
     
     skip = 5
     scatter_skip = 30 * 5 / skip * 2

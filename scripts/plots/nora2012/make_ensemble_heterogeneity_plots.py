@@ -10,7 +10,9 @@ from ensemble_quantities import plot_avg_rg_trace
 plot_avg_rg_trace(ax1, "plot_data/rogs.pickle")
 
 from TAD_analysis_PNAS import plot_TAD_boundary_hists
-plot_TAD_boundary_hists(ax2, "plot_data/TAD_boundaries.pickle")
+plot_TAD_boundary_hists(ax2, "plot_data/TAD_boundaries.pickle",
+                        ("plot_data/ENCFF001ZQW.broadPeak.bed",
+                         "plot_data/ENCFF001ZQX.broadPeak.bed"))
 
 from plot_intermingling_densities import plot_overlap
 plot_overlap(ax3, "plot_data/overlaps.pickle")

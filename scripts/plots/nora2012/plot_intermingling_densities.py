@@ -74,7 +74,7 @@ def calculate_overlaps(full_samples, nointer_samples, prior_rg_samples):
 
 def plot_overlap(ax, data_file):
 
-    correlations = np.load(data_file)
+    correlations = np.load(data_file, allow_pickle=True)
 
     sigma = 1.0
 
