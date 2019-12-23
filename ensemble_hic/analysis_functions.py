@@ -66,7 +66,7 @@ def load_sr_samples(samples_folder, replica_id, n_samples,
     for j in xrange((burnin / dump_interval) * dump_interval,
                     n_samples - dump_interval, dump_interval):
         path = samples_folder + 'samples_replica{}_{}-{}.pickle'
-        samples += np.load(path.format(replica_id, j, j+dump_interval))
+        samples += np.load(path.format(replica_id, j, j+dump_interval), allow_pickle=True)
 
     start = burnin * (burnin < dump_interval) + (burnin > dump_interval) * (burnin % dump_interval)
     
