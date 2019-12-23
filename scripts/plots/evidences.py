@@ -1,3 +1,4 @@
+
 import os, sys
 import numpy as np
 import matplotlib.pyplot as plt
@@ -9,12 +10,16 @@ def plot_evidences(ax, plot_data_file):
         uniq, index = np.unique(array, return_index=True)
         return uniq[index.argsort()]
     
-    n_structures, logZs, data_terms = np.load(plot_data_file)
+    n_structures, logZs, data_terms = np.load(plot_data_file, allow_pickle=True)
     ax.plot(n_structures, logZs, ls='--', marker='o', label='evidence',
             color='black')
-    ax.set_ylabel('log(evidence) / # data points', color='black', fontsize=14)
-    ax.set_xlabel('number of states $n$', fontsize=14)
-    ax.set_xticks(n_structures)
+    ax.set_ylabel('log(evidence) / # of data points', color='black',
+                  # fontsize=14
+        )
+    ax.set_xlabel('number of states $n$',
+                  # fontsize=14
+        )
+    ax.set_xticks(n_structures[::2])
     ax.spines['top'].set_visible(False)
     ax.spines['right'].set_visible(False)
     ax.ticklabel_format(style='sci', scilimits=(0,0), axis='y')
@@ -22,8 +27,10 @@ def plot_evidences(ax, plot_data_file):
     ax2 = ax.twinx()
     ax2.plot(n_structures, data_terms, ls='--', marker='s',
              label='data energy', color='gray')
-    ax2.set_ylabel(r'$-\langle$log $L \rangle$', color='gray', fontsize=14)
-    ax2.set_xticks(())
+    ax2.set_ylabel(r'$-\langle$log $L \rangle$', color='gray',
+                   # fontsize=14
+        )
+    ax2.set_xticks(n_structures[::2] + n_structures[-1:])
     ax2.spines['top'].set_visible(False)
     ax2.ticklabel_format(style='sci', scilimits=(0,0), axis='y')
 
@@ -36,7 +43,7 @@ def plot_evidences(ax, plot_data_file):
     inset_ax.spines['top'].set_visible(False)
     inset_ax.spines['right'].set_visible(False)
     inset_ax.set_ylim((-7600, -7300))
-    inset_ax.set_xlim((11, 42))
+    inset_ax.set_xlim((11, 50))
     
 
 

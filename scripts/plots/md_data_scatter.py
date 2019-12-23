@@ -3,7 +3,7 @@ import os
 import numpy as np
 import matplotlib
 # Force matplotlib to not use any Xwindows backend.
-matplotlib.use('Agg')
+# matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 
 n_beads = 308
@@ -11,7 +11,7 @@ n_beads = 308
 
 def plot_md_d_scatter(ax, plot_data_file):
 
-    all_but_sels_x, all_but_sels_y, sels_x, sels_y, maks = np.load(plot_data_file)
+    all_but_sels_x, all_but_sels_y, sels_x, sels_y, maks = np.load(plot_data_file, allow_pickle=True)
     
     ax.set_aspect('equal')
     markers = ('*', 's', 'o')
@@ -27,8 +27,12 @@ def plot_md_d_scatter(ax, plot_data_file):
     ax.set_yscale('log')
     ax.set_xlim(0.9, maks * 1.1)
     ax.set_ylim(0.9, maks * 1.1)
-    ax.set_xlabel('experimental counts', fontsize=14)
-    ax.set_ylabel('back-calculated counts', fontsize=14)
+    ax.set_xlabel('experimental counts',
+                  # fontsize=14
+        )
+    ax.set_ylabel('back-calculated counts',
+                  # fontsize=14
+        )
     ax.spines['top'].set_visible(False)
     ax.spines['right'].set_visible(False)
     ax.legend()

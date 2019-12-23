@@ -12,16 +12,6 @@ n_beads = 308
 X = np.load('plot_data/samples_full.pickle', allow_pickle=True)
 X = np.array([x.variables['structures'].reshape(30, 308, 3) for x in X]) * 53
 
-# sim_path = '/scratch/scarste/ensemble_hic/nora2012/bothdomains_fixed_it3_rep3_20structures_309replicas/'
-# s = load_sr_samples(sim_path + 'samples/', 309, 50001, 1000, 30000)
-# X = np.array([x.variables['structures'].reshape(20, 308, 3)
-#               for x in s]) * 53
-
-# sim_path = '/scratch/scarste/ensemble_hic/nora2012/bothdomains_nointer_it3_rep3_20structures_309replicas/'
-# s = load_sr_samples(sim_path + 'samples/', 309, 50001, 1000, 30000)
-# X_nointer = np.array([x.variables['structures'].reshape(20, 308, 3)
-#                       for x in s]) * 53
-
 t1 = X[:,:,:107]
 t2 = X[:,:,107:]
 t1flat = t1.reshape(-1, 107,3)
@@ -45,8 +35,8 @@ def plot_histograms(ax):
 
     hargs = dict(bins=np.linspace(150, 400, 50), histtype='stepfilled',
                  normed=True, alpha=0.6)
-    ax.hist(rgs_tsix, label='Tsix', color='red', **hargs)
-    ax.hist(rgs_xist, label='Xist', color='blue', **hargs)
+    ax.hist(rgs_tsix, label='Tsix TAD', color='red', **hargs)
+    ax.hist(rgs_xist, label='Xist TAD', color='blue', **hargs)
     for spine in ('top', 'left', 'right'):
         ax.spines[spine].set_visible(False)
     ax.set_xlabel(r'radius of gyration $r_g$ [nm]')

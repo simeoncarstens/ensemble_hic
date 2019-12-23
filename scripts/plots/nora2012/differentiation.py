@@ -25,10 +25,11 @@ def plot_rg_hist(ax, data_file):
 
     tad1_color = 'red'
     tad2_color = 'blue'
-    ax.hist(rogs_tad1, bins=100, label='Tsix TAD', alpha=0.6, color=tad1_color,
+    n_bins = 70
+    ax.hist(rogs_tad1, bins=n_bins, label='Tsix TAD', alpha=0.6, color=tad1_color,
             histtype='stepfilled', normed=True)
     ax.axvline(rogs_tad1.mean(), ls='--', color=tad1_color, lw=2)
-    ax.hist(rogs_tad2, bins=100, label='Xist TAD', alpha=0.6, color=tad2_color,
+    ax.hist(rogs_tad2, bins=n_bins, label='Xist TAD', alpha=0.6, color=tad2_color,
             histtype='stepfilled', normed=True)
     ax.axvline(rogs_tad2.mean(), ls='--', color=tad2_color, lw=2)
     ax.set_xlim((150, 350))
@@ -37,8 +38,8 @@ def plot_rg_hist(ax, data_file):
     ax.spines['top'].set_visible(False)
     ax.spines['right'].set_visible(False)
     ax.spines['left'].set_visible(False)
-
-
+    ax.legend(frameon=False)
+    
 if False:
     font = {'family' : 'normal',
             'weight' : 'normal',

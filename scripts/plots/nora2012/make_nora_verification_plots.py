@@ -20,6 +20,8 @@ after_ax = plt.subplot2grid(fig_shape, (3, 3), rowspan=2, colspan=3,
                             sharex=before_ax)
 plot_rg_hist(after_ax, "plot_data/after.pickle")
 
-plt.gcf().tight_layout()
+fig = plt.gcf()
+fig.set_size_inches((5, 5))
+fig.tight_layout()
 
 plt.show()

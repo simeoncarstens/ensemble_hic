@@ -41,8 +41,11 @@ def plot_binding_sites(ax, filenames):
     encode_peaks_beads = (encode_peaks - coords_min) / bead_size
 
     for i, peak in enumerate(encode_peaks_beads):
+        print peak
         ax.plot((peak, peak), (0, 2.5e-5), color="black", linewidth=0.5, 
-                label="CTCF binding sites" if i == 0 else None)
+        # label="CTCF binding sites" if i == 0 else None,
+                # marker='|'
+            )
 
 
     
@@ -107,7 +110,14 @@ def plot_TAD_boundary_hists(ax, data_file, peak_filenames):
     ax.yaxis.set_visible(False)
     for spine in ('top', 'left', 'right'):
         ax.spines[spine].set_visible(False)
+
+    from matplotlib import lines
+    vertical_line = lines.Line2D([], [], color='black', marker='|', linestyle='None',
+                                 markersize=10, markeredgewidth=.5, label='CTCF binding site')
     handles, labels = ax.get_legend_handles_labels()
+    handles.insert(0, vertical_line)
+    labels.insert(0, "CTCF binding site")
+    handles[0] = vertical_line
     by_label = OrderedDict(zip(labels, handles))
     ax.legend(by_label.values(), by_label.keys(), frameon=False)
     ax.set_yscale('log')

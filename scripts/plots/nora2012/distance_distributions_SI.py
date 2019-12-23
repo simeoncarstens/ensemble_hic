@@ -125,8 +125,8 @@ for ax in axes[-2][1:]:
 for ax in axes[-1][1:]:
     ax.set_visible(False)
 
-l1 = axes[0,0].legend(labels=('ISD (high-res, $n=20$)',
-                              'ISD (low-res, $n=20$)',
+l1 = axes[0,0].legend(labels=('ISD (high-res, $n=30$)',
+                              'ISD (low-res, $n=30$)',
                               'ISD (high-res, prior only)',
                               'FISH'))
 l2 = axes[1,0].legend(labels=(r'PGS ($n=2\times100$)',

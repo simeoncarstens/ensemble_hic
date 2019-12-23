@@ -4,7 +4,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 sys.path.append(os.path.expanduser('~/projects/ensemble_hic/scripts/plots/nora2012/'))
 
-fig, (ax1, ax2, ax3) = plt.subplots(1,3)
+fig, (ax1, ax2, ax3) = plt.subplots(1, 3, figsize=(12, 3))
 
 from ensemble_quantities import plot_avg_rg_trace
 plot_avg_rg_trace(ax1, "plot_data/rogs.pickle")
