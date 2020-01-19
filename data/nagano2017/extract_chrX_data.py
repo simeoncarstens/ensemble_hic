@@ -3,6 +3,8 @@ Reads in single-cell Hi-C data from Nagano et al. (2017)
 Download data from
 https://bitbucket.org/tanaylab/schic2/src/default/
 (section "Sequence processing")
+You also need the file "GATC.fends" from the same
+repository (section "Translating contact maps into genomic coordinates")
 """
 import numpy as np
 import matplotlib.pyplot as plt
