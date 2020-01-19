@@ -129,125 +129,127 @@ def write_cmatrix(cmatrix, filename):
             for j in range(i+1, len(cmatrix)):
                 opf.write('{}\t{}\t{}\n'.format(i, j, int(cmatrix[i,j])))
 
-## please change the path variable to a directory holding your Nora 2012 et al.
-## raw data files
+if __name__ == '__main__':
+                
+    ## please change the path variable to a directory holding your Nora 2012 et al.
+    ## raw data files
 
-if True:
-    ## male mESCs
-    path = os.path.expanduser('~/projects/ensemble_hic/data/nora2012/')
-    rev_fragments1, for_fragments1, matrix1 = parse_5C_file(path + 'GSM873934_male-mESCs-E14-replicate-1.matrix.txt')
-    rev_fragments2, for_fragments2, matrix2 = parse_5C_file(path + 'GSM873935_male-mESCs-E14-replicate-2.matrix.txt')
-
-if False:
-    ## undifferentiated female mESCs
-    path = os.path.expanduser('~/projects/ensemble_hic/data/nora2012/')
-    rev_fragments1, for_fragments1, matrix1 = parse_5C_file(path + 'GSM873927_female-mESCs-PGK12.1-replicate-1.matrix.txt')
-    rev_fragments2, for_fragments2, matrix2 = parse_5C_file(path + 'GSM873928_female-mESCs-PGK12.1-replicate-2.matrix.txt')
-
-if False:
-    ## female mESCs two days into differentiation
-    path = os.path.expanduser('~/projects/ensemble_hic/data/nora2012/')
-    rev_fragments1, for_fragments1, matrix1 = parse_5C_file(path + 'GSM873926_mESCs-female-PGK12.1-day2-Replicate1.txt')
-    matrix2 = matrix1
-
-
-## if there's two replicates, average counts
-rev_fragments = rev_fragments1
-for_fragments = for_fragments1
-matrix = (matrix1 + matrix2) / 2.0
-
-## set bead size in base pairs
-bead_size = 3000
-
-if True:
-    ## both TADs
-    region_start = 100378306
-    region_end = 101298738
-    region_revs, region_fors, region = extract_region(matrix,
-                                                      region_start, region_end)
-    bead_lims = calculate_bead_lims(bead_size, region_revs, region_fors)
-    n_beads = len(bead_lims)
-    rev_mapping, for_mapping = calculate_mappings(region_revs, region_fors, bead_lims)
-    cmatrix = build_cmatrix(rev_mapping, for_mapping, region, n_beads)
+    if True:
+        ## male mESCs
+        path = os.path.expanduser('~/projects/ensemble_hic/data/nora2012/')
+        rev_fragments1, for_fragments1, matrix1 = parse_5C_file(path + 'GSM873934_male-mESCs-E14-replicate-1.matrix.txt')
+        rev_fragments2, for_fragments2, matrix2 = parse_5C_file(path + 'GSM873935_male-mESCs-E14-replicate-2.matrix.txt')
 
     if False:
-        ## filter out inter-TAD contacts for 3kb resolution
-        for i in xrange(len(cmatrix)):
-            for j in xrange(len(cmatrix)):
-                if (i < 108 and j >= 108) or (j < 108 and i >= 108):
-                    cmatrix[i,j] = 0.0
-        write_cmatrix(cmatrix, path + 'bothdomains_nointer.txt')
-    else:
-        write_cmatrix(cmatrix, path + '{}kbbins_bothdomains_clipped.txt'.format(bead_size / 1000))
+        ## undifferentiated female mESCs
+        path = os.path.expanduser('~/projects/ensemble_hic/data/nora2012/')
+        rev_fragments1, for_fragments1, matrix1 = parse_5C_file(path + 'GSM873927_female-mESCs-PGK12.1-replicate-1.matrix.txt')
+        rev_fragments2, for_fragments2, matrix2 = parse_5C_file(path + 'GSM873928_female-mESCs-PGK12.1-replicate-2.matrix.txt')
 
-if not True:
-    ## Tsix TAD
-    region_start = 100378306
-    region_end = 100699670
-    region_revs, region_fors, region = extract_region(matrix,
-                                                      region_start, region_end)
-    bead_lims = calculate_bead_lims(bead_size, region_revs, region_fors)
-    n_beads = len(bead_lims)
-    rev_mapping, for_mapping = calculate_mappings(region_revs, region_fors, bead_lims)
-    cmatrix = build_cmatrix(rev_mapping, for_mapping, region, n_beads)
-    write_cmatrix(cmatrix, path + 'tsix.txt')
-    
-if not True:
-    ## Xist TAD
-    region_start = 100699670 + 1
-    region_end = 101298738
-    region_revs, region_fors, region = extract_region(matrix,
-                                                      region_start, region_end)
-    bead_lims = calculate_bead_lims(bead_size, region_revs, region_fors)
-    n_beads = len(bead_lims)
-    rev_mapping, for_mapping = calculate_mappings(region_revs, region_fors, bead_lims)
-    cmatrix = build_cmatrix(rev_mapping, for_mapping, region, n_beads)
-    write_cmatrix(cmatrix, path + 'xist.txt')
+    if False:
+        ## female mESCs two days into differentiation
+        path = os.path.expanduser('~/projects/ensemble_hic/data/nora2012/')
+        rev_fragments1, for_fragments1, matrix1 = parse_5C_file(path + 'GSM873926_mESCs-female-PGK12.1-day2-Replicate1.txt')
+        matrix2 = matrix1
 
-if True:
-    ## prepare matrix in correct format for PGS (Alber lab)
-    ## both TADs
 
-    from ensemble_hic import kth_diag_indices    
-    
-    region_start = 100378306
-    region_end = 101298738
-    region_revs, region_fors, region = extract_region(matrix,
-                                                      region_start, region_end)
-    bead_lims = calculate_bead_lims(bead_size, region_revs, region_fors)
-    n_beads = len(bead_lims)
-    rev_mapping, for_mapping = calculate_mappings(region_revs, region_fors, bead_lims)
-    cmatrix = build_cmatrix(rev_mapping, for_mapping, region, n_beads)
+    ## if there's two replicates, average counts
+    rev_fragments = rev_fragments1
+    for_fragments = for_fragments1
+    matrix = (matrix1 + matrix2) / 2.0
 
-    ## make symmetric contact matrix with zero on diagonals and
-    ## ones on side diagonals
-    from scipy.spatial.distance import squareform
-    cmatrix[np.diag_indices(len(cmatrix))] = 0
-    flat = squareform(cmatrix)
+    ## set bead size in base pairs
+    bead_size = 3000
+
     if True:
-        ## for male mESCs, there are three data points which have
-        ## exceedingly high counts. This clips these data points to the
-        ## value of the 4th-highest counts
-        th = flat[argsort(flat)][-4]
-        flat[flat > th] = th
-    flat /= flat.max()
-    cmatrix = squareform(flat)
-    cmatrix[kth_diag_indices(cmatrix, 1)] = 1.0
-    cmatrix[kth_diag_indices(cmatrix, -1)] = 1.0
+        ## both TADs
+        region_start = 100378306
+        region_end = 101298738
+        region_revs, region_fors, region = extract_region(matrix,
+                                                          region_start, region_end)
+        bead_lims = calculate_bead_lims(bead_size, region_revs, region_fors)
+        n_beads = len(bead_lims)
+        rev_mapping, for_mapping = calculate_mappings(region_revs, region_fors, bead_lims)
+        cmatrix = build_cmatrix(rev_mapping, for_mapping, region, n_beads)
 
-    ## Write data in format appropriate for the PGS code
-    ## (https://github.com/alberlab/pgs/)
-    ## please adapt paths and file names to your liking
-    TAD_size = bead_size
-    with open(os.path.expanduser('~/projects/mypgs/data/nora2012/prob_matrix_for_alber_final.txt'), 'w') as opf:
-        for i, line in enumerate(cmatrix):
-            opf.write('chr1\t{}\t{}'.format(region_start + i * TAD_size,
-                                            region_start + (i + 1) * TAD_size))
-            for x in line:
-                opf.write('\t{:.6f}'.format(x))
-            opf.write('\n')
+        if False:
+            ## filter out inter-TAD contacts for 3kb resolution
+            for i in xrange(len(cmatrix)):
+                for j in xrange(len(cmatrix)):
+                    if (i < 108 and j >= 108) or (j < 108 and i >= 108):
+                        cmatrix[i,j] = 0.0
+                        write_cmatrix(cmatrix, path + 'bothdomains_nointer.txt')
+        else:
+            write_cmatrix(cmatrix, path + '{}kbbins_bothdomains_clipped.txt'.format(bead_size / 1000))
 
-    with open(os.path.expanduser('~/projects/ensemble_hic/data/nora2012/TADs_for_alber.txt'), 'w') as opf:
-        for i in range(len(cmatrix)):
-            opf.write('chr1\t{}\t{}\tdomain\n'.format(region_start + i * TAD_size,
-                                                      region_start + (i+1) * TAD_size)
+    if not True:
+        ## Tsix TAD
+        region_start = 100378306
+        region_end = 100699670
+        region_revs, region_fors, region = extract_region(matrix,
+                                                          region_start, region_end)
+        bead_lims = calculate_bead_lims(bead_size, region_revs, region_fors)
+        n_beads = len(bead_lims)
+        rev_mapping, for_mapping = calculate_mappings(region_revs, region_fors, bead_lims)
+        cmatrix = build_cmatrix(rev_mapping, for_mapping, region, n_beads)
+        write_cmatrix(cmatrix, path + 'tsix.txt')
+    
+    if not True:
+        ## Xist TAD
+        region_start = 100699670 + 1
+        region_end = 101298738
+        region_revs, region_fors, region = extract_region(matrix,
+                                                          region_start, region_end)
+        bead_lims = calculate_bead_lims(bead_size, region_revs, region_fors)
+        n_beads = len(bead_lims)
+        rev_mapping, for_mapping = calculate_mappings(region_revs, region_fors, bead_lims)
+        cmatrix = build_cmatrix(rev_mapping, for_mapping, region, n_beads)
+        write_cmatrix(cmatrix, path + 'xist.txt')
+
+    if True:
+        ## prepare matrix in correct format for PGS (Alber lab)
+        ## both TADs
+        
+        from ensemble_hic import kth_diag_indices    
+        
+        region_start = 100378306
+        region_end = 101298738
+        region_revs, region_fors, region = extract_region(matrix,
+                                                          region_start, region_end)
+        bead_lims = calculate_bead_lims(bead_size, region_revs, region_fors)
+        n_beads = len(bead_lims)
+        rev_mapping, for_mapping = calculate_mappings(region_revs, region_fors, bead_lims)
+        cmatrix = build_cmatrix(rev_mapping, for_mapping, region, n_beads)
+
+        ## make symmetric contact matrix with zero on diagonals and
+        ## ones on side diagonals
+        from scipy.spatial.distance import squareform
+        cmatrix[np.diag_indices(len(cmatrix))] = 0
+        flat = squareform(cmatrix)
+        if True:
+            ## for male mESCs, there are three data points which have
+            ## exceedingly high counts. This clips these data points to the
+            ## value of the 4th-highest counts
+            th = flat[argsort(flat)][-4]
+            flat[flat > th] = th
+            flat /= flat.max()
+            cmatrix = squareform(flat)
+            cmatrix[kth_diag_indices(cmatrix, 1)] = 1.0
+            cmatrix[kth_diag_indices(cmatrix, -1)] = 1.0
+            
+        ## Write data in format appropriate for the PGS code
+        ## (https://github.com/alberlab/pgs/)
+        ## please adapt paths and file names to your liking
+        TAD_size = bead_size
+        with open(os.path.expanduser('~/projects/mypgs/data/nora2012/prob_matrix_for_alber_final.txt'), 'w') as opf:
+            for i, line in enumerate(cmatrix):
+                opf.write('chr1\t{}\t{}'.format(region_start + i * TAD_size,
+                                                region_start + (i + 1) * TAD_size))
+                for x in line:
+                    opf.write('\t{:.6f}'.format(x))
+                    opf.write('\n')
+
+        with open(os.path.expanduser('~/projects/ensemble_hic/data/nora2012/TADs_for_alber.txt'), 'w') as opf:
+            for i in range(len(cmatrix)):
+                opf.write('chr1\t{}\t{}\tdomain\n'.format(region_start + i * TAD_size,
+                                                          region_start + (i+1) * TAD_size))
