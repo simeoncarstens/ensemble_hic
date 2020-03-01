@@ -46,7 +46,9 @@ def get_schic_contacts(filename):
     return contacts
     
 def map_contacts(contacts):
-    
+
+    from make_processed_files import * 
+
     # map data to 15 kb bins; for now some copy & pasting from make_processed_files.py
     ## male mESCs
     path = os.path.expanduser('~/projects/ensemble_hic/data/nora2012/')
@@ -81,17 +83,30 @@ fnames = [fname_template.format(497 + i, i + 1) for i in range(8)]
 
 all_contacts = map(get_schic_contacts, fnames)
 
+
 if True:
     # map contacts to beads and plot them against contacts in our structures
     all_bead_contacts = map(map_contacts, all_contacts)
 
-    lowres_samples = np.load('plot_data/samples_lowres.pickle', allow_pickle=True)
-    X = lowres_samples[-1].variables['structures'].reshape(30, -1, 3)
-    dms = np.array(map(distance_matrix, X))
-    isd_contacts = dms < 1.5
+    fig, axes = plt.subplots(3, 3, figsize=(10, 10))
+    axes = axes.ravel()
+    for i, contacts in enumerate(all_bead_contacts):
+        axes[i].scatter(*contacts[:,:2].T, alpha=0.5, color="gray")
+        axes[i].scatter(*contacts[:,(1,0)].T, alpha=0.5, color="gray")
+        axes[i].set_aspect("equal")
+        title = "Cell #{}, {} contacts".format(i+1, len(contacts))
+        title += "\n{:.2f} contacts / bead".format(len(contacts) / 62.0)
+        axes[i].set_title(title)
 
-    fig, (ax1, ax2) = plt.subplots(1, 2)
-    for contacts in all_bead_contacts:
-        ax1.scatter(*contacts[:,:2].T, alpha=0.5)
-    ax2.matshow(isd_contacts.sum(0), origin='lower')
+        if False:
+            lowres_samples = np.load('plot_data/samples_lowres.pickle',
+                                     allow_pickle=True)
+            X = lowres_samples[-1].variables['structures'].reshape(30, -1, 3)
+            dms = np.array(map(distance_matrix, X))
+            isd_contacts = dms < 1.5
+            axes[-1].matshow(isd_contacts.sum(0), origin='lower')
+        else:
+            axes[-1].set_visible(False)
+
+    fig.tight_layout()
     plt.show()
