@@ -51,14 +51,13 @@ def calculate_gradient(double [:,:,::1] structures,
                                      alpha, data_points,
                                      distances, sqrtdenoms, md)
     
-    for u in range(n_datapoints):
-        i = data_points[u,0]
-        j = data_points[u,1]
-        for k in range(n_structures):
+    for k in range(n_structures):
+        for u in range(n_datapoints):
+            i = data_points[u,0]
+            j = data_points[u,1]
             d = distances[k,u]
             g = 1.0 + alpha * alpha * (cds[u] - d) * (cds[u] - d)
             f = 0.5 * em_derivative(md[u], data_points[u,2]) * norm * alpha / (g * sqrtdenoms[k,u] * d)
-
             for l in range(3):
                 value = (structures[k,j,l] - structures[k,i,l]) * f
                 result[k * n_beads * 3 + i * 3 + l] += value 

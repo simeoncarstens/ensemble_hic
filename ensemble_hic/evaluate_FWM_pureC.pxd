@@ -26,10 +26,10 @@ cdef inline int ensemble_contacts_evaluate_pureC(double [:,:,::1] structures,
     cdef Py_ssize_t i, j, k, l, m
     cdef double d
  
-    for m in range(n_data_points):
-        i = data_points[m,0]
-        j = data_points[m,1]
-        for k in range(N):
+    for k in range(N):
+        for m in range(n_data_points):
+            i = data_points[m,0]
+            j = data_points[m,1]
             d = 0.0
             for l in range(3):
                 d += (structures[k,i,l] - structures[k,j,l]) * (structures[k,i,l] - structures[k,j,l])
