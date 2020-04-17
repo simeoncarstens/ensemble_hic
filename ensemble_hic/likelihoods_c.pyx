@@ -6,6 +6,7 @@
 import numpy
 cimport numpy
 cimport cython
+from cython cimport view
 from .evaluate_FWM_pureC cimport ensemble_contacts_evaluate_pureC
 
 cdef extern from "math.h" nogil:
@@ -34,13 +35,20 @@ def calculate_gradient(double [:,:,::1] structures,
     error model.
     """
     cdef double d, value, f, g
-    cdef Py_ssize_t i,j,l,u,k,v
+    cdef Py_ssize_t i,j,l,u,k,v, offset
     cdef Py_ssize_t n_datapoints = data_points.shape[0]
     cdef Py_ssize_t n_beads = structures.shape[1]
     cdef Py_ssize_t n_structures  = structures.shape[0]
+
+    my_array2 = view.array(shape=(n_structures, n_datapoints),
+                           itemsize=sizeof(double), format="d")
+    cdef double [:,::1] distances = my_array2
+    
+    my_array3 = view.array(shape=(n_structures, n_datapoints),
+                           itemsize=sizeof(double), format="d")
+    cdef double [:,::1] sqrtdenoms = my_array3
+    
     cdef double [::1] result = numpy.zeros(n_structures * n_beads * 3)
-    cdef double [:,::1] distances = numpy.empty((n_structures, n_datapoints))
-    cdef double [:,::1] sqrtdenoms = numpy.empty((n_structures, n_datapoints))
     cdef double [::1] md = numpy.zeros(n_datapoints)
 
     ## By changing this, you could use other error models. This is basically
@@ -52,6 +60,7 @@ def calculate_gradient(double [:,:,::1] structures,
                                      distances, sqrtdenoms, md)
     
     for k in range(n_structures):
+        offset = k * n_beads * 3
         for u in range(n_datapoints):
             i = data_points[u,0]
             j = data_points[u,1]
@@ -60,8 +69,8 @@ def calculate_gradient(double [:,:,::1] structures,
             f = 0.5 * em_derivative(md[u], data_points[u,2]) * norm * alpha / (g * sqrtdenoms[k,u] * d)
             for l in range(3):
                 value = (structures[k,j,l] - structures[k,i,l]) * f
-                result[k * n_beads * 3 + i * 3 + l] += value 
-                result[k * n_beads * 3 + j * 3 + l] -= value
+                result[offset + i * 3 + l] += value 
+                result[offset + j * 3 + l] -= value
 
     return numpy.array(result)
 
