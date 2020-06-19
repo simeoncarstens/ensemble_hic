@@ -35,6 +35,13 @@ possibly with the ``--user`` option, if you don't have administrator privileges.
 
 Note: to obtain the version of the code with which the results in our PNAS paper were produced, check out the following commit: ``cfeef4a``. In later commits, I did some changes in the Cython code to improve speed, but which don't change the calculations in any way. 
 
+Another option is to run the provided Nix shell (``shell.nix``). `Nix <https://nixos.org>`_ is a purely functional package manager. You can install Nix according to the `documentation <https://nixos.org/download.html>`_. Once this is done, just enter::
+
+  $ nix-shell
+
+and get yourself a nice cup of coffee while Nix downloads and builds ALL dependencies (all the way down to the system level) of the ``ensemble_hic`` package and the package itself. Once this is done, you are dropped into a shell where you can, for example, start a Python interpreter and ``import ensemble_hic`` or run a simulation.  
+
+
 Tests / documentation
 ---------------------
 For most classes, there are unit tests to make sure things work as they're supposed to. You can run the tests by typing::
@@ -48,8 +55,6 @@ $ cd scripts/
 $ mpirun -n 100 python run_simulation /path/to/config_file.cfg
 
 The ``-n`` argument (here, 100) specifies the number of processes, which equals to ``# replicas + 1``. You can find the number of replicas in the config files. You most certainly want to run the simulations on a HPC system, as the simulations all require at least around 50 processes.
-
-In ``scripts/`` there's a colorful assortment of analysis and test scripts, which I still have to tidy up. Feel free to play around (some of that requires ``matplotlib``).
 
 Contact
 -------

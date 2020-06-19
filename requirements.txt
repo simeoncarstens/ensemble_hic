@@ -1,0 +1,7 @@
+numpy
+matplotlib
+cython
+scipy
+csb
+-e git://github.com/simeoncarstens/binf.git#egg=binf
+-e git://github.com/simeoncarstens/rexfw.git#egg=rexfw

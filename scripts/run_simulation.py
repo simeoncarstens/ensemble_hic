@@ -44,7 +44,7 @@ elif re_params['schedule'][-3:] == '.py':
     schedule = {'lammda': betas, 'beta': betas}
 
 else:
-    schedule = np.load(re_params['schedule'])
+    schedule = np.load(re_params['schedule'], allow_pickle=True)
 
 if rank == 0:
 
