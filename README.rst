@@ -62,9 +62,9 @@ If you have questions, don't hesitate to drop me a message.
 
 Reference
 ---------
-If you discuss / use / extend this software, please cite our preprint (or, at some later point, the peer-reviewed paper), as follows:
+If you discuss / use / extend this software, please cite our paper:
 
-``Carstens, S., Nilges, M., Habeck, M. Bayesian inference of chromatin structure ensembles from population Hi-C data. bioRxiv 493676; doi: https://doi.org/10.1101/493676``
+``Carstens, S., Nilges, M., & Habeck, M. (2020). Bayesian inference of chromatin structure ensembles from population-averaged contact data. Proceedings of the National Academy of Sciences, 117(14), 7824-7830.``
 
 License
 -------
