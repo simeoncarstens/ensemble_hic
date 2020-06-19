@@ -4,7 +4,7 @@ Bayesian inference of chromatin structure ensembles from population Hi-C data
 
 What is this package about?
 ---------------------------
-This Python package implements a Bayesian approach to infer explicit chromatin structure ensembles from population-averaged Hi-C data (`Carstens et al., bioRxiv 493676 <https://www.biorxiv.org/content/early/2018/12/12/493676>`_). It is based on the Inferential Structure Determination (ISD, `Rieping et al., Science 2005) <http://science.sciencemag.org/content/309/5732/303>`_) approach and extends our previous work, in which we used ISD to infer chromosome structures from single-cell data (`Carstens et al., PLOS Comput. Biol. 2016 <http://journals.plos.org/ploscompbiol/article?id=10.1371/journal.pcbi.1005292>`_).
+This Python package implements a Bayesian approach to infer explicit chromatin structure ensembles from population-averaged Hi-C data (`Carstens et al., PNAS 2020 <https://www.pnas.org/content/117/14/7824.short>`_). It is based on the Inferential Structure Determination (ISD, `Rieping et al., Science 2005) <http://science.sciencemag.org/content/309/5732/303>`_) approach and extends our previous work, in which we used ISD to infer chromosome structures from single-cell data (`Carstens et al., PLOS Comput. Biol. 2016 <http://journals.plos.org/ploscompbiol/article?id=10.1371/journal.pcbi.1005292>`_).
 
 The code comprises classes implementing a likelihood for population-averaged contact data, prior distributions for chromatin bead coordinates and nuisance parameters, scripts to run simulations, example config files, unit tests, documentation and various utility functions and classes.
 
@@ -18,15 +18,22 @@ The ensemble_hic package has several dependencies:
 - the Computational Structural Biology Toolbox (CSB, `download <https://github.com/csb-toolbox/CSB>`_)
 - my binf (`download <http://bitbucket.org/simeon_carstens/binf>`_) package
 - my rexfw (`download <http://bitbucket.org/simeon_carstens/rexfw>`_) package
-- an OpenMPI implementation
+- an MPI (Message Passing Interface) implementation. I use OpenMPI.
 
 That's it, I believe.
       
-Install these and you should be able to install ensemble_hic by typing::
+For all the Python dependencies, it's best to use ``pip`` in a virtual environment so as not to mess up your system Python installation.
+With it, the required dependencies can be installed by running::
 
-    $ python setup.py install
+    $ pip install -r requirements.txt
+
+Once this is done, install the ``ensemble_hic`` package by running::
+
+    $ pip install .
     
 possibly with the ``--user`` option, if you don't have administrator privileges.
+
+Note: to obtain the version of the code with which the results in our PNAS paper were produced, check out the following commit: ``cfeef4a``. In later commits, I did some changes in the Cython code to improve speed, but which don't change the calculations in any way. 
 
 Tests / documentation
 ---------------------
