@@ -78,7 +78,7 @@ else:
     from rexfw.slaves import Slave
     from rexfw.proposers.re import REProposer
 
-    from isd2.samplers.gibbs import GibbsSampler
+    from binf.samplers.gibbs import GibbsSampler
     
     from ensemble_hic.setup_functions import make_posterior, make_subsamplers
     from ensemble_hic.setup_functions import setup_initial_state
