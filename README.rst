@@ -16,8 +16,8 @@ The ensemble_hic package has several dependencies:
 - numpy (`download <https://pypi.python.org/pypi/numpy>`_)
 - mpi4py (`download <https://pypi.org/project/mpi4py/>`_)
 - the Computational Structural Biology Toolbox (CSB, `download <https://github.com/csb-toolbox/CSB>`_)
-- my binf (`download <http://bitbucket.org/simeon_carstens/binf>`_) package
-- my rexfw (`download <http://bitbucket.org/simeon_carstens/rexfw>`_) package
+- my binf (`download <http://github.com/simeoncarstens/binf>`_) package
+- my rexfw (`download <http://github.com/simeoncarstens/rexfw>`_) package
 - an MPI (Message Passing Interface) implementation. I use OpenMPI.
 
 That's it, I believe.
