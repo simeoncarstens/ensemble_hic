@@ -56,6 +56,13 @@ $ mpirun -n 100 python run_simulation /path/to/config_file.cfg
 
 The ``-n`` argument (here, 100) specifies the number of processes, which equals to ``# replicas + 1``. You can find the number of replicas in the config files. You most certainly want to run the simulations on a HPC system, as the simulations all require at least around 50 processes.
 
+You can run a toy simulation on your machine with::
+
+$ cd scripts/
+$ mpirun -n 3 python hairpin_s/config.cfg
+
+This will try to infer two states from synthetic data obtained from two artificial conformations of a chain of 23 beads: a hairpin-shaped and an "S"-shaped conformation. Results will be written to ``/tmp/hairpin_s/``. It runs two replicas, but most certainly no exchanges will be accepted. This doesn't matter because for this example, no Replica Exchange is required. You can use this as a quick test whether your setup and MPI installation works.
+
 Contact
 -------
 If you have questions, don't hesitate to drop me a message.
